@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:13-alpine
+    container_name: postgres-test
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${TEST_DB_NAME:-testdb}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "${DB_TEST_PORT:-5433}:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-testdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_test_data:

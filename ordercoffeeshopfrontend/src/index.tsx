@@ -11,7 +11,6 @@ import Checkout from './pages/Checkout';
 import StaffDashboard from './pages/staff/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
 import type { CartItem } from './types/coffee';
-import './App.css';
 import { Home } from './pages/Home';
 import Unauthorized from './pages/Unauthorized';
 

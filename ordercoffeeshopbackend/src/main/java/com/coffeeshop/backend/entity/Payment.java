@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -20,14 +19,14 @@ public class Payment extends BaseEntity {
     private Order order;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false, columnDefinition = "ENUM('CASH', 'MOMO', 'ZALOPAY', 'CARD')")
+    @Column(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethod;
 
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, columnDefinition = "ENUM('PENDING', 'SUCCESS', 'FAILED')")
+    @Column(name = "status", nullable = false)
     private PaymentStatus status = PaymentStatus.PENDING;
 
     @Column(name = "payment_date")

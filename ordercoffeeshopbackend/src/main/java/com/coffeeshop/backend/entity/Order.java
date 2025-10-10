@@ -22,7 +22,7 @@ public class Order extends BaseEntity {
     private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, columnDefinition = "ENUM('PENDING', 'PAID', 'CANCELLED')")
+    @Column(name = "status", nullable = false)
     private OrderStatus status = OrderStatus.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)

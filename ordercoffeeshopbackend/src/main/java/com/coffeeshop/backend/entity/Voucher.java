@@ -19,7 +19,7 @@ public class Voucher extends BaseEntity {
     private String code;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "discount_type", nullable = false, columnDefinition = "ENUM('PERCENT', 'AMOUNT')")
+    @Column(name = "discount_type", nullable = false)
     private DiscountType discountType;
 
     @Column(name = "discount_value", nullable = false, precision = 10, scale = 2)

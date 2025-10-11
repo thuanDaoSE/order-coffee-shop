@@ -1,19 +1,16 @@
 package com.coffeeshop.backend.controller;
 
+import com.coffeeshop.backend.dto.auth.*;
+import com.coffeeshop.backend.service.AuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.coffeeshop.backend.dto.auth.LoginRequest;
-import com.coffeeshop.backend.dto.auth.LoginResponse;
-import com.coffeeshop.backend.dto.auth.RegisterRequest;
-import com.coffeeshop.backend.dto.auth.RegisterResponse;
-import com.coffeeshop.backend.service.AuthService;
-
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -22,6 +19,9 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Value("${spring.security.jwt.expiration}")
+    private int jwtExpiration;
+
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest registerRequest) {
         RegisterResponse registerResponse = authService.registerNewUser(registerRequest);
@@ -29,8 +29,46 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         LoginResponse loginResponse = authService.login(loginRequest);
+
+        Cookie cookie = new Cookie("jwt", loginResponse.getToken());
+        cookie.setHttpOnly(true); // Prevents JavaScript access
+        cookie.setSecure(true); // Only sent over HTTPS
+        cookie.setPath("/"); // Cookie is available for all paths
+        cookie.setMaxAge(jwtExpiration / 1000); // Cookie expiration same as JWT
+        cookie.setAttribute("SameSite", "Strict"); // CSRF protection
+
+        // Set additional security headers
+        response.setHeader("X-Content-Type-Options", "nosniff");
+        response.setHeader("X-Frame-Options", "DENY");
+        response.setHeader("X-XSS-Protection", "1; mode=block");
+
+        response.addCookie(cookie);
+
+        // Don't send the token in the response body for security
+        loginResponse.setToken(null);
+
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserDetails> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(userDetails);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("jwt", "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // Immediately expire the cookie
+        cookie.setAttribute("SameSite", "Strict");
+
+        response.addCookie(cookie);
+        response.setHeader("Clear-Site-Data", "\"cache\", \"cookies\"");
+
+        return ResponseEntity.ok().build();
     }
 }

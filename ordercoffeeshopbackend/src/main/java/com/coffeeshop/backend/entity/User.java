@@ -12,11 +12,17 @@ import java.util.List;
 @Getter
 @Setter
 public class User extends BaseEntity {
-    @Column(name = "username", nullable = false, unique = true, length = 50)
-    private String username;
+    @Column(name = "email", nullable = false, unique = true, length = 50)
+    private String email;
 
     @Column(name = "password", nullable = false, length = 255)
     private String password;
+
+    @Column(name = "fullname", nullable = false, length = 50)
+    private String fullname;
+
+    @Column(name = "phone", nullable = false, length = 15)
+    private String phone;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)

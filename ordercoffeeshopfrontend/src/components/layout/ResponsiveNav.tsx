@@ -97,10 +97,10 @@ const ResponsiveNav = ({ cartCount = 0 }: ResponsiveNavProps) => {
     const allNavs = [...navItems];
     if (user) {
       allNavs.push(...userNavItems);
-      if (user.role === 'barista' || user.role === 'admin') {
+      if (user.role === 'STAFF' || user.role === 'ADMIN') {
         allNavs.push(...staffNavItems);
       }
-      if (user.role === 'admin') {
+      if (user.role === 'ADMIN') {
         allNavs.push(...adminNavItems);
       }
     }
@@ -171,7 +171,7 @@ const ResponsiveNav = ({ cartCount = 0 }: ResponsiveNavProps) => {
                           Profile
                         </Link>
 
-                        {user.role === 'admin' && (
+                        {user.role === 'ADMIN' && (
                           <Link
                             to={PATHS.ADMIN}
                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -182,7 +182,7 @@ const ResponsiveNav = ({ cartCount = 0 }: ResponsiveNavProps) => {
                           </Link>
                         )}
 
-                        {(user.role === 'barista' || user.role === 'admin') && (
+                        {(user.role === 'STAFF' || user.role === 'ADMIN') && (
                           <Link
                             to={PATHS.STAFF}
                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

@@ -40,24 +40,24 @@ public class SecurityConfig {
 
                 // 3. Định nghĩa các quy tắc ủy quyền (Authorization)
                 .authorizeHttpRequests(auth -> auth
-                        // // Authentication endpoints
-                        // .requestMatchers("/api/v1/auth/login").permitAll()
-                        // .requestMatchers("/api/v1/auth/register").permitAll()
+                        // Authentication endpoints
+                        .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers("/api/v1/auth/register").permitAll()
 
-                        // // Admin-only endpoints
-                        // .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        // Admin-only endpoints
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                        // // User-only endpoints (or authenticated users)
-                        // .requestMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")
-                        // // .requestMatchers("/api/v1/products/**").hasAnyRole("USER", "ADMIN")
+                        // User-only endpoints (or authenticated users)
+                        .requestMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/v1/products/**").hasAnyRole("USER", "ADMIN")
                         // .requestMatchers("/api/v1/products/**").permitAll()
-                        // .requestMatchers("/api/v1/cart/**").hasAnyRole("USER", "ADMIN")
-                        // .requestMatchers("/api/v1/orders/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/v1/cart/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/v1/orders/**").hasAnyRole("USER", "ADMIN")
 
                         // // Public endpoints (if any, e.g., viewing products without login)
 
                         // // All other requests require authentication
-                        .anyRequest().permitAll())
+                        .anyRequest().authenticated())
 
                 // 4. Cấu hình quản lý session
                 // Với JWT, chúng ta muốn ứng dụng stateless, tức là không lưu trữ session trên
@@ -118,8 +118,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // In production, replace "*" with specific origins
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000", // React default
-                "http://localhost:4200" // Angular default
+                "http://localhost:3000",
+                "http://localhost:5173" // React default
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(

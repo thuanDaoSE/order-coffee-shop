@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { register as apiRegister } from '../services/apiService';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +12,6 @@ const Register = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,14 +21,6 @@ const Register = () => {
   const validateForm = () => {
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters');
-      return false;
-    }
-    if (!/[A-Z]/.test(formData.password)) {
-      setError('Password must contain at least one uppercase letter');
-      return false;
-    }
-    if (!/[0-9]/.test(formData.password)) {
-      setError('Password must contain at least one number');
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -47,10 +38,10 @@ const Register = () => {
 
     setIsLoading(true);
     try {
-      await register(formData.email, formData.password, formData.name, formData.phone);
-      navigate('/');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      await apiRegister({ email: formData.email, fullname: formData.name, phone: formData.phone, password: formData.password });
+      navigate('/login');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Registration failed');
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +80,7 @@ const Register = () => {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+              Email Address (as username)
             </label>
             <input
               id="email"
@@ -133,7 +124,6 @@ const Register = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
               placeholder="••••••••"
             />
-            <p className="text-xs text-gray-500 mt-1">At least 8 characters, 1 uppercase, 1 number</p>
           </div>
 
           <div>

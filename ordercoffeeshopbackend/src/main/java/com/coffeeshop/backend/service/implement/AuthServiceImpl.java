@@ -19,7 +19,7 @@ import com.coffeeshop.backend.mapper.AuthMapper;
 import com.coffeeshop.backend.repository.UserRepository;
 import com.coffeeshop.backend.security.JwtTokenProvider;
 import com.coffeeshop.backend.service.AuthService;
-import com.coffeeshop.backend.exception.UserAlreadyExistsException;
+import com.coffeeshop.backend.exception.EmailAlreadyExistsException;
 
 import jakarta.security.auth.message.AuthException;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +36,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public RegisterResponse registerNewUser(RegisterRequest registerRequest) {
-        Optional<User> userOptional = userRepository.findByUsername(registerRequest.getUsername());
+        Optional<User> userOptional = userRepository.findByEmail(registerRequest.getEmail());
         if (userOptional.isPresent()) {
-            throw new UserAlreadyExistsException("User already exists");
+            throw new EmailAlreadyExistsException("Email already exists");
         }
 
         User user = authMapper.toUser(registerRequest);
@@ -56,18 +56,16 @@ public class AuthServiceImpl implements AuthService {
         // dụ: BadCredentialsException).
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
+                        loginRequest.getEmail(),
                         loginRequest.getPassword()));
 
         // 2. TẠO TOKEN TỪ OBJECT AUTHENTICATION ĐÃ XÁC THỰC
         String token = jwtTokenProvider.generateToken(authentication);
 
-        // 3. LẤY ENTITY ĐÃ XÁC THỰC TỪ PRINCIPAL
-        // Giả sử bạn đang dùng CustomUserDetails hoặc User Entity triển khai
-        // UserDetails
-        // Nếu không, bạn cần một bước tìm kiếm nhẹ nhàng, nhưng tốt nhất là lấy từ
-        // Principal.
-        User userFound = (User) authentication.getPrincipal(); // Giả sử User Entity của bạn implements UserDetails
+        // 3. LẤY USERNAME TỪ PRINCIPAL VÀ TÌM USER TRONG DATABASE
+        String username = authentication.getName();
+        User userFound = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + username));
 
         // 4. ÁNH XẠ VÀ TRẢ VỀ
         return authMapper.toLoginResponse(userFound, token);

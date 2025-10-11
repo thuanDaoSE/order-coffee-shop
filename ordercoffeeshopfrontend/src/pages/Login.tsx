@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { login as apiLogin } from '../services/apiService';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -16,10 +17,12 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      const response = await apiLogin({ email, password });
+      // Backend đã set httpOnly cookie. Frontend chỉ cần lấy thông tin user.
+      login(response.data); // Giả sử response.data.user chứa thông tin người dùng
       navigate('/');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }

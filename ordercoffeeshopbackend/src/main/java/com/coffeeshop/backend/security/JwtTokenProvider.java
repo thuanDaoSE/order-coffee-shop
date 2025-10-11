@@ -19,12 +19,12 @@ public class JwtTokenProvider {
     private int jwtExpiration;
     
     public String generateToken(Authentication authentication) {
-        String username = authentication.getName();
+        String email = authentication.getName();
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS256, secretKey)
@@ -32,7 +32,7 @@ public class JwtTokenProvider {
     }
     // username - issuedAt - expiration-sign-compact
 
-    public String getUserNameFromToken(String token) {
+    public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()

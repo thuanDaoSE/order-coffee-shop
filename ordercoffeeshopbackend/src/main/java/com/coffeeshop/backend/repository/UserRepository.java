@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.coffeeshop.backend.entity.User;
 
-@Repository 
+@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
 }

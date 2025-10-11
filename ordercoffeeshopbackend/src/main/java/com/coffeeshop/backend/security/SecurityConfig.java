@@ -40,23 +40,24 @@ public class SecurityConfig {
 
                 // 3. Định nghĩa các quy tắc ủy quyền (Authorization)
                 .authorizeHttpRequests(auth -> auth
-                        // Authentication endpoints
-                        .requestMatchers("/api/v1/auth/login").permitAll()
-                        .requestMatchers("/api/v1/auth/register").permitAll()
+                        // // Authentication endpoints
+                        // .requestMatchers("/api/v1/auth/login").permitAll()
+                        // .requestMatchers("/api/v1/auth/register").permitAll()
 
-                        // Admin-only endpoints
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        // // Admin-only endpoints
+                        // .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                        // User-only endpoints (or authenticated users)
-                        .requestMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/v1/products/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/v1/cart/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/v1/orders/**").hasAnyRole("USER", "ADMIN")
+                        // // User-only endpoints (or authenticated users)
+                        // .requestMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")
+                        // // .requestMatchers("/api/v1/products/**").hasAnyRole("USER", "ADMIN")
+                        // .requestMatchers("/api/v1/products/**").permitAll()
+                        // .requestMatchers("/api/v1/cart/**").hasAnyRole("USER", "ADMIN")
+                        // .requestMatchers("/api/v1/orders/**").hasAnyRole("USER", "ADMIN")
 
-                        // Public endpoints (if any, e.g., viewing products without login)
+                        // // Public endpoints (if any, e.g., viewing products without login)
 
-                        // All other requests require authentication
-                        .anyRequest().authenticated())
+                        // // All other requests require authentication
+                        .anyRequest().permitAll())
 
                 // 4. Cấu hình quản lý session
                 // Với JWT, chúng ta muốn ứng dụng stateless, tức là không lưu trữ session trên

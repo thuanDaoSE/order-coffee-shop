@@ -1,6 +1,6 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Menu from './pages/Menu';
@@ -10,77 +10,46 @@ import Register from './pages/Register';
 import Checkout from './pages/Checkout';
 import StaffDashboard from './pages/staff/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
-import type { CartItem as NewCartItem } from './types/cart'; // Sử dụng type mới
 import { Home } from './pages/Home';
 import Unauthorized from './pages/Unauthorized';
-
-// Admin components (you'll need to create these components)
 import AdminMenu from './pages/AdminMenu';
 import AdminUsers from './pages/AdminUsers';
 import AdminReports from './pages/AdminReports';
 
-const getInitialCart = (): NewCartItem[] => {
-  try {
-    const item = window.localStorage.getItem('cartItems');
-    return item ? JSON.parse(item) : [];
-  } catch (error) {
-    console.error('Error reading cart from localStorage', error);
-    return [];
-  }
-};
-
-function App() {
-  const [cartCount, setCartCount] = useState(0);
-  const [cartItems, setCartItems] = useState<NewCartItem[]>(getInitialCart);
+const AppRoutes = () => {
   const { user } = useAuth();
-
-  const clearCart = () => {
-    setCartItems([]);
-    setCartCount(0);
-  };
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    window.localStorage.setItem('cartItems', JSON.stringify(cartItems));
-  }, [cartItems]);
-
+  
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
 
-      {/* Home Routes */}
+      {/* Home Route */}
       <Route path="/" element={
-        <Layout cartCount={cartCount}>
-          <Home 
-           
-          />
+        <Layout>
+          <Home />
         </Layout>
       } />
 
-       {/* Menu Routes */}
-       <Route path="/menu" element={
-        <Layout cartCount={cartCount}>
-          <Menu 
-            cartItems={cartItems}
-            setCartItems={setCartItems}
-            setCartCount={setCartCount}
-          />
+      {/* Menu Route */}
+      <Route path="/menu" element={
+        <Layout>
+          <Menu />
         </Layout>
       } />
       
       <Route path="/checkout" element={
         <ProtectedRoute>
-          <Layout cartCount={cartCount}>
-            <Checkout cartItems={cartItems} onClearCart={clearCart} />
+          <Layout>
+            <Checkout />
           </Layout>
         </ProtectedRoute>
       } />
 
       <Route path="/orders" element={
         <ProtectedRoute>
-          <Layout cartCount={cartCount}>
+          <Layout>
             <Orders />
           </Layout>
         </ProtectedRoute>
@@ -89,51 +58,65 @@ function App() {
       {/* Staff/Barista Routes */}
       <Route path="/staff" element={
         <ProtectedRoute allowedRoles={['BARISTA', 'ADMIN']}>
-          <Layout cartCount={cartCount}>
+          <Layout>
             <StaffDashboard />
           </Layout>
         </ProtectedRoute>
       } />
 
       {/* Admin Routes */}
-      {/* Admin Routes */}
       <Route path="/admin">
         <Route index element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
-            <Layout cartCount={cartCount}>
+            <Layout>
               <AdminDashboard />
             </Layout>
           </ProtectedRoute>
         } />
         <Route path="menu" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
-            <Layout cartCount={cartCount}>
+            <Layout>
               <AdminMenu />
             </Layout>
           </ProtectedRoute>
         } />
         <Route path="users" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
-            <Layout cartCount={cartCount}>
+            <Layout>
               <AdminUsers />
             </Layout>
           </ProtectedRoute>
         } />
         <Route path="reports" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
-            <Layout cartCount={cartCount}>
+            <Layout>
               <AdminReports />
             </Layout>
           </ProtectedRoute>
         } />
       </Route>
 
-      <Route path="/unauthorized" element={
-        <Layout cartCount={cartCount}>
-          <Unauthorized />
+      {/* Fallback Route */}
+      <Route path="*" element={
+        <Layout>
+          <div className="flex flex-col items-center justify-center min-h-[60vh]">
+            <h1 className="text-4xl font-bold text-amber-800 mb-4">404 - Not Found</h1>
+            <p className="text-gray-600 mb-6">The page you're looking for doesn't exist.</p>
+            <Link to="/" className="px-6 py-2 bg-amber-700 text-white rounded-md hover:bg-amber-800 transition-colors">
+              Go to Home
+            </Link>
+          </div>
         </Layout>
       } />
     </Routes>
+  );
+};
+
+function App() {
+  return (
+    <CartProvider>
+      <AppRoutes />
+    </CartProvider>
   );
 }
 export default App;

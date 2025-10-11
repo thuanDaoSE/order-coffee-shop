@@ -3,13 +3,12 @@ import Navbar from './ResponsiveNav';
 
 interface LayoutProps {
   children: ReactNode;
-  cartCount?: number;
 }
 
-const Layout = ({ children, cartCount = 0 }: LayoutProps) => {
+const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen w-full bg-amber-50 flex flex-col">
-      <Navbar cartCount={cartCount} />
+      <Navbar />
       <main className="flex-grow w-full">
         <div className="w-full max-w-7xl mx-auto px-4 py-6 md:px-6 lg:px-8">
           {children}

@@ -1,100 +1,174 @@
-import { X, Plus, Minus } from 'lucide-react';
-import type { CartItem } from '../types/cart';
+import { X, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { useCart } from '../contexts/CartContext';
+import { useState, useEffect } from 'react';
 
 interface CartProps {
-  cartItems: CartItem[];
-  onUpdateQuantity: (variantId: number, quantity: number) => void;
-  onRemoveItem: (variantId: number) => void;
-  onCheckout: () => void;
+  isOpen: boolean;
   onClose: () => void;
+  onCheckout: () => void;
 }
 
-const Cart = ({ cartItems, onUpdateQuantity, onRemoveItem, onCheckout, onClose }: CartProps) => {
-  const total = cartItems.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0);
+const Cart = ({ isOpen, onClose, onCheckout }: CartProps) => {
+  const { cart, updateCartItem, removeFromCart, getTotalPrice, getItemCount } = useCart();
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  if (cartItems.length === 0) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Your Cart</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          <p className="text-gray-600 text-center py-8">Your cart is empty</p>
-          <button
-            onClick={onClose}
-            className="w-full bg-amber-600 text-white py-2 rounded-md hover:bg-amber-700 transition-colors mt-4"
-          >
-            Continue Shopping
-          </button>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (isOpen) {
+      // Trigger animation when cart opens
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!isOpen && !isAnimating) return null;
+
+  const total = getTotalPrice();
+  const itemCount = getItemCount();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Your Order</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto flex-grow pr-2">
-          {cartItems.map((item) => (
-            <div key={item.variantId} className="flex items-center py-4 border-b">
-              <img 
-                src={item.productImage || '/image.png'} 
-                alt={item.productName}
-                className="w-16 h-16 object-cover rounded"
-              />
-              <div className="ml-4 flex-grow">
-                <div className="flex justify-between">
-                  <h3 className="font-medium">{item.productName}</h3>
-                  <span className="font-semibold">${(Number(item.price) * item.quantity).toFixed(2)}</span>
-                </div>
-                <p className="text-sm text-gray-500">{item.size} • ${Number(item.price).toFixed(2)} each</p>
-                <div className="flex items-center mt-1">
-                  <button 
-                    onClick={() => onUpdateQuantity(item.variantId, item.quantity - 1)}
-                    className="p-1 rounded-full bg-gray-200 hover:bg-gray-300"
+    <div className={`fixed inset-0 z-50 overflow-hidden ${isOpen ? 'block' : 'hidden'}`}>
+      <div 
+        className={`absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${
+          isOpen ? 'opacity-100' : 'opacity-0'
+        }`}
+        onClick={onClose}
+      />
+      
+      <div 
+        className={`fixed inset-y-0 right-0 max-w-full flex transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="w-screen max-w-md">
+          <div className="h-full flex flex-col bg-white shadow-xl overflow-y-scroll">
+            <div className="flex-1 py-6 overflow-y-auto px-4 sm:px-6">
+              <div className="flex items-start justify-between">
+                <h2 className="text-lg font-medium text-gray-900">Shopping cart</h2>
+                <div className="ml-3 h-7 flex items-center">
+                  <button
+                    type="button"
+                    className="-m-2 p-2 text-gray-400 hover:text-gray-500"
+                    onClick={onClose}
                   >
-                    <Minus className="h-3 w-3" />
-                  </button>
-                  <span className="mx-2 w-6 text-center">{item.quantity}</span>
-                  <button 
-                    onClick={() => onUpdateQuantity(item.variantId, item.quantity + 1)}
-                    className="p-1 rounded-full bg-gray-200 hover:bg-gray-300"
-                  >
-                    <Plus className="h-3 w-3" />
-                  </button>
-                  <button 
-                    onClick={() => onRemoveItem(item.variantId)}
-                    className="ml-4 text-red-500 text-sm hover:text-red-700"
-                  >
-                    Remove
+                    <span className="sr-only">Close panel</span>
+                    <X className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
 
-        <div className="mt-4 pt-4 border-t">
-          <div className="flex justify-between text-lg font-semibold mb-4">
-            <span>Total:</span>
-            <span>${total.toFixed(2)}</span>
+              {itemCount === 0 ? (
+                <div className="mt-12 text-center">
+                  <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">Your cart is empty</h3>
+                  <p className="mt-1 text-sm text-gray-500">Start adding some items to your cart.</p>
+                  <div className="mt-6">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                    >
+                      Continue Shopping
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-8">
+                  <div className="flow-root">
+                    <ul className="-my-6 divide-y divide-gray-200">
+                      {cart.items.map((item) => (
+                        <li key={item.id} className="py-6 flex">
+                          <div className="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">
+                            <img
+                              src={item.imageUrl || '/images/placeholder.jpg'}
+                              alt={item.name}
+                              className="w-full h-full object-cover object-center"
+                            />
+                          </div>
+
+                          <div className="ml-4 flex-1 flex flex-col">
+                            <div>
+                              <div className="flex justify-between text-base font-medium text-gray-900">
+                                <h3>{item.name}</h3>
+                                <p className="ml-4">${(item.price * item.quantity).toFixed(2)}</p>
+                              </div>
+                              <p className="mt-1 text-sm text-gray-500">Size: {item.size}</p>
+                              {item.toppings && item.toppings.length > 0 && (
+                                <p className="text-xs text-gray-500">
+                                  Toppings: {item.toppings.map(t => t.name).join(', ')}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex-1 flex items-end justify-between text-sm">
+                              <div className="flex items-center">
+                                <button
+                                  type="button"
+                                  onClick={() => updateCartItem(item.id, { quantity: item.quantity - 1 })}
+                                  className="text-gray-400 hover:text-gray-500"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </button>
+                                <span className="mx-2 text-gray-700">{item.quantity}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCartItem(item.id, { quantity: item.quantity + 1 })}
+                                  className="text-gray-400 hover:text-gray-500"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </button>
+                              </div>
+
+                              <div className="flex">
+                                <button
+                                  type="button"
+                                  onClick={() => removeFromCart(item.id)}
+                                  className="font-medium text-amber-600 hover:text-amber-500"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {itemCount > 0 && (
+              <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
+                <div className="flex justify-between text-base font-medium text-gray-900">
+                  <p>Subtotal</p>
+                  <p>${total.toFixed(2)}</p>
+                </div>
+                <p className="mt-0.5 text-sm text-gray-500">
+                  Shipping and taxes calculated at checkout.
+                </p>
+                <div className="mt-6">
+                  <button
+                    onClick={onCheckout}
+                    className="w-full flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-amber-600 hover:bg-amber-700"
+                  >
+                    Checkout
+                  </button>
+                </div>
+                <div className="mt-6 flex justify-center text-sm text-center text-gray-500">
+                  <p>
+                    or{' '}
+                    <button
+                      type="button"
+                      className="text-amber-600 font-medium hover:text-amber-500"
+                      onClick={onClose}
+                    >
+                      Continue Shopping<span aria-hidden="true"> &rarr;</span>
+                    </button>
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-          <button
-            onClick={onCheckout}
-            className="w-full bg-amber-600 text-white py-3 rounded-md hover:bg-amber-700 transition-colors"
-          >
-            Proceed to Checkout
-          </button>
         </div>
       </div>
     </div>

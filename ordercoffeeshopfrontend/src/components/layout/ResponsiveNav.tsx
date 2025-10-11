@@ -2,11 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ShoppingCart, User, LogOut, Settings, Home, Coffee as CoffeeIcon, Users, BarChart2, UserCog, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 import { PATHS } from '../../constants';
-
-interface ResponsiveNavProps {
-  cartCount?: number;
-}
 
 const navItems = [
   { name: 'Home', path: PATHS.HOME, icon: <Home size={18} className="mr-2" /> },
@@ -45,7 +42,9 @@ const NavLink = ({ to, children, className = '' }: { to: string, children: React
   );
 };
 
-const ResponsiveNav = ({ cartCount = 0 }: ResponsiveNavProps) => {
+const ResponsiveNav = () => {
+  const { getItemCount } = useCart();
+  const cartCount = getItemCount();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);

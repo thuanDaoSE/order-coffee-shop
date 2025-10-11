@@ -2,10 +2,11 @@ import { Link } from 'react-router-dom';
 
 export const Home = () => {
   // Sample menu items (preview)
+  const R2_BASE_URL = 'https://7862f02525f3249fd976641daef37c16.r2.cloudflarestorage.com/coffee-product-bucket/products';
   const menuItems = [
-    { name: 'Espresso', price: 3.50, description: 'Rich and bold', image: '/Espresso.png' },
-    { name: 'Cappuccino', price: 4.50, description: 'Creamy and smooth', image: '/Cappuccino.png' },
-    { name: 'Latte', price: 4.75, description: 'Smooth and milky', image: '/Latte.png' },
+    { name: 'Espresso', price: 3.50, description: 'Rich and bold', image: `${R2_BASE_URL}/espresso.png` },
+    { name: 'Cappuccino', price: 4.50, description: 'Creamy and smooth', image: `${R2_BASE_URL}/cappuccino.png` },
+    { name: 'Latte', price: 4.75, description: 'Smooth and milky', image: `${R2_BASE_URL}/latte.png` },
   ];
 
   return (

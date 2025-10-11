@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { login as apiLogin } from '../services/apiService';
+import { login as apiLogin } from '../services/authService';
 
 const Login = () => {
   const [email, setEmail] = useState('');

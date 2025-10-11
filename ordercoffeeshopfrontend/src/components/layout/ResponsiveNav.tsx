@@ -90,14 +90,14 @@ const ResponsiveNav = ({ cartCount = 0 }: ResponsiveNavProps) => {
 
   const getUserDisplayName = () => {
     if (!user) return '';
-    return user.name ? user.name.split(' ')[0] : user.email.split('@')[0];
+    return user.fullname ? user.fullname.split(' ')[0] : user.email.split('@')[0];
   };
 
   const renderNavLinks = (isMobile = false) => {
     const allNavs = [...navItems];
     if (user) {
       allNavs.push(...userNavItems);
-      if (user.role === 'STAFF' || user.role === 'ADMIN') {
+      if (user.role === 'BARISTA' || user.role === 'ADMIN') {
         allNavs.push(...staffNavItems);
       }
       if (user.role === 'ADMIN') {
@@ -158,7 +158,7 @@ const ResponsiveNav = ({ cartCount = 0 }: ResponsiveNavProps) => {
                     <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                       <div className="py-1">
                         <div className="px-4 py-2 border-b border-gray-100">
-                          <p className="text-sm font-medium text-gray-900">{user.name || user.email}</p>
+                          <p className="text-sm font-medium text-gray-900">{user.fullname || user.email}</p>
                           <p className="text-xs text-gray-500">{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
                         </div>
 
@@ -182,7 +182,7 @@ const ResponsiveNav = ({ cartCount = 0 }: ResponsiveNavProps) => {
                           </Link>
                         )}
 
-                        {(user.role === 'STAFF' || user.role === 'ADMIN') && (
+                        {(user.role === 'BARISTA' || user.role === 'ADMIN') && (
                           <Link
                             to={PATHS.STAFF}
                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -248,7 +248,7 @@ const ResponsiveNav = ({ cartCount = 0 }: ResponsiveNavProps) => {
               <div className="flex items-center justify-between px-3 py-2">
                 <div className="flex flex-col space-y-2 w-full">
                   <div className="px-3 py-2 border-b border-amber-800 mb-2">
-                    <p className="text-sm font-medium text-amber-50">{user.name || user.email}</p>
+                    <p className="text-sm font-medium text-amber-50">{user.fullname || user.email}</p>
                     <p className="text-xs text-amber-200">{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
                   </div>
 

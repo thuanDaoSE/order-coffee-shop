@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,8 +15,10 @@ public class Product extends BaseEntity {
     @Column(name = "name", nullable = false, length = 150)
     private String name;
 
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    // Giá có thể được chuyển sang ProductVariant.
+    // Giữ lại ở đây nếu bạn muốn có một "giá khởi điểm" hoặc giá mặc định.
+    // @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    // private BigDecimal price;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -29,6 +30,9 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = true)
     private Category category;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderDetail> orderDetails = new ArrayList<>();
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<ProductVariant> variants = new ArrayList<>();
 }

@@ -49,10 +49,9 @@ public class SecurityConfig {
 
                         // User-only endpoints (or authenticated users)
                         .requestMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/v1/products/**").hasAnyRole("USER", "ADMIN")
-                        // .requestMatchers("/api/v1/products/**").permitAll()
-                        .requestMatchers("/api/v1/cart/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/v1/orders/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/v1/products/**").permitAll() // Cho phép tất cả mọi người xem sản phẩm
+                        .requestMatchers("/api/v1/cart/**").hasAnyRole("USER", "ADMIN", "CUSTOMER")
+                        .requestMatchers("/api/v1/orders/**").hasAnyRole("USER", "ADMIN", "CUSTOMER")
 
                         // // Public endpoints (if any, e.g., viewing products without login)
 

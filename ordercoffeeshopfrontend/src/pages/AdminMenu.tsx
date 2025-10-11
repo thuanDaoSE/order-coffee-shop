@@ -103,7 +103,14 @@ const AdminMenu = () => {
                 <tr key={product.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <img src={product.image} alt={product.name} className="w-10 h-10 rounded" />
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-10 h-10 rounded object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = '/image.png';
+                        }}
+                      />
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{product.name}</div>
                         <div className="text-sm text-gray-500">{product.description.substring(0, 50)}...</div>

@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import com.coffeeshop.backend.dto.common.ProductDTO;
+import com.coffeeshop.backend.dto.product.ProductDTO;
 import com.coffeeshop.backend.entity.Product;
 import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;

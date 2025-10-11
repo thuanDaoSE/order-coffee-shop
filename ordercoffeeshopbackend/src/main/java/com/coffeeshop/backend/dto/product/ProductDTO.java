@@ -1,6 +1,7 @@
-package com.coffeeshop.backend.dto.common;
+package com.coffeeshop.backend.dto.product;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import lombok.Data;
 
@@ -11,4 +12,6 @@ public class ProductDTO {
     private String description;
     private BigDecimal price;
     private String imageUrl;
+    private List<ProductVariantDTO> variants;
+    private Boolean isActive;
 }

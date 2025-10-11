@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.coffeeshop.backend.dto.common.ProductDTO;
+import com.coffeeshop.backend.dto.product.ProductDTO;
 import com.coffeeshop.backend.entity.Product;
 
 @Service

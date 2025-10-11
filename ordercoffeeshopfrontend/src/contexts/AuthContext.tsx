@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { getProfile, logout  } from '../services/apiService'; // Giả sử bạn có các hàm này
+import { getProfile, logout  } from '../services/authService'; // Giả sử bạn có các hàm này
 import type { User } from '../types/user';
 
 interface AuthContextType {

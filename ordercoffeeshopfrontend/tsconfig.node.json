@@ -3,7 +3,7 @@
     "composite": true,
     "skipLibCheck": true,
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noUnusedLocals": true,
@@ -12,7 +12,16 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "preserveConstEnums": true,
-    "types": ["node"]
+    "types": ["node"],
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "resolveJsonModule": true
   },
-  "include": ["vite.config.ts", "tailwind.config.js", "postcss.config.js"]
+  "include": [
+    "vite.config.ts",
+    "tailwind.config.js",
+    "postcss.config.js",
+    "src/services/**/*.ts",
+    "scripts/**/*.ts"
+  ]
 }

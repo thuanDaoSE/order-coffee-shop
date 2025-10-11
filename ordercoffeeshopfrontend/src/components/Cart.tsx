@@ -1,16 +1,16 @@
 import { X, Plus, Minus } from 'lucide-react';
-import type { CartItem } from '../types/coffee';
+import type { CartItem } from '../types/cart';
 
 interface CartProps {
   cartItems: CartItem[];
-  onUpdateQuantity: (id: number, size: 'small' | 'medium' | 'large', quantity: number) => void;
-  onRemoveItem: (id: number, size: 'small' | 'medium' | 'large') => void;
+  onUpdateQuantity: (variantId: number, quantity: number) => void;
+  onRemoveItem: (variantId: number) => void;
   onCheckout: () => void;
   onClose: () => void;
 }
 
 const Cart = ({ cartItems, onUpdateQuantity, onRemoveItem, onCheckout, onClose }: CartProps) => {
-  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = cartItems.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0);
 
   if (cartItems.length === 0) {
     return (
@@ -46,34 +46,34 @@ const Cart = ({ cartItems, onUpdateQuantity, onRemoveItem, onCheckout, onClose }
 
         <div className="overflow-y-auto flex-grow pr-2">
           {cartItems.map((item) => (
-            <div key={`${item.id}-${item.selectedSize}`} className="flex items-center py-4 border-b">
+            <div key={item.variantId} className="flex items-center py-4 border-b">
               <img 
-                src={item.image || '/image.png'} 
-                alt={item.name}
+                src={item.productImage || '/image.png'} 
+                alt={item.productName}
                 className="w-16 h-16 object-cover rounded"
               />
               <div className="ml-4 flex-grow">
                 <div className="flex justify-between">
-                  <h3 className="font-medium">{item.name}</h3>
-                  <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
+                  <h3 className="font-medium">{item.productName}</h3>
+                  <span className="font-semibold">${(Number(item.price) * item.quantity).toFixed(2)}</span>
                 </div>
-                <p className="text-sm text-gray-500">{item.selectedSize} • ${item.price.toFixed(2)} each</p>
+                <p className="text-sm text-gray-500">{item.size} • ${Number(item.price).toFixed(2)} each</p>
                 <div className="flex items-center mt-1">
                   <button 
-                    onClick={() => onUpdateQuantity(item.id, item.selectedSize, item.quantity - 1)}
+                    onClick={() => onUpdateQuantity(item.variantId, item.quantity - 1)}
                     className="p-1 rounded-full bg-gray-200 hover:bg-gray-300"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
                   <span className="mx-2 w-6 text-center">{item.quantity}</span>
                   <button 
-                    onClick={() => onUpdateQuantity(item.id, item.selectedSize, item.quantity + 1)}
+                    onClick={() => onUpdateQuantity(item.variantId, item.quantity + 1)}
                     className="p-1 rounded-full bg-gray-200 hover:bg-gray-300"
                   >
                     <Plus className="h-3 w-3" />
                   </button>
                   <button 
-                    onClick={() => onRemoveItem(item.id, item.selectedSize)}
+                    onClick={() => onRemoveItem(item.variantId)}
                     className="ml-4 text-red-500 text-sm hover:text-red-700"
                   >
                     Remove

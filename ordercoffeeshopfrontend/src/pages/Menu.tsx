@@ -1,145 +1,124 @@
 import { useState, useEffect } from 'react';
-import type { CoffeeItem, CartItem } from '../types/coffee';
+import { useNavigate } from 'react-router-dom';
+import type { Product , ProductVariant } from '../types/product';
+import type { CartItem } from '../types/cart';
 import CoffeeCard from '../components/CoffeeCard';
 import Cart from '../components/Cart';
 import ResponsiveGrid from '../components/ui/ResponsiveGrid';
 import useMediaQuery from '../hooks/useMediaQuery';
-
-const coffeeMenu: CoffeeItem[] = [
-  {
-    id: 1,
-    name: 'Espresso',
-    description: 'Strong black coffee made by forcing steam through dark-roasted coffee beans',
-    price: 2.50,
-    image: '/Espresso.png',
-    category: 'espresso'
-  },
-  {
-    id: 2,
-    name: 'Cappuccino',
-    description: 'Espresso with steamed milk and a silky layer of foam',
-    price: 3.50,
-    image: '/Cappuccino.png',
-    category: 'cappuccino'
-  },
-  {
-    id: 3,
-    name: 'Latte',
-    description: 'Espresso with a lot of steamed milk and a light layer of foam',
-    price: 4.00,
-    image: '/Latte.png',
-    category: 'latte'
-  },
-  {
-    id: 4,
-    name: 'Iced Coffee',
-    description: 'Chilled coffee served with ice and optional milk or sweetener',
-    price: 3.75,
-    image: '/coffeeCup.png',
-    category: 'cold'
-  },
-  {
-    id: 5,
-    name: 'Americano',
-    description: 'Espresso shots topped with hot water',
-    price: 3.00,
-    image: '/Americano.png',
-    category: 'espresso'
-  },
-  {
-    id: 6,
-    name: 'Mocha',
-    description: 'Espresso with chocolate syrup and steamed milk',
-    price: 4.50,
-    image: '/coffeeCup.png',
-    category: 'latte'
-  },
-];
+import { getProducts } from '../services/productService';
 
 type SetStateAction<S> = S | ((prevState: S) => S);
 
 type Dispatch<A> = (value: A) => void;
 
-interface HomeProps {
+interface MenuProps {
   cartItems: CartItem[];
   setCartItems: Dispatch<SetStateAction<CartItem[]>>;
   setCartCount: (count: number) => void;
 }
 
-const Home = ({ cartItems, setCartItems, setCartCount }: HomeProps) => {
+const Menu = ({ cartItems, setCartItems, setCartCount }: MenuProps) => {
+  const [products, setProducts] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
   
-  // Simulate loading data
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
+     const fetchProducts = async () => {
+      try {
+        const serviceProducts = await getProducts();
+        // Map the service products to match the expected Product type
+        const mappedProducts: Product[] = serviceProducts.map(prod => ({
+          id: prod.id,
+          name: prod.name,
+          description: prod.description || '',
+          price: 0, // Will be handled by variants
+          imageUrl: prod.imageUrl || '/images/placeholder.jpg',
+          category: {
+            id: 1, // Default category ID
+            name: 'Coffee' // Default category name
+          },
+          variants: prod.variants?.map(v => ({
+            id: v.id,
+            size: v.size || 'M',
+            price: v.price || 0
+          })) || []
+        }));
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
   
-  // Use media query hook for responsive behavior
+  useEffect(() => {
+    const totalCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    setCartCount(totalCount);
+  }, [cartItems, setCartCount]);
+
   const isMobile = useMediaQuery('(max-width: 640px)');
 
-  const addToCart = (coffee: CoffeeItem) => {
-    setCartItems((prevItems: CartItem[]) => {
-      const existingItem = prevItems.find(
-        (item) => item.id === coffee.id && item.selectedSize === 'medium'
-      );
+  const addToCart = (product: Product, variant: ProductVariant, quantity: number) => {
+    setCartItems(prevItems => {
+      const existingItem = prevItems.find(item => item.variantId === variant.id);
 
       if (existingItem) {
-        const updatedItems = prevItems.map((item: CartItem) =>
-          item.id === coffee.id && item.selectedSize === 'medium'
-            ? { ...item, quantity: (item.quantity || 1) + 1 }
+        return prevItems.map(item =>
+          item.variantId === variant.id
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         );
-        setCartCount(updatedItems.reduce((total: number, item: CartItem) => total + (item.quantity || 1), 0));
-        return updatedItems;
       }
 
       const newItem: CartItem = {
-        ...coffee,
-        quantity: 1,
-        selectedSize: 'medium',
+        productId: product.id,
+        productName: product.name,
+        productImage: product.imageUrl,
+        variantId: variant.id,
+        size: variant.size,
+        price: variant.price.toString(),
+        quantity: quantity,
       };
-      
-      const newItems = [...prevItems, newItem];
-      setCartCount(newItems.reduce((total: number, item: CartItem) => total + (item.quantity || 1), 0));
-      return newItems;
+      return [...prevItems, newItem];
     });
+    setIsCartOpen(true); // Mở giỏ hàng sau khi thêm sản phẩm
   };
 
-  const updateQuantity = (id: number, size: 'small' | 'medium' | 'large', newQuantity: number) => {
-    if (newQuantity < 1) return;
+  const updateQuantity = (variantId: number, newQuantity: number) => {
+    if (newQuantity < 1) {
+      // Nếu số lượng mới < 1, xóa sản phẩm
+      setCartItems(prevItems => prevItems.filter(item => item.variantId !== variantId));
+      return;
+    }
     
-    setCartItems((prevItems: CartItem[]) =>
-      prevItems.map((item: CartItem) =>
-        item.id === id && item.selectedSize === size
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.variantId === variantId
           ? { ...item, quantity: newQuantity }
           : item
       )
     );
   };
 
-  const removeItem = (id: number, size: 'small' | 'medium' | 'large') => {
-    setCartItems((prevItems: CartItem[]) =>
-      prevItems.filter((item: CartItem) => !(item.id === id && item.selectedSize === size))
-    );
+  const removeItem = (variantId: number) => {
+    setCartItems(prevItems => prevItems.filter(item => item.variantId !== variantId));
   };
 
   const handleCheckout = () => {
-    // In a real app, you would handle the checkout process here
-    alert('Order placed successfully!');
-    setCartItems([]);
     setIsCartOpen(false);
+    navigate('/checkout');
   };
 
-  const categories = ['all', ...new Set(coffeeMenu.map(coffee => coffee.category))];
-  const filteredCoffees = activeCategory === 'all' 
-    ? coffeeMenu 
-    : coffeeMenu.filter(coffee => coffee.category === activeCategory);
+  const categories = ['all', ...new Set(products.map(p => p.category?.name).filter(Boolean))];
+  const filteredProducts = activeCategory === 'all' 
+    ? products 
+    : products.filter(p => p.category?.name === activeCategory);
 
   // Skeleton loader for better UX
   const renderSkeletons = () => (
@@ -191,44 +170,16 @@ const Home = ({ cartItems, setCartItems, setCartCount }: HomeProps) => {
           renderSkeletons()
         ) : (
           <ResponsiveGrid>
-            {filteredCoffees.map(coffee => (
+            {filteredProducts.map(product => (
               <CoffeeCard 
-                key={coffee.id} 
-                coffee={coffee} 
+                key={product.id} 
+                product={product} 
                 onAddToCart={addToCart} 
               />
             ))}
           </ResponsiveGrid>
         )}
       </div>
-
-      {/* Cart Button */}
-      {cartItems.length > 0 && (
-        <div className="fixed bottom-6 right-6">
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="bg-amber-600 text-white p-4 rounded-full shadow-lg hover:bg-amber-700 transition-colors relative"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-              />
-            </svg>
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-              {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-            </span>
-          </button>
-        </div>
-      )}
 
       {/* Cart Modal */}
       {isCartOpen && (
@@ -244,4 +195,4 @@ const Home = ({ cartItems, setCartItems, setCartCount }: HomeProps) => {
   );
 };
 
-export default Home;
+export default Menu;

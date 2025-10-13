@@ -111,7 +111,8 @@ public class SecurityConfig {
         // In production, replace "*" with specific origins
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
-                "http://localhost:5174" // React default
+                "http://localhost:5174", // React default
+                "https://order-coffee-shop-1.onrender.com" // Your deployed frontend URL
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(

@@ -37,7 +37,7 @@ public class AuthController {
         cookie.setSecure(true); // Only sent over HTTPS
         cookie.setPath("/"); // Cookie is available for all paths
         cookie.setMaxAge(jwtExpiration / 1000); // Cookie expiration same as JWT
-        cookie.setAttribute("SameSite", "Lax"); // Use Lax for cross-origin requests from dev server
+        cookie.setAttribute("SameSite", "None"); // Use None for cross-origin requests
 
         // Set additional security headers
         response.setHeader("X-Content-Type-Options", "nosniff");

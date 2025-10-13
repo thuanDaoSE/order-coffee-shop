@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, Container, CircularProgress, Alert, Paper } from '@mui/material';
+import { Box, Typography, Button, Container, CircularProgress, Paper } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import { getPaymentStatus } from '../services/paymentService';
+import { useCart } from '../contexts/CartContext';
 
 export default function PaymentResultPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -11,12 +12,14 @@ export default function PaymentResultPage() {
   const [error, setError] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
+  const { clearCart } = useCart();
 
   useEffect(() => {
     const verifyAndPollPaymentStatus = async () => {
+      setIsLoading(true);
       const params = new URLSearchParams(location.search);
-      const responseCode = params.get('vnp_ResponseCode');
-      const orderId = params.get('vnp_TxnRef');
+      // vnp_TxnRef is the source of truth for our order ID
+      const orderId = params.get('vnp_TxnRef'); 
 
       if (!orderId) {
         setError('Không tìm thấy mã đơn hàng trong kết quả trả về.');
@@ -24,27 +27,20 @@ export default function PaymentResultPage() {
         setIsLoading(false);
         return;
       }
-
-      if (responseCode !== '00') {
-        setError('Giao dịch không thành công hoặc đã bị hủy tại VNPAY.');
-        setPaymentStatus('failed');
-        setIsLoading(false);
-        return;
-      }
-
-      // If responseCode is '00', we still need to verify with our backend
+      
+      // Always verify with our backend regardless of vnp_ResponseCode
       try {
-        // The IPN from VNPAY might be delayed. We ask our backend for the final status.
-        const result = await getPaymentStatus(orderId);
+        const result = await getPaymentStatus(orderId.toString());
         if (result.success && result.status === 'PAID') {
           setPaymentStatus('success');
+          clearCart(); // <-- Xóa giỏ hàng ở đây
         } else {
           setPaymentStatus('failed');
           setError(result.message || 'Thanh toán không được xác nhận từ hệ thống. Vui lòng liên hệ hỗ trợ.');
         }
       } catch (err) {
         console.error('Error verifying payment status from backend:', err);
-        setPaymentStatus('error');
+        setPaymentStatus('failed'); // Use 'failed' for consistency in UI
         setError('Đã xảy ra lỗi khi xác minh thanh toán');
       } finally {
         setIsLoading(false);
@@ -52,7 +48,7 @@ export default function PaymentResultPage() {
     };
 
     verifyAndPollPaymentStatus();
-  }, [location.search]);
+  }, [location.search, navigate, clearCart]); // Thêm clearCart vào dependency array
 
   const handleBackToHome = () => {
     navigate('/');

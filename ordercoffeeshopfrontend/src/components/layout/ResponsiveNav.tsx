@@ -4,6 +4,7 @@ import { Menu, X, ShoppingCart, User, LogOut, Settings, Home, Coffee as CoffeeIc
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { PATHS } from '../../constants';
+import { useClickOutside } from '../../hooks/useClickOutside';
 
 const navItems = [
   { name: 'Home', path: PATHS.HOME, icon: <Home size={18} className="mr-2" /> },
@@ -52,18 +53,7 @@ const ResponsiveNav = () => {
   const [scrolled, setScrolled] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setIsProfileOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  useClickOutside(profileRef, () => setIsProfileOpen(false));
 
   useEffect(() => {
     setIsOpen(false);
@@ -88,8 +78,12 @@ const ResponsiveNav = () => {
   };
 
   const getUserDisplayName = () => {
-    if (!user) return '';
-    return user.fullname ? user.fullname.split(' ')[0] : user.email.split('@')[0];
+    if (!user) return 'Guest';
+    // Safely access properties and provide fallbacks
+    const firstName = user.fullname?.split(' ')[0];
+    const emailUsername = user.email?.split('@')[0];
+
+    return firstName ?? emailUsername ?? 'User';
   };
 
   const renderNavLinks = (isMobile = false) => {
@@ -134,7 +128,7 @@ const ResponsiveNav = () => {
               <ShoppingCart className="h-6 w-6" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-amber-500 text-amber-900 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartCount > 9 ? '9+' : cartCount}
+                  {cartCount > 9 ? '9+' : (Number.isNaN(cartCount) ? 0 : cartCount)}
                 </span>
               )}
             </Link>
@@ -158,7 +152,7 @@ const ResponsiveNav = () => {
                       <div className="py-1">
                         <div className="px-4 py-2 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-900">{user.fullname || user.email}</p>
-                          <p className="text-xs text-gray-500">{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
+                          <p className="text-xs text-gray-500">{user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}</p>
                         </div>
 
                         <Link
@@ -248,7 +242,7 @@ const ResponsiveNav = () => {
                 <div className="flex flex-col space-y-2 w-full">
                   <div className="px-3 py-2 border-b border-amber-800 mb-2">
                     <p className="text-sm font-medium text-amber-50">{user.fullname || user.email}</p>
-                    <p className="text-xs text-amber-200">{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
+                    <p className="text-xs text-amber-200">{user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}</p>
                   </div>
 
                   <Link

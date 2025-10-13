@@ -65,7 +65,7 @@ const AppRoutes = () => {
           </Layout>
         </ProtectedRoute>
       } />
-      <Route path="/payment/result" element={
+      <Route path="/payment/vnpay/callback" element={
         <ProtectedRoute>
           <Layout>
             <PaymentResultPage />

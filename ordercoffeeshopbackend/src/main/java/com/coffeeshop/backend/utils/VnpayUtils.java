@@ -32,9 +32,9 @@ public class VnpayUtils {
     public String createVnpayPaymentUrl(PaymentInitiationRequest paymentInitiationRequest, String clientIp) throws UnsupportedEncodingException {
         // amount, orderInfo, vnpayRequest
         long amount = (long) (paymentInitiationRequest.getAmount() * 100);
-        String vnp_TxnRef = paymentInitiationRequest.getOrderId()+"";//dky ma rieng
-        String vnp_IpAddr = "127.0.0.1";
-
+        String vnp_TxnRef = paymentInitiationRequest.getOrderId(); // Use the actual orderId as the transaction reference
+        // String vnp_IpAddr = "127.0.0.1";
+        String vnp_IpAddr = clientIp;
         String vnp_TmnCode = vnpayConfig.getVnp_TmnCode();
 
          Map<String, String> vnp_Params = new HashMap<>();
@@ -73,11 +73,11 @@ public class VnpayUtils {
                 //Build hash data
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
                 //Build query
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8.toString()));
                 query.append('=');
-                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                query.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
                 if (itr.hasNext()) {
                     query.append('&');
                     hashData.append('&');
@@ -99,27 +99,33 @@ public class VnpayUtils {
         if (receivedHash == null || receivedHash.isEmpty()) {
             return false;
         }
+        // Create a copy of the map to avoid modifying the original
+        Map<String, String> paramsToValidate = new HashMap<>(vnpayParams);
+
         // Remove hash and hash type fields from the map
-        vnpayParams.remove("vnp_SecureHash");
-        vnpayParams.remove("vnp_SecureHashType");
+        paramsToValidate.remove("vnp_SecureHash");
+        paramsToValidate.remove("vnp_SecureHashType");
 
         // Sort fields alphabetically
-        List<String> fieldNames = new ArrayList<>(vnpayParams.keySet());
+        List<String> fieldNames = new ArrayList<>(paramsToValidate.keySet());
         Collections.sort(fieldNames);
 
         StringBuilder hashData = new StringBuilder();
         Iterator<String> itr = fieldNames.iterator();
-
-        try {
             while (itr.hasNext()) {
                 String fieldName = itr.next();
-                String fieldValue = vnpayParams.get(fieldName);
+                String fieldValue = paramsToValidate.get(fieldName);
                 if ((fieldValue != null) && (fieldValue.length() > 0)) {
                     // Build hash data
                     hashData.append(fieldName);
                     hashData.append('=');
                     // URL-encode the value
-                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
+                    try {
+                        hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
+                    } catch (UnsupportedEncodingException e) {
+                        // This should not happen with UTF-8
+                        throw new RuntimeException(e);
+                    }
                     if (itr.hasNext()) {
                         hashData.append('&');
                     }
@@ -128,11 +134,6 @@ public class VnpayUtils {
 
             String calculatedHash = hmacSHA512(vnpayConfig.getVnp_HashSecret(), hashData.toString());
             return calculatedHash.equals(receivedHash);
-
-        } catch (UnsupportedEncodingException e) {
-            // Log the error for debugging
-            return false;
-        }
     }
 
     private String getCurrentDateString(String format) {

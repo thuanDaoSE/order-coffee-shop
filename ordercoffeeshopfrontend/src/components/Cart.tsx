@@ -77,7 +77,7 @@ const Cart = ({ isOpen, onClose, onCheckout }: CartProps) => {
                   <div className="flow-root">
                     <ul className="-my-6 divide-y divide-gray-200">
                       {cart.items.map((item) => (
-                        <li key={item.id} className="py-6 flex">
+                        <li key={item.cartItemId} className="py-6 flex">
                           <div className="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">
                             <img
                               src={item.imageUrl || '/images/placeholder.jpg'}
@@ -93,17 +93,20 @@ const Cart = ({ isOpen, onClose, onCheckout }: CartProps) => {
                                 <p className="ml-4">${(item.price * item.quantity).toFixed(2)}</p>
                               </div>
                               <p className="mt-1 text-sm text-gray-500">Size: {item.size}</p>
-                              {item.toppings && item.toppings.length > 0 && (
-                                <p className="text-xs text-gray-500">
-                                  Toppings: {item.toppings.map(t => t.name).join(', ')}
-                                </p>
-                              )}
+                              {(() => {
+                                const toppingsText = item.toppings?.map(t => t.name).join(', ');
+                                return toppingsText ? (
+                                  <p className="text-xs text-gray-500">
+                                    Toppings: {toppingsText}
+                                  </p>
+                                ) : null;
+                              })()}
                             </div>
                             <div className="flex-1 flex items-end justify-between text-sm">
                               <div className="flex items-center">
                                 <button
                                   type="button"
-                                  onClick={() => updateCartItem(item.id, { quantity: item.quantity - 1 })}
+                                  onClick={() => updateCartItem(item.cartItemId, { quantity: item.quantity - 1 })}
                                   className="text-gray-400 hover:text-gray-500"
                                 >
                                   <Minus className="h-4 w-4" />
@@ -111,7 +114,7 @@ const Cart = ({ isOpen, onClose, onCheckout }: CartProps) => {
                                 <span className="mx-2 text-gray-700">{item.quantity}</span>
                                 <button
                                   type="button"
-                                  onClick={() => updateCartItem(item.id, { quantity: item.quantity + 1 })}
+                                  onClick={() => updateCartItem(item.cartItemId, { quantity: item.quantity + 1 })}
                                   className="text-gray-400 hover:text-gray-500"
                                 >
                                   <Plus className="h-4 w-4" />
@@ -121,7 +124,7 @@ const Cart = ({ isOpen, onClose, onCheckout }: CartProps) => {
                               <div className="flex">
                                 <button
                                   type="button"
-                                  onClick={() => removeFromCart(item.id)}
+                                  onClick={() => removeFromCart(item.cartItemId)}
                                   className="font-medium text-amber-600 hover:text-amber-500"
                                 >
                                   Remove

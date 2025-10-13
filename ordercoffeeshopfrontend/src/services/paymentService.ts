@@ -1,6 +1,5 @@
-import axios from 'axios';
+import api from './api'; // Use the configured axios instance
 
-const API_URL = 'http://localhost:8080/api/v1/payment';
 
 export interface PaymentRequest {
   amount: number;
@@ -16,16 +15,16 @@ export interface VerifyPaymentResponse {
 }
 
 export const createPayment = async (paymentData: PaymentRequest) => {
-  const response = await axios.post(`${API_URL}/create-payment`, paymentData);
+  const response = await api.post(`/v1/payment/create-payment`, paymentData);
   return response.data;
 };
 
 export const getPaymentStatus = async (orderId: string) => {
-  const response = await axios.get(`${API_URL}/status/${orderId}`);
+  const response = await api.get(`/v1/payment/status/${orderId}`);
   return response.data;
 };
 
 export const verifyPayment = async (data: { orderId: string }): Promise<VerifyPaymentResponse> => {
-  const response = await axios.post(`${API_URL}/verify`, data);
+  const response = await api.post(`/v1/payment/verify`, data);
   return response.data;
 };

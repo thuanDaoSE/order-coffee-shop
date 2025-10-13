@@ -62,7 +62,7 @@ public class VnpayService {
         Map<String, String> result = new HashMap<>();
 
         // 1. Validate checksum
-        if (!vnpayUtils.isSignatureValid(new HashMap<>(vnpayParams))) { // Pass a copy to avoid modification
+        if (!vnpayUtils.isSignatureValid(vnpayParams)) {
             logger.warn("VNPAY callback checksum failed for TxnRef: {}", vnpayParams.get("vnp_TxnRef"));
             result.put("RspCode", VNP_INVALID_SIGNATURE_CODE);
             result.put("Message", "Invalid Checksum");
@@ -70,7 +70,15 @@ public class VnpayService {
         }
 
         // 2. Find Order by vnp_TxnRef (which is our order ID)
-        Long orderId = Long.parseLong(vnpayParams.get("vnp_TxnRef"));
+        String txnRef = vnpayParams.get("vnp_TxnRef");
+        String sanitizedOrderId = txnRef != null ? txnRef.replaceAll("[^0-9]", "") : "";
+        if (sanitizedOrderId.isEmpty()) {
+            logger.warn("VNPAY callback: TxnRef is empty or invalid after sanitization.");
+            result.put("RspCode", VNP_ORDER_NOT_FOUND_CODE);
+            result.put("Message", "Order not found");
+            return result;
+        }
+        Long orderId = Long.parseLong(sanitizedOrderId);
         Order order = orderRepository.findById(orderId).orElse(null);
 
         if (order == null) {
@@ -150,7 +158,9 @@ public class VnpayService {
     public Map<String, Object> getPaymentStatus(String orderId) {
         Map<String, Object> result = new HashMap<>();
         try {
-            Long id = Long.parseLong(orderId);
+            // Sanitize the orderId to remove any non-numeric characters before parsing.
+            String sanitizedOrderId = orderId.replaceAll("[^0-9]", "");
+            Long id = Long.parseLong(sanitizedOrderId);
             Order order = orderRepository.findById(id).orElse(null);
 
             if (order == null) {

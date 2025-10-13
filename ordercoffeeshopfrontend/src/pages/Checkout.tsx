@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import api from '../services/authService';
+import api from '../services/api';
 import { cartApi } from '../services/mockApi';
 
 const Checkout = () => {
@@ -74,11 +74,6 @@ const Checkout = () => {
       });
       console.log('Order creation successful, response:', response.data);
       
-      console.log('Clearing cart...');
-      clearCart();
-      console.log('Cart cleared.');
-
-      console.log('Navigating to payment page...');
       navigate('/payment', { 
         state: { 
           orderId: response.data.id, 

@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +21,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -39,24 +41,15 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // 3. Định nghĩa các quy tắc ủy quyền (Authorization)
+// ...
                 .authorizeHttpRequests(auth -> auth
-                        // Authentication endpoints
-                        .requestMatchers("/api/v1/auth/login").permitAll()
-                        .requestMatchers("/api/v1/auth/register").permitAll()
-
-                        // Admin-only endpoints
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-
-                        // User-only endpoints (or authenticated users)
-                        .requestMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/v1/products/**").permitAll() // Cho phép tất cả mọi người xem sản phẩm
-                        .requestMatchers("/api/v1/cart/**").hasAnyRole("USER", "ADMIN", "CUSTOMER")
-                        .requestMatchers("/api/v1/orders/**").hasAnyRole("USER", "ADMIN", "CUSTOMER")
-
-                        // // Public endpoints (if any, e.g., viewing products without login)
-
-                        // // All other requests require authentication
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/r2/**", "/api/v1/payment/create-payment", "/api/v1/payment/callback").permitAll()
+                        .requestMatchers("/api/v1/payment/status/**").authenticated()
+                        .requestMatchers( "/api/v1/products/**").permitAll()
+                        .requestMatchers("/api/v1/users/**").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers("/api/v1/cart/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/v1/orders/**").hasAnyRole("CUSTOMER", "ADMIN")
+                        .anyRequest().authenticated()) 
 
                 // 4. Cấu hình quản lý session
                 // Với JWT, chúng ta muốn ứng dụng stateless, tức là không lưu trữ session trên
@@ -118,7 +111,7 @@ public class SecurityConfig {
         // In production, replace "*" with specific origins
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
-                "http://localhost:5173" // React default
+                "http://localhost:5174" // React default
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(

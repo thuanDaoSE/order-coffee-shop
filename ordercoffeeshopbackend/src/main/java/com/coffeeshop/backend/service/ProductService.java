@@ -2,12 +2,9 @@ package com.coffeeshop.backend.service;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
 import com.coffeeshop.backend.dto.product.ProductDTO;
-import com.coffeeshop.backend.entity.Product;
+import com.coffeeshop.backend.dto.product.ProductRequest;
 
-@Service
 public interface ProductService {
 
     List<ProductDTO> getAllProducts();
@@ -16,9 +13,9 @@ public interface ProductService {
 
     ProductDTO getProductById(Long productId);
 
-    ProductDTO createProduct(Product product);
+    ProductDTO createProduct(ProductRequest productRequest);
 
-    ProductDTO updateProduct(Long productId, Product updateProduct);
+    ProductDTO updateProduct(Long productId, ProductRequest productRequest);
 
-    ProductDTO deleteProduct(Long productId);
+    void deleteProduct(Long productId);
 }

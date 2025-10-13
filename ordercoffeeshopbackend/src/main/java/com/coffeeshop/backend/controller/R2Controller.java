@@ -1,4 +1,4 @@
-package com.coffeeshop.backend.controllers;
+package com.coffeeshop.backend.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +19,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/r2")
+// SECURITY WARNING: Using a wildcard for CORS is insecure.
+// In production, this should be restricted to the specific domain of the frontend application.
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class R2Controller {
 
+    // SECURITY WARNING: Injecting secrets directly from configuration files is a major security risk.
+    // These values should be externalized using environment variables, a secret manager (like HashiCorp Vault or AWS Secrets Manager),
+    // or at least Spring's support for externalized and encrypted properties.
     @Value("${r2.accountId}")
     private String accountId;
 
@@ -86,7 +91,7 @@ public class R2Controller {
                     .build();
 
             PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofHours(1))
+                    .signatureDuration(Duration.ofHours(1) )
                     .putObjectRequest(putObjectRequest)
                     .build();
 

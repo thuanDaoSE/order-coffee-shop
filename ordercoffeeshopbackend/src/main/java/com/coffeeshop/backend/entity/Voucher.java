@@ -31,6 +31,6 @@ public class Voucher extends BaseEntity {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @OneToMany(mappedBy = "voucher", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "voucher")
     private List<Order> orders = new ArrayList<>();
 }

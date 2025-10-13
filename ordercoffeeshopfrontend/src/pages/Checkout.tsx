@@ -1,39 +1,46 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { CartItem } from '../types/coffee';
-import { cartApi, ordersApi } from '../services/mockApi';
+import { useCart } from '../contexts/CartContext';
+import api from '../services/authService';
+import { cartApi } from '../services/mockApi';
 
-interface CheckoutProps {
-  cartItems: CartItem[];
-  onClearCart: () => void;
-}
-
-const Checkout = ({ cartItems, onClearCart }: CheckoutProps) => {
+const Checkout = () => {
+  const { cart, clearCart } = useCart();
+  const { items: cartItems } = cart;
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; percentage: number } | null>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
+  
   const calculateSubtotal = () => {
-    return cartItems.reduce((sum, item) => {
-      const sizeMultiplier = item.selectedSize === 'small' ? 0.8 : item.selectedSize === 'large' ? 1.2 : 1;
-      return sum + (item.price * sizeMultiplier * item.quantity);
-    }, 0);
+    return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   };
 
   const subtotal = calculateSubtotal();
   const discount = appliedCoupon?.discount || 0;
-  const vat = (subtotal - discount) * 0.1;
+  const vat = (subtotal - discount) * 0.08; // Assuming 8% VAT
   const shipping = deliveryMethod === 'delivery' ? 2.00 : 0;
   const total = subtotal - discount + vat + shipping;
 
+  interface DiscountResponse {
+    code: string;
+    discount: number;
+    percentage: number;
+  }
+  
   const handleApplyCoupon = async () => {
     setError('');
     try {
-      const result = await cartApi.applyCoupon(couponCode, subtotal);
-      setAppliedCoupon(result);
+      if (!couponCode) {
+        throw new Error('Please enter a coupon code');
+      }
+      
+      const upperCaseCode = couponCode.toUpperCase();
+      const discount = await cartApi.applyCoupon(upperCaseCode, subtotal);
+      
+      setAppliedCoupon(discount);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid coupon code');
       setAppliedCoupon(null);
@@ -41,27 +48,65 @@ const Checkout = ({ cartItems, onClearCart }: CheckoutProps) => {
   };
 
   const handleCheckout = async () => {
+    alert('Place Order button clicked!'); // Debugging alert
     setIsLoading(true);
     setError('');
+    console.log('Checkout process started...');
     try {
-      await ordersApi.create(cartItems, appliedCoupon?.code);
-      onClearCart();
-      navigate('/orders', { state: { orderSuccess: true } });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Checkout failed');
+      console.log('Sending order creation request...');
+      const response = await api.post('/v1/orders', {
+        items: cartItems.map(item => ({
+          productId: item.productId,
+          productVariantId: item.productVariantId, // IMPORTANT: Use variantId
+          name: item.name,
+          price: item.price,
+          size: item.size,
+          quantity: item.quantity,
+          toppings: item.toppings || []
+        })),
+        couponCode: appliedCoupon?.code,
+        deliveryMethod,
+        total,
+        subtotal,
+        discount: discount || 0,
+        vat,
+        shipping
+      });
+      console.log('Order creation successful, response:', response.data);
+      
+      console.log('Clearing cart...');
+      clearCart();
+      console.log('Cart cleared.');
+
+      console.log('Navigating to payment page...');
+      navigate('/payment', { 
+        state: { 
+          orderId: response.data.id, 
+          totalAmount: response.data.total, 
+          orderInfo: `Payment for order #${response.data.id}` 
+        } 
+      });
+      console.log('Navigation call finished.');
+
+    } catch (err: any) {
+      // Check for axios error with response data
+      const errorMessage = err.response?.data?.message || err.response?.data || (err instanceof Error ? err.message : 'Failed to create order. Please try again.');
+      console.error('An error occurred during checkout:', errorMessage);
+      setError(errorMessage);
     } finally {
+      console.log('Checkout process finished.');
       setIsLoading(false);
     }
   };
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-[60vh] bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Your cart is empty</h2>
           <button
-            onClick={() => navigate('/')}
-            className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition"
+            onClick={() => navigate('/menu')}
+            className="bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-700 transition"
           >
             Browse Menu
           </button>
@@ -71,7 +116,7 @@ const Checkout = ({ cartItems, onClearCart }: CheckoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-[80vh] bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         <h1 className="text-3xl font-bold text-amber-900 mb-8">Checkout</h1>
 
@@ -82,18 +127,22 @@ const Checkout = ({ cartItems, onClearCart }: CheckoutProps) => {
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Order Items</h2>
               <div className="space-y-4">
                 {cartItems.map((item, index) => {
-                  const sizeMultiplier = item.selectedSize === 'small' ? 0.8 : item.selectedSize === 'large' ? 1.2 : 1;
-                  const itemPrice = item.price * sizeMultiplier;
+                  const itemPrice = item.price;
                   return (
-                    <div key={`${item.id}-${item.selectedSize}-${index}`} className="flex items-center gap-4 pb-4 border-b last:border-b-0">
-                      <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
+                    <div key={`${item.cartItemId}-${index}`} className="flex items-center gap-4 pb-4 border-b last:border-b-0">
+                      <img src={item.imageUrl} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-800">{item.name}</h3>
-                        <p className="text-sm text-gray-600">Size: {item.selectedSize}</p>
+                        <p className="text-sm text-gray-600">Size: {item.size}</p>
                         <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                        {item.toppings?.length > 0 && (
+                          <p className="text-xs text-gray-500">
+                            Toppings: {item.toppings.map(t => t.name).join(', ')}
+                          </p>
+                        )}
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-amber-600">${(itemPrice * item.quantity).toFixed(2)}</p>
+                        <p className="font-semibold text-amber-600">{new Intl.NumberFormat('vi-VN').format(itemPrice * item.quantity)}₫</p>
                       </div>
                     </div>
                   );
@@ -116,7 +165,7 @@ const Checkout = ({ cartItems, onClearCart }: CheckoutProps) => {
                   <div className="text-center">
                     <div className="text-2xl mb-2">🏪</div>
                     <p className="font-semibold">Pickup</p>
-                    <p className="text-sm text-gray-600">Free</p>
+                    <p className="text-sm text-gray-600">Miễn phí</p>
                   </div>
                 </button>
                 <button
@@ -130,7 +179,7 @@ const Checkout = ({ cartItems, onClearCart }: CheckoutProps) => {
                   <div className="text-center">
                     <div className="text-2xl mb-2">🚚</div>
                     <p className="font-semibold">Delivery</p>
-                    <p className="text-sm text-gray-600">$2.00</p>
+                    <p className="text-sm text-gray-600">{new Intl.NumberFormat('vi-VN').format(25000)}₫</p>
                   </div>
                 </button>
               </div>
@@ -173,25 +222,25 @@ const Checkout = ({ cartItems, onClearCart }: CheckoutProps) => {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{new Intl.NumberFormat('vi-VN').format(subtotal)}₫</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount</span>
-                    <span>-${discount.toFixed(2)}</span>
+                    <span>-{new Intl.NumberFormat('vi-VN').format(discount)}₫</span>
                   </div>
                 )}
                 <div className="flex justify-between text-gray-600">
-                  <span>VAT (10%)</span>
-                  <span>${vat.toFixed(2)}</span>
+                  <span>VAT (8%)</span>
+                  <span>{new Intl.NumberFormat('vi-VN').format(vat)}₫</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
-                  <span>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+                  <span>{shipping === 0 ? 'Miễn phí' : `${new Intl.NumberFormat('vi-VN').format(shipping)}₫`}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-800">
                   <span>Total</span>
-                  <span className="text-amber-600">${total.toFixed(2)}</span>
+                  <span className="text-amber-600">{new Intl.NumberFormat('vi-VN').format(total)}₫</span>
                 </div>
               </div>
 

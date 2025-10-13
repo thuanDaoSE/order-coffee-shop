@@ -15,10 +15,6 @@ public class Product extends BaseEntity {
     @Column(name = "name", nullable = false, length = 150)
     private String name;
 
-    // Giá có thể được chuyển sang ProductVariant.
-    // Giữ lại ở đây nếu bạn muốn có một "giá khởi điểm" hoặc giá mặc định.
-    // @Column(name = "price", nullable = false, precision = 10, scale = 2)
-    // private BigDecimal price;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -33,6 +29,6 @@ public class Product extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductVariant> variants = new ArrayList<>();
 }

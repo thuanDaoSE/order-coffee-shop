@@ -40,10 +40,10 @@ const Login = () => {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm">
           <p className="font-semibold text-blue-900 mb-2">Demo Accounts:</p>
           <div className="space-y-1 text-blue-800">
-            <p>👤 Customer: customer@test.com</p>
-            <p>☕ Barista: barista@test.com</p>
-            <p>👑 Admin: admin@test.com</p>
-            <p className="mt-2 text-blue-600">Password: 12345678</p>
+            <p>👤 Customer: customer@coffeeshop.com</p>
+            <p>☕ Barista: barista@coffeeshop.com</p>
+            <p>👑 Admin: admin@coffeeshop.com</p>
+            <p className="mt-2 text-blue-600">Password: customer123</p>
           </div>
         </div>
 

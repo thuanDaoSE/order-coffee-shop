@@ -1,6 +1,6 @@
-import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Menu from './pages/Menu';
@@ -15,6 +15,8 @@ import Unauthorized from './pages/Unauthorized';
 import AdminMenu from './pages/AdminMenu';
 import AdminUsers from './pages/AdminUsers';
 import AdminReports from './pages/AdminReports';
+import PaymentPage from './pages/PaymentPage';
+import PaymentResultPage from './pages/PaymentResultPage'; // This was unused
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -51,6 +53,22 @@ const AppRoutes = () => {
         <ProtectedRoute>
           <Layout>
             <Orders />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      {/* Payment Routes */}
+      <Route path="/payment" element={
+        <ProtectedRoute>
+          <Layout>
+            <PaymentPage />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/payment/result" element={
+        <ProtectedRoute>
+          <Layout>
+            <PaymentResultPage />
           </Layout>
         </ProtectedRoute>
       } />

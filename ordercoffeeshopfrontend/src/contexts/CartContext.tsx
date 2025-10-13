@@ -1,11 +1,11 @@
 // src/contexts/CartContext.tsx
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
-
+import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 type Size = 'S' | 'M' | 'L';
 type Topping = { id: string; name: string; price: number };
 
-interface CartItem {
-  id: string;
+export interface CartItem {
+  cartItemId: string; // Unique ID for the cart item itself (e.g., timestamp)
+  productVariantId: string; // ID from the database
   productId: string;
   name: string;
   price: number;
@@ -15,24 +15,32 @@ interface CartItem {
   imageUrl: string;
 }
 
-interface CartState {
+export interface CartState {
   items: CartItem[];
   total: number;
   itemCount: number;
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'id' | 'quantity'> }
-  | { type: 'UPDATE_ITEM'; payload: { id: string; quantity: number; size?: Size; toppings?: Topping[] } }
-  | { type: 'REMOVE_ITEM'; payload: string }
+  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'cartItemId' | 'quantity'> }
+  | { 
+      type: 'UPDATE_ITEM'; 
+      payload: { 
+        cartItemId: string; 
+        quantity?: number;
+        size?: Size; 
+        toppings?: Topping[] 
+      } 
+    }
+  | { type: 'REMOVE_ITEM'; payload: { cartItemId: string } }
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: CartState };
 
 const CartContext = createContext<{
   cart: CartState;
-  addToCart: (item: Omit<CartItem, 'id' | 'quantity'>) => void;
-  updateCartItem: (id: string, updates: { quantity?: number; size?: Size; toppings?: Topping[] }) => void;
-  removeFromCart: (id: string) => void;
+  addToCart: (item: Omit<CartItem, 'cartItemId' | 'quantity'>) => void;
+  updateCartItem: (cartItemId: string, updates: { quantity?: number; size?: Size; toppings?: Topping[] }) => void;
+  removeFromCart: (cartItemId: string) => void;
   clearCart: () => void;
   getItemCount: () => number;
   getTotalPrice: () => number;
@@ -64,9 +72,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         };
       }
 
-      const newItem = {
+      const newItem: CartItem = {
         ...action.payload,
-        id: Date.now().toString(),
+        cartItemId: Date.now().toString(),
         quantity: 1,
       };
       const newItems = [...state.items, newItem];
@@ -79,13 +87,13 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 
     case 'UPDATE_ITEM': {
       const updatedItems = state.items.map(item => 
-        item.id === action.payload.id 
+        item.cartItemId === action.payload.cartItemId 
           ? { 
               ...item, 
               ...action.payload,
-              quantity: action.payload.quantity || item.quantity,
-              size: action.payload.size || item.size,
-              toppings: action.payload.toppings || item.toppings,
+              quantity: action.payload.quantity ?? item.quantity,
+              size: action.payload.size ?? item.size,
+              toppings: action.payload.toppings ?? item.toppings,
             } 
           : item
       ).filter(item => item.quantity > 0); // Remove if quantity becomes 0
@@ -98,7 +106,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
 
     case 'REMOVE_ITEM': {
-      const filteredItems = state.items.filter(item => item.id !== action.payload);
+      const filteredItems = state.items.filter(item => item.cartItemId !== action.payload.cartItemId);
       return {
         items: filteredItems,
         total: filteredItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
@@ -136,16 +144,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (item: Omit<CartItem, 'id' | 'quantity'>) => {
+  const addToCart = (item: Omit<CartItem, 'cartItemId' | 'quantity'>) => {
     dispatch({ type: 'ADD_ITEM', payload: item });
   };
 
-  const updateCartItem = (id: string, updates: { quantity?: number; size?: Size; toppings?: Topping[] }) => {
-    dispatch({ type: 'UPDATE_ITEM', payload: { id, ...updates } });
+  const updateCartItem = (cartItemId: string, updates: { quantity?: number; size?: Size; toppings?: Topping[] }) => {
+    dispatch({ type: 'UPDATE_ITEM', payload: { cartItemId, ...updates } });
   };
 
-  const removeFromCart = (id: string) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: id });
+  const removeFromCart = (cartItemId: string) => {
+    dispatch({ type: 'REMOVE_ITEM', payload: { cartItemId } });
   };
 
   const clearCart = () => {

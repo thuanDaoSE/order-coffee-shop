@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { getProfile, logout  } from '../services/authService'; // Giả sử bạn có các hàm này
+import { getProfile, logout as logoutUser } from '../services/authService'; // Giả sử bạn có các hàm này
 import type { User } from '../types/user';
 
 interface AuthContextType {
@@ -18,14 +18,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkUserStatus = async () => {
       try {
-        // Gọi API để lấy thông tin người dùng hiện tại
-        const response = await getProfile(); 
+        // Call the API to get the current user's information
+        const response = await getProfile();
         if (response.data) {
           setUser(response.data);
+        } else {
+          // If getProfile returns no data but doesn't throw, it's still an invalid state
+          setUser(null);
         }
       } catch (error) {
-        console.log("User is not authenticated");
-        setUser(null);
+        console.log("User is not authenticated, attempting to clear session.");
+        // This will call the backend to clear the cookie and set user to null
+        try {
+          await logoutUser(); // Clear cookie on backend
+        } catch (logoutError) {
+          console.error("Failed to clear session on server:", logoutError);
+        }
+        setUser(null); // Clear user in frontend
       } finally {
         setIsLoading(false);
       }
@@ -40,9 +49,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await logout(); // Gọi API logout để backend xóa cookie
+      await logoutUser(); // Gọi API logout để backend xóa cookie
     } catch (error) {
-      console.error("Failed to decode token:", error);
+      console.error("Failed to logout:", error);
     }
     setUser(null);
   };

@@ -1,5 +1,35 @@
 // Mock API Service - Simulates backend API calls
-import type { CoffeeItem, CartItem, Order } from '../types/coffee';
+type CoffeeItem = {
+  id: number;
+  name: string;
+  category: string;
+  description: string;
+  image: string;
+  price: number;
+};
+
+type CartItem = {
+  id: string;
+  productId: string;
+  name: string;
+  price: number;
+  size: string;
+  quantity: number;
+  selectedSize: string;
+};
+
+type Order = {
+  id: string;
+  orderItems: CartItem[];
+  total: number;
+  status: string;
+  orderTime: string;
+};
+
+type OrderItemPayload = {
+  productVariantId: string;
+  quantity: number;
+};
 
 // Mock delay to simulate network request
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -15,9 +45,9 @@ interface User {
 }
 
 const mockUsers: User[] = [
-  { id: 1, email: 'customer@test.com', password: '12345678', role: 'customer', name: 'John Doe', phone: '0123456789' },
-  { id: 2, email: 'barista@test.com', password: '12345678', role: 'barista', name: 'Jane Smith' },
-  { id: 3, email: 'admin@test.com', password: '12345678', role: 'admin', name: 'Admin User' },
+  // { id: 1, email: 'customer@test.com', password: '12345678', role: 'customer', name: 'John Doe', phone: '0123456789' },
+  // { id: 2, email: 'barista@test.com', password: '12345678', role: 'barista', name: 'Jane Smith' },
+  // { id: 3, email: 'admin@test.com', password: '12345678', role: 'admin', name: 'Admin User' },
 ];
 
 // Mock Products Database
@@ -85,24 +115,24 @@ const mockCoupons: Record<string, number> = {
 
 // Authentication API
 export const authApi = {
-  async login(email: string, password: string) {
-    await delay(500);
-    const user = mockUsers.find(u => u.email === email && u.password === password);
-    if (!user) {
-      throw new Error('Invalid email or password');
-    }
-    const token = `mock-jwt-token-${user.id}-${Date.now()}`;
-    return {
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        phone: user.phone,
-      }
-    };
-  },
+  // async login(email: string, password: string) {
+  //   await delay(500);
+  //   const user = mockUsers.find(u => u.email === email && u.password === password);
+  //   if (!user) {
+  //     throw new Error('Invalid email or password');
+  //   }
+  //   const token = `mock-jwt-token-${user.id}-${Date.now()}`;
+  //   return {
+  //     token,
+  //     user: {
+  //       id: user.id,
+  //       email: user.email,
+  //       name: user.name,
+  //       role: user.role,
+  //       phone: user.phone,
+  //     }
+  //   };
+  // },
 
   async register(email: string, password: string, name: string, phone?: string) {
     await delay(500);
@@ -211,7 +241,7 @@ export const ordersApi = {
 
     const newOrder: Order = {
       id: `ORD-${orderIdCounter++}`,
-      items,
+      orderItems: items,
       total,
       status: 'pending',
       orderTime: new Date().toISOString(),

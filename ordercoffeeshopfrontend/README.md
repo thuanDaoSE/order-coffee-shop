@@ -53,13 +53,13 @@ npm run preview
 ## 🔐 Demo Accounts
 
 ### Customer Account
-- **Email:** customer@test.com
-- **Password:** 12345678
+- **Email:** customer@coffeeshop.com
+- **Password:** customer123
 - **Access:** Browse menu, place orders, view order history
 
 ### Barista Account
-- **Email:** barista@test.com
-- **Password:** 12345678
+- **Email:** barista@coffeeshop.com
+- **Password:** barista123
 - **Access:** Order management dashboard, update order status
 
 ### Admin Account

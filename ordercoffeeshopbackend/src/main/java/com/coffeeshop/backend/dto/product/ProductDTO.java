@@ -10,7 +10,6 @@ public class ProductDTO {
     private Long id;
     private String name;
     private String description;
-    private BigDecimal price;
     private String imageUrl;
     private List<ProductVariantDTO> variants;
     private Boolean isActive;

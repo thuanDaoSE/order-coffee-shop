@@ -48,6 +48,7 @@ const Menu = () => {
 
   const handleAddToCart = (product: Product, variant: ProductVariant) => {
     addToCartContext({
+      productVariantId: variant.id.toString(),
       productId: product.id.toString(),
       name: product.name,
       price: variant.price,

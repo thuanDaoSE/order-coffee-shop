@@ -204,9 +204,9 @@ npm run dev
 - Hoặc port khác nếu 5173 đang được sử dụng
 
 ### 4. Đăng nhập với demo accounts
-- **Customer:** customer@test.com / 12345678
-- **Barista:** barista@test.com / 12345678
-- **Admin:** admin@test.com / 12345678
+- **Customer:** customer@coffeeshop.com / customer123
+- **Barista:** barista@coffeeshop.com / barista123
+- **Admin:** admin@coffeeshop.com / admin123
 
 ---
 

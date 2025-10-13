@@ -15,6 +15,12 @@ public class Category extends BaseEntity {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(name = "slug", nullable = false, length = 100)
+    private String slug;
+
+    @Column(name = "image", nullable = false, length = 100)
+    private String image;
+
+    @OneToMany(mappedBy = "category")
     private List<Product> products = new ArrayList<>();
 }

@@ -12,6 +12,6 @@ RUN mvn clean install -DskipTests
 # Package stage
 FROM openjdk:17-jdk-slim
 WORKDIR /app
-COPY --from=build /app/target/ordercoffeeshopbackend-0.0.1-SNAPSHOT.jar .
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","ordercoffeeshopbackend-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]

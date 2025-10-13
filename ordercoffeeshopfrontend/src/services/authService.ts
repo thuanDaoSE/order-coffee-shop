@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // It's best practice to use environment variables for the API URL.
 // Example: const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-const API_URL = 'http://localhost:8080/api';
+const API_URL = 'https://spring-boot-coffeeshop-backend.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_URL,

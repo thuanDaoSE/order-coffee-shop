@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api', // Your API base URL
+  baseURL: 'https://spring-boot-coffeeshop-backend.onrender.com/api', // Deployed backend URL
   withCredentials: true, // This is crucial for sending cookies
 });
 

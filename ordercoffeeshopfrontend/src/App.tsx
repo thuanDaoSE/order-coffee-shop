@@ -16,71 +16,63 @@ import PaymentPage from './pages/PaymentPage';
 const AppRoutes = () => {
   const { user } = useAuth();
 
+  const NotFound = () => (
+    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      <h1 className="text-4xl font-bold text-amber-800 mb-4">404 - Not Found</h1>
+      <p className="text-gray-600 mb-6">The page you're looking for doesn't exist.</p>
+      <Link to="/" className="px-6 py-2 bg-amber-700 text-white rounded-md hover:bg-amber-800 transition-colors">
+        Go to Home
+      </Link>
+    </div>
+  );
+
+  const MainLayout = ({ children }: { children: React.ReactNode }) => (
+    <Layout>
+      {children}
+    </Layout>
+  );
+
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* Routes without main layout */}
       <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
 
-      {/* Menu Route */}
-      <Route path="/menu" element={
-        <Layout>
-          <Menu />
-        </Layout>
-      } />
-
-      <Route path="/checkout" element={
-        <ProtectedRoute>
-          <Layout>
-            <Checkout />
-          </Layout>
-        </ProtectedRoute>
-      } />
-
-      <Route path="/payment" element={
-        <ProtectedRoute>
-          <Layout>
-            <PaymentPage />
-          </Layout>
-        </ProtectedRoute>
-      } />
-
-      <Route path="/orders" element={
-        <ProtectedRoute>
-          <Layout>
-            <Orders />
-          </Layout>
-        </ProtectedRoute>
-      } />
-
-      <Route path="/payment/vnpay/callback" element={
-        <Layout>
-          <PaymentResultPage />
-        </Layout>
-      } />
-
-      <Route path="/staff" element={
-        <ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><Layout><StaffDashboard /></Layout></ProtectedRoute>
-      } />
-
-      <Route path="/" element={
-        <Layout>
-          <Home />
-        </Layout>
-      } />
+      {/* Routes with main layout */}
+      <Route
+        path="/"
+        element={<MainLayout><Home /></MainLayout>}
+      />
+      <Route
+        path="/menu"
+        element={<MainLayout><Menu /></MainLayout>}
+      />
+      <Route
+        path="/checkout"
+        element={<ProtectedRoute><MainLayout><Checkout /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/payment"
+        element={<ProtectedRoute><MainLayout><PaymentPage /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/orders"
+        element={<ProtectedRoute><MainLayout><Orders /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/payment/vnpay/callback"
+        element={<MainLayout><PaymentResultPage /></MainLayout>}
+      />
+      <Route
+        path="/staff"
+        element={<ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><MainLayout><StaffDashboard /></MainLayout></ProtectedRoute>}
+      />
 
       {/* Fallback Route */}
-      <Route path="*" element={
-        <Layout>
-          <div className="flex flex-col items-center justify-center min-h-[60vh]">
-            <h1 className="text-4xl font-bold text-amber-800 mb-4">404 - Not Found</h1>
-            <p className="text-gray-600 mb-6">The page you're looking for doesn't exist.</p>
-            <Link to="/" className="px-6 py-2 bg-amber-700 text-white rounded-md hover:bg-amber-800 transition-colors">
-              Go to Home
-            </Link>
-          </div>
-        </Layout>
-      } />
+      <Route
+        path="*"
+        element={<MainLayout><NotFound /></MainLayout>}
+      />
     </Routes>
   );
 };

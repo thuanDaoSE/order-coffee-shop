@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 
 export const Home = () => {
-  // Sample menu items (preview)
-  const R2_BASE_URL = 'https://7862f02525f3249fd976641daef37c16.r2.cloudflarestorage.com/coffee-product-bucket/products';
+  // TODO: Fetch menu items from the API instead of using static data.
+  const R2_BASE_URL = import.meta.env.VITE_R2_BASE_URL || 'https://7862f02525f3249fd976641daef37c16.r2.cloudflarestorage.com/coffee-product-bucket/products';
   const menuItems = [
     { name: 'Espresso', price: 3.50, description: 'Rich and bold', image: `${R2_BASE_URL}/espresso.png` },
     { name: 'Cappuccino', price: 4.50, description: 'Creamy and smooth', image: `${R2_BASE_URL}/cappuccino.png` },

@@ -46,6 +46,7 @@ const NavLink = ({ to, children, className = '' }: { to: string, children: React
 const ResponsiveNav = () => {
   const { getItemCount } = useCart();
   const cartCount = getItemCount();
+  console.log('Cart count:', cartCount, typeof cartCount);
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -90,7 +91,7 @@ const ResponsiveNav = () => {
     const allNavs = [...navItems];
     if (user) {
       allNavs.push(...userNavItems);
-      if (user.role === 'BARISTA' || user.role === 'ADMIN') {
+      if (user.role === 'STAFF' || user.role === 'ADMIN') {
         allNavs.push(...staffNavItems);
       }
       if (user.role === 'ADMIN') {
@@ -115,8 +116,8 @@ const ResponsiveNav = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to={PATHS.HOME} className="flex-shrink-0 flex items-center space-x-2">
-            <CoffeeIcon className="h-8 w-8 text-amber-100" />
-            <span className="text-xl font-bold text-amber-50">COFFEE SHOP</span>
+            <img src="/logo.svg" alt="The Coffee Corner" className="h-8 w-auto" />
+            <span className="text-xl font-bold text-amber-50">The Coffee Corner</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
@@ -175,7 +176,7 @@ const ResponsiveNav = () => {
                           </Link>
                         )}
 
-                        {(user.role === 'BARISTA' || user.role === 'ADMIN') && (
+                        {(user.role === 'STAFF' || user.role === 'ADMIN') && (
                           <Link
                             to={PATHS.STAFF}
                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

@@ -8,31 +8,19 @@ import Orders from './pages/orders';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Checkout from './pages/Checkout';
-import StaffDashboard from './pages/staff/Dashboard';
-import AdminDashboard from './pages/admin/Dashboard';
 import { Home } from './pages/Home';
-import Unauthorized from './pages/Unauthorized';
-import AdminMenu from './pages/AdminMenu';
-import AdminUsers from './pages/AdminUsers';
-import AdminReports from './pages/AdminReports';
+import StaffDashboard from './pages/BaristaDashboard';
+import PaymentResultPage from './pages/PaymentResultPage';
 import PaymentPage from './pages/PaymentPage';
-import PaymentResultPage from './pages/PaymentResultPage'; // This was unused
 
 const AppRoutes = () => {
   const { user } = useAuth();
-  
+
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
-
-      {/* Home Route */}
-      <Route path="/" element={
-        <Layout>
-          <Home />
-        </Layout>
-      } />
 
       {/* Menu Route */}
       <Route path="/menu" element={
@@ -40,11 +28,19 @@ const AppRoutes = () => {
           <Menu />
         </Layout>
       } />
-      
+
       <Route path="/checkout" element={
         <ProtectedRoute>
           <Layout>
             <Checkout />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/payment" element={
+        <ProtectedRoute>
+          <Layout>
+            <PaymentPage />
           </Layout>
         </ProtectedRoute>
       } />
@@ -57,62 +53,21 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
-      {/* Payment Routes */}
-      <Route path="/payment" element={
-        <ProtectedRoute>
-          <Layout>
-            <PaymentPage />
-          </Layout>
-        </ProtectedRoute>
-      } />
       <Route path="/payment/vnpay/callback" element={
-        <ProtectedRoute>
-          <Layout>
-            <PaymentResultPage />
-          </Layout>
-        </ProtectedRoute>
+        <Layout>
+          <PaymentResultPage />
+        </Layout>
       } />
 
-      {/* Staff/Barista Routes */}
       <Route path="/staff" element={
-        <ProtectedRoute allowedRoles={['BARISTA', 'ADMIN']}>
-          <Layout>
-            <StaffDashboard />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><Layout><StaffDashboard /></Layout></ProtectedRoute>
       } />
 
-      {/* Admin Routes */}
-      <Route path="/admin">
-        <Route index element={
-          <ProtectedRoute allowedRoles={['ADMIN']}>
-            <Layout>
-              <AdminDashboard />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="menu" element={
-          <ProtectedRoute allowedRoles={['ADMIN']}>
-            <Layout>
-              <AdminMenu />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="users" element={
-          <ProtectedRoute allowedRoles={['ADMIN']}>
-            <Layout>
-              <AdminUsers />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="reports" element={
-          <ProtectedRoute allowedRoles={['ADMIN']}>
-            <Layout>
-              <AdminReports />
-            </Layout>
-          </ProtectedRoute>
-        } />
-      </Route>
+      <Route path="/" element={
+        <Layout>
+          <Home />
+        </Layout>
+      } />
 
       {/* Fallback Route */}
       <Route path="*" element={
@@ -137,4 +92,5 @@ function App() {
     </CartProvider>
   );
 }
+
 export default App;

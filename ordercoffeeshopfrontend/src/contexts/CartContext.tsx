@@ -1,5 +1,5 @@
 // src/contexts/CartContext.tsx
-import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, type ReactNode, useCallback } from 'react';
 type Size = 'S' | 'M' | 'L';
 type Topping = { id: string; name: string; price: number };
 
@@ -144,25 +144,25 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (item: Omit<CartItem, 'cartItemId' | 'quantity'>) => {
+  const addToCart = useCallback((item: Omit<CartItem, 'cartItemId' | 'quantity'>) => {
     dispatch({ type: 'ADD_ITEM', payload: item });
-  };
+  }, []);
 
-  const updateCartItem = (cartItemId: string, updates: { quantity?: number; size?: Size; toppings?: Topping[] }) => {
+  const updateCartItem = useCallback((cartItemId: string, updates: { quantity?: number; size?: Size; toppings?: Topping[] }) => {
     dispatch({ type: 'UPDATE_ITEM', payload: { cartItemId, ...updates } });
-  };
+  }, []);
 
-  const removeFromCart = (cartItemId: string) => {
+  const removeFromCart = useCallback((cartItemId: string) => {
     dispatch({ type: 'REMOVE_ITEM', payload: { cartItemId } });
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR_CART' });
-  };
+  }, []);
 
-  const getItemCount = () => cart.itemCount;
+  const getItemCount = useCallback(() => cart.itemCount, [cart.itemCount]);
 
-  const getTotalPrice = () => cart.total;
+  const getTotalPrice = useCallback(() => cart.total, [cart.total]);
 
   return (
     <CartContext.Provider

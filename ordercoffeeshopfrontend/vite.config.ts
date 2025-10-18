@@ -8,6 +8,9 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    global: 'window',
+  },
   css: {
     postcss: './postcss.config.mjs',
   },
@@ -19,6 +22,8 @@ export default defineConfig({
   server: {
     port: 5174,
     open: true,
+    allowedHosts: ['.ngrok-free.app', 'localhost'],
+    
   },
   preview: {
     port: 5174,

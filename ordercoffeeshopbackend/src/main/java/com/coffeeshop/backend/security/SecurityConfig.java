@@ -41,15 +41,18 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // 3. Định nghĩa các quy tắc ủy quyền (Authorization)
-// ...
+                // ...
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/r2/**", "/api/v1/payment/create-payment", "/api/v1/payment/callback").permitAll()
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/r2/**", "/api/v1/payment/create-payment",
+                                "/api/v1/payment/callback")
+                        .permitAll()
                         .requestMatchers("/api/v1/payment/status/**").authenticated()
-                        .requestMatchers( "/api/v1/products/**").permitAll()
+                        .requestMatchers("/api/v1/products/**").permitAll()
+                        .requestMatchers("/api/v1/coupons/**").permitAll() // Add this line for coupon validation
                         .requestMatchers("/api/v1/users/**").hasAnyRole("CUSTOMER", "ADMIN")
                         .requestMatchers("/api/v1/cart/**").hasRole("CUSTOMER")
-                        .requestMatchers("/api/v1/orders/**").hasAnyRole("CUSTOMER", "ADMIN")
-                        .anyRequest().authenticated()) 
+                        .requestMatchers("/api/v1/orders/**").hasAnyRole("CUSTOMER", "ADMIN", "STAFF")
+                        .anyRequest().authenticated())
 
                 // 4. Cấu hình quản lý session
                 // Với JWT, chúng ta muốn ứng dụng stateless, tức là không lưu trữ session trên
@@ -111,6 +114,7 @@ public class SecurityConfig {
         // In production, replace "*" with specific origins
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
+                "https://*.ngrok-free.app",
                 "http://localhost:5174", // React default
                 "https://order-coffee-shop-1.onrender.com" // Your deployed frontend URL
         ));

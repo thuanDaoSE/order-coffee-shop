@@ -20,6 +20,7 @@ import com.coffeeshop.backend.service.OrderService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductVariantRepository productVariantRepository;
     private final VoucherRepository voucherRepository;
     private final OrderMapper orderMapper;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Override
     @Transactional
@@ -107,7 +109,10 @@ public class OrderServiceImpl implements OrderService {
         // 6. Save the order
         Order savedOrder = orderRepository.save(order);
 
-        // 7. Map to response DTO
+        // 7. Send notification
+        simpMessagingTemplate.convertAndSend("/topic/orders", orderMapper.toOrderDTO(savedOrder));
+
+        // 8. Map to response DTO
         return orderMapper.toOrderResponse(savedOrder);
     }
     
@@ -121,5 +126,26 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderMapper.toVoucherValidationResponse(voucher);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        order.setStatus(status);
+        Order updatedOrder = orderRepository.save(order);
+
+        // Broadcast the status update
+        simpMessagingTemplate.convertAndSend("/topic/orders", orderMapper.toOrderDTO(updatedOrder));
+
+        return orderMapper.toOrderResponse(updatedOrder);
+    }
+
+    public boolean isOwnerOfOrder(Long orderId, String username) {
+        return orderRepository.findById(orderId)
+                .map(order -> order.getUser().getEmail().equals(username))
+                .orElse(false);
     }
 }

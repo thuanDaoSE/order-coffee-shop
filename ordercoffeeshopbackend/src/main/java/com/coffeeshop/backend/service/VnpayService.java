@@ -51,8 +51,11 @@ public class VnpayService {
                                  
                                  {
         try {
-            return ResponseEntity.ok(vnpayUtils.createVnpayPaymentUrl(paymentInitiationRequest, clientIp));
+            String url = vnpayUtils.createVnpayPaymentUrl(paymentInitiationRequest, clientIp);
+            logger.info("Created VNPAY URL for Order ID {}: {}", paymentInitiationRequest.getOrderId(), url);
+            return ResponseEntity.ok(url);
         } catch (UnsupportedEncodingException e) {
+            logger.error("Error creating VNPAY payment URL", e);
             throw new PaymentExceptionHanlder("Error creating VNPAY payment URL");
         }
     }
@@ -172,8 +175,10 @@ public class VnpayService {
             result.put("success", true);
             result.put("orderId", order.getId());
             result.put("status", order.getStatus()); // e.g., PAID, PENDING, CANCELLED
+            logger.info("Returning payment status for Order ID {}: {}", id, order.getStatus());
             return result;
         } catch (NumberFormatException e) {
+            logger.error("Invalid Order ID format for: {}", orderId, e);
             result.put("success", false);
             result.put("message", "Invalid Order ID format.");
             return result;

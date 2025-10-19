@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,10 +56,12 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (OrderItemRequest itemRequest : request.getItems()) {
             ProductVariant variant = productVariantRepository.findById(itemRequest.getProductVariantId())
-                    .orElseThrow(() -> new ResourceNotFoundException("ProductVariant not found with id: " + itemRequest.getProductVariantId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "ProductVariant not found with id: " + itemRequest.getProductVariantId()));
 
             if (variant.getStockQuantity() < itemRequest.getQuantity()) {
-                throw new RuntimeException("Not enough stock for product: " + variant.getProduct().getName() + " - " + variant.getSize());
+                throw new RuntimeException(
+                        "Not enough stock for product: " + variant.getProduct().getName() + " - " + variant.getSize());
             }
 
             OrderDetail detail = new OrderDetail();
@@ -80,7 +81,8 @@ public class OrderServiceImpl implements OrderService {
         // 4. Handle voucher (if any)
         if (request.getCouponCode() != null && !request.getCouponCode().isEmpty()) {
             Voucher voucher = voucherRepository.findByCode(request.getCouponCode())
-                    .orElseThrow(() -> new ResourceNotFoundException("Voucher not found with code: " + request.getCouponCode()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Voucher not found with code: " + request.getCouponCode()));
             // Basic validation, more can be added (e.g., expiry date, usage limits)
             if (voucher.getDiscountType() == DiscountType.PERCENT) {
                 BigDecimal discount = totalPrice.multiply(voucher.getDiscountValue().divide(new BigDecimal(100)));
@@ -90,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
             }
             order.setVoucher(voucher);
         }
-        
+
         if (totalPrice.compareTo(BigDecimal.ZERO) < 0) {
             totalPrice = BigDecimal.ZERO;
         }
@@ -105,7 +107,6 @@ public class OrderServiceImpl implements OrderService {
         payment.setStatus(PaymentStatus.PENDING);
         order.setPayment(payment);
 
-
         // 6. Save the order
         Order savedOrder = orderRepository.save(order);
 
@@ -115,7 +116,7 @@ public class OrderServiceImpl implements OrderService {
         // 8. Map to response DTO
         return orderMapper.toOrderResponse(savedOrder);
     }
-    
+
     @Override
     public VoucherValidationResponse validateVoucher(VoucherValidationRequest request) {
         Voucher voucher = voucherRepository.findByCode(request.getCode())

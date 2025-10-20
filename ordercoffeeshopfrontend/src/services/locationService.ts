@@ -40,7 +40,7 @@ export const locationService = {
     
     return retryWithDelay(async () => {
       try {
-        const response = await api.get(`/location/search?${params}`);
+        const response = await api.get(`/v1/location/search?${params}`);
         return response.data;
       } catch (error: unknown) {
         console.error('Error searching address:', error);
@@ -64,7 +64,7 @@ export const locationService = {
     
     return retryWithDelay(async () => {
       try {
-        const response = await api.get(`/location/autocomplete?${params}`);
+        const response = await api.get(`/v1/location/autocomplete?${params}`);
         
         if (!Array.isArray(response.data)) {
           console.warn('Unexpected API response format:', response.data);
@@ -90,6 +90,21 @@ export const locationService = {
         reject(new Error('Geolocation is not supported by your browser'));
       } else {
         navigator.geolocation.getCurrentPosition(resolve, reject);
+      }
+    });
+  },
+
+  getPlaceDetails: async (refId: string): Promise<{ latitude: number; longitude: number }> => {
+    return retryWithDelay(async () => {
+      try {
+        const response = await api.get(`/v1/location/details?refId=${refId}`);
+        return {
+          latitude: response.data.latitude || response.data.lat || 0,
+          longitude: response.data.longitude || response.data.lng || 0
+        };
+      } catch (error) {
+        console.error('Error getting place details:', error);
+        throw error;
       }
     });
   }

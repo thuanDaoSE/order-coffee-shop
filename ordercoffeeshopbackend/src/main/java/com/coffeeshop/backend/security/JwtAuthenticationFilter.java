@@ -45,21 +45,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             // Log the exception, but don't block the request.
-            // This allows unauthenticated users to access public endpoints and prevents crashes from invalid tokens.
+            // This allows unauthenticated users to access public endpoints and prevents
+            // crashes from invalid tokens.
             logger.error("Cannot set user authentication: {}", e.getMessage());
         }
         filterChain.doFilter(request, response);
     }
-    
+
     private String getJwtFromRequest(HttpServletRequest request) {
+        // First try to get from cookie
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if ("jwt".equals(cookie.getName())) {
+                    logger.debug("JWT found in cookie");
                     return cookie.getValue();
                 }
             }
         }
+
+        // If not in cookie, try Authorization header
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            logger.debug("JWT found in Authorization header");
+            return bearerToken.substring(7);
+        }
+
+        logger.debug("No JWT found in request");
         return null;
     }
 }

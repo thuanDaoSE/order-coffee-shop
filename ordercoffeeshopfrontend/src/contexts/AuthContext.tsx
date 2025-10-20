@@ -18,23 +18,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkUserStatus = async () => {
       try {
-        // Call the API to get the current user's information
+        setIsLoading(true);
         const response = await getProfile();
-        if (response.data) {
+        if (response?.data) {
           setUser(response.data);
         } else {
-          // If getProfile returns no data but doesn't throw, it's still an invalid state
           setUser(null);
         }
-      } catch (error) {
-        console.log("User is not authenticated, attempting to clear session.");
-        // This will call the backend to clear the cookie and set user to null
-        try {
-          await logoutUser(); // Clear cookie on backend
-        } catch (logoutError) {
-          console.error("Failed to clear session on server:", logoutError);
+      } catch (error: any) {
+        console.error("Authentication error:", error?.response?.data || error.message);
+        setUser(null);
+        // Don't automatically logout on 401/403 errors as they're expected when not logged in
+        if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+          try {
+            await logoutUser();
+          } catch (logoutError) {
+            console.error("Failed to clear session:", logoutError);
+          }
         }
-        setUser(null); // Clear user in frontend
       } finally {
         setIsLoading(false);
       }
@@ -43,8 +44,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkUserStatus();
   }, []);
 
-  const login = (loggedInUser: User) => {
-    setUser(loggedInUser);
+  const login = async (loggedInUser: User) => {
+    try {
+      setIsLoading(true);
+      setUser(loggedInUser);
+      // Verify the login was successful by getting the profile
+      await getProfile();
+    } catch (error) {
+      console.error("Failed to verify login:", error);
+      setUser(null);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = async () => {

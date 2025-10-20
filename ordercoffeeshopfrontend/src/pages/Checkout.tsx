@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import api from '../services/api';
 import { cartApi } from '../services/mockApi';
+import { CheckoutAddressForm } from '../components/CheckoutAddressForm';
 
 const Checkout = () => {
   const { cart, clearCart } = useCart();
@@ -10,6 +11,7 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; percentage: number } | null>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
+  const [selectedAddressId, setSelectedAddressId] = useState<string | number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -54,10 +56,15 @@ const Checkout = () => {
     console.log('Checkout process started...');
     try {
       console.log('Sending order creation request...');
+      // Validate delivery method and address
+      if (deliveryMethod === 'delivery' && !selectedAddressId) {
+        throw new Error('Please select a delivery address');
+      }
+
       const response = await api.post('/v1/orders', {
         items: cartItems.map(item => ({
           productId: item.productId,
-          productVariantId: item.productVariantId, // IMPORTANT: Use variantId
+          productVariantId: item.productVariantId,
           name: item.name,
           price: item.price,
           size: item.size,
@@ -66,6 +73,7 @@ const Checkout = () => {
         })),
         couponCode: appliedCoupon?.code,
         deliveryMethod,
+        addressId: selectedAddressId,
         total,
         subtotal,
         discount: discount || 0,
@@ -211,6 +219,14 @@ const Checkout = () => {
                   </p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">Try: SAVE10, SAVE20, WELCOME</p>
+              </div>
+
+              {/* Delivery Options */}
+              <div className="mb-6">
+                <CheckoutAddressForm
+                  onAddressSelect={setSelectedAddressId}
+                  onDeliveryMethodChange={setDeliveryMethod}
+                />
               </div>
 
               {/* Price Breakdown */}

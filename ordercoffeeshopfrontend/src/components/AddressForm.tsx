@@ -107,14 +107,29 @@ export const AddressForm: React.FC<AddressFormProps> = ({
     }
   };
 
-  const handleSelectSuggestion = (suggestion: VietmapAddress) => {
-    setFormData(prev => ({
-      ...prev,
-      addressText: suggestion.display || suggestion.address || '',
-      latitude: 0, // You might want to get these from the suggestion if available
-      longitude: 0  // You might want to get these from the suggestion if available
-    }));
-    setShowSuggestions(false);
+  const handleSelectSuggestion = async (suggestion: VietmapAddress) => {
+    try {
+      setIsLoading(true);
+      // Get detailed location information including coordinates
+      const details = await locationService.getPlaceDetails(suggestion.ref_id);
+      
+      setFormData(prev => ({
+        ...prev,
+        addressText: suggestion.display || suggestion.address || '',
+        latitude: details.latitude || 0,
+        longitude: details.longitude || 0
+      }));
+    } catch (error) {
+      console.error('Error getting place details:', error);
+      // Fallback to just the address without coordinates
+      setFormData(prev => ({
+        ...prev,
+        addressText: suggestion.display || suggestion.address || '',
+      }));
+    } finally {
+      setIsLoading(false);
+      setShowSuggestions(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,15 +140,45 @@ export const AddressForm: React.FC<AddressFormProps> = ({
     }));
   };
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formData.addressText.trim()) {
+      newErrors.addressText = 'Address is required';
+    }
+
+    if (!formData.label.trim()) {
+      newErrors.label = 'Label is required';
+    }
+
+    if (formData.latitude === 0 || formData.longitude === 0) {
+      newErrors.addressText = 'Please select an address from the suggestions';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+
     try {
+      setIsLoading(true);
       const response = address?.id
         ? await addressService.updateAddress(address.id, formData)
         : await addressService.createAddress(formData);
       onSubmit(response);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving address:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to save address';
+      setErrors({ submit: errorMessage });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -154,6 +199,8 @@ export const AddressForm: React.FC<AddressFormProps> = ({
             variant="outlined"
             margin="normal"
             autoComplete="off"
+            error={!!errors.addressText}
+            helperText={errors.addressText}
             InputProps={{
               endAdornment: isLoading ? <CircularProgress size={20} /> : null,
             }}
@@ -184,8 +231,15 @@ export const AddressForm: React.FC<AddressFormProps> = ({
                       }}
                     >
                       <ListItemText 
-                        primary={suggestion.name || 'Unnamed Location'} 
-                        secondary={suggestion.address}
+                        primary={suggestion.name || suggestion.address || 'Unnamed Location'} 
+                        secondary={suggestion.address !== suggestion.name ? suggestion.address : undefined}
+                        sx={{
+                          '& .MuiTypography-root': {
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }
+                        }}
                       />
                     </ListItem>
                   ))
@@ -213,6 +267,8 @@ export const AddressForm: React.FC<AddressFormProps> = ({
           placeholder="Home, Office, etc."
           variant="outlined"
           margin="normal"
+          error={!!errors.label}
+          helperText={errors.label}
         />
 
         <TextField
@@ -243,20 +299,35 @@ export const AddressForm: React.FC<AddressFormProps> = ({
           />
         </FormGroup>
 
+        {errors.submit && (
+          <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+            {errors.submit}
+          </Typography>
+        )}
+        
         <Stack direction="row" spacing={2} marginTop={2}>
           <Button 
             type="submit" 
             variant="contained" 
             color="primary"
             size="large"
+            disabled={isLoading}
           >
-            {address ? 'Update' : 'Save'} Address
+            {isLoading ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                {address ? 'Updating...' : 'Saving...'}
+              </>
+            ) : (
+              <>{address ? 'Update' : 'Save'} Address</>
+            )}
           </Button>
           <Button 
             type="button" 
             variant="outlined" 
             onClick={onCancel}
             size="large"
+            disabled={isLoading}
           >
             Cancel
           </Button>

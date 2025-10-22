@@ -28,6 +28,7 @@ export const CheckoutAddressForm: React.FC<CheckoutAddressFormProps> = ({
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   
   const { register, watch, setValue } = useForm<CheckoutAddressFormData>({
     resolver: zodResolver(checkoutAddressSchema),
@@ -56,8 +57,12 @@ export const CheckoutAddressForm: React.FC<CheckoutAddressFormProps> = ({
 
     if (deliveryMethod === 'delivery') {
       loadAddresses();
+    } else {
+      // Clear address selection when switching to pickup
+      setValue('addressId', null);
+      setSelectedAddress(null);
     }
-  }, [deliveryMethod]);
+  }, [deliveryMethod, setValue]);
 
   useEffect(() => {
     onDeliveryMethodChange(deliveryMethod as 'pickup' | 'delivery');
@@ -65,7 +70,13 @@ export const CheckoutAddressForm: React.FC<CheckoutAddressFormProps> = ({
 
   useEffect(() => {
     onAddressSelect(selectedAddressId || null);
-  }, [selectedAddressId, onAddressSelect]);
+    if (selectedAddressId) {
+      const address = addresses.find(a => String(a.id) === String(selectedAddressId));
+      setSelectedAddress(address || null);
+    } else {
+      setSelectedAddress(null);
+    }
+  }, [selectedAddressId, onAddressSelect, addresses]);
 
   const handleAddressSubmit = async (address: Omit<Address, 'id'>) => {
     try {
@@ -82,85 +93,110 @@ export const CheckoutAddressForm: React.FC<CheckoutAddressFormProps> = ({
 
   return (
     <Box sx={{ mb: 4 }}>
-      <Typography variant="h6" gutterBottom>
-        Delivery Method
-      </Typography>
-      
-      <RadioGroup
-        {...register('deliveryMethod')}
-        onChange={(e) => {
-          setValue('deliveryMethod', e.target.value as 'pickup' | 'delivery');
-          if (e.target.value === 'pickup') {
-            setValue('addressId', null);
-          }
-        }}
-      >
-        <FormControlLabel 
-          value="pickup" 
-          control={<Radio />} 
-          label="Pick up at store"
-        />
-        <FormControlLabel 
-          value="delivery" 
-          control={<Radio />} 
-          label="Delivery to address"
-        />
-      </RadioGroup>
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <button
+          type="button"
+          onClick={() => {
+            setValue('deliveryMethod', 'pickup');
+          }}
+          className={`p-4 border-2 rounded-lg transition text-center ${
+            deliveryMethod === 'pickup'
+              ? 'border-amber-600 bg-amber-50'
+              : 'border-gray-300 hover:border-amber-400'
+          }`}
+        >
+          <div className="text-2xl mb-2">🏪</div>
+          <p className="font-semibold">Tại quán</p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setValue('deliveryMethod', 'delivery')}
+          className={`p-4 border-2 rounded-lg transition text-center ${
+            deliveryMethod === 'delivery'
+              ? 'border-amber-600 bg-amber-50'
+              : 'border-gray-300 hover:border-amber-400'
+          }`}
+        >
+          <div className="text-2xl mb-2">🚚</div>
+          <p className="font-semibold">Mang đi</p>
+        </button>
+      </div>
 
       {deliveryMethod === 'delivery' && (
         <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1" gutterBottom>
-            Select Delivery Address
-          </Typography>
-          
-          {isLoading ? (
-            <CircularProgress />
-          ) : addresses.length > 0 && !showNewAddressForm ? (
+          {selectedAddress ? (
             <Box>
-              <RadioGroup
-                {...register('addressId')}
-                onChange={(e) => setValue('addressId', e.target.value)}
-              >
-                {addresses.map((address) => (
-                  <FormControlLabel
-                    key={address.id}
-                    value={address.id}
-                    control={<Radio />}
-                    label={
-                      <Box>
-                        <Typography variant="subtitle2">{address.label}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {address.addressText}
-                        </Typography>
-                        {address.notes && (
-                          <Typography variant="body2" color="text.secondary">
-                            Note: {address.notes}
-                          </Typography>
-                        )}
-                      </Box>
-                    }
-                  />
-                ))}
-              </RadioGroup>
-              
+              <Typography variant="subtitle1" gutterBottom>
+                Giao đến:
+              </Typography>
+              <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" fontWeight="bold">{selectedAddress.label}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {selectedAddress.addressText}
+                </Typography>
+                {selectedAddress.notes && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    Ghi chú: {selectedAddress.notes}
+                  </Typography>
+                )}
+              </Box>
               <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => setShowNewAddressForm(true)}
-                sx={{ mt: 2 }}
+                variant="text"
+                onClick={() => setValue('addressId', null)}
+                sx={{ mt: 1, textTransform: 'none' }}
               >
-                Add New Address
+                Chọn địa chỉ khác
               </Button>
             </Box>
           ) : (
-            showNewAddressForm || addresses.length === 0 ? (
-              <Box>
-                <AddressForm
-                  onSubmit={handleAddressSubmit}
-                  onCancel={() => setShowNewAddressForm(false)}
-                />
-              </Box>
-            ) : null
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                Chọn địa chỉ giao hàng
+              </Typography>
+              
+              {isLoading ? (
+                <CircularProgress />
+              ) : addresses.length > 0 && !showNewAddressForm ? (
+                <Box>
+                  <RadioGroup
+                    {...register('addressId')}
+                    onChange={(e) => setValue('addressId', e.target.value)}
+                  >
+                    {addresses.map((address) => (
+                      <FormControlLabel
+                        key={address.id}
+                        value={address.id}
+                        control={<Radio />}
+                        label={
+                          <Box>
+                            <Typography variant="subtitle2">{address.label}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {address.addressText}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    ))}
+                  </RadioGroup>
+                  
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => setShowNewAddressForm(true)}
+                    sx={{ mt: 2, textTransform: 'none' }}
+                  >
+                    Thêm địa chỉ mới
+                  </Button>
+                </Box>
+              ) : (
+                <Box>
+                  <AddressForm
+                    onSubmit={handleAddressSubmit}
+                    onCancel={() => addresses.length > 0 && setShowNewAddressForm(false)}
+                  />
+                </Box>
+              )}
+            </Box>
           )}
         </Box>
       )}

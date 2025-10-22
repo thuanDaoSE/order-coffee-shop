@@ -6,11 +6,12 @@ import { cartApi } from '../services/mockApi';
 import { CheckoutAddressForm } from '../components/CheckoutAddressForm';
 
 const Checkout = () => {
-  const { cart, clearCart } = useCart();
+  const { cart, updateCartItem, clearCart } = useCart();
   const { items: cartItems } = cart;
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; percentage: number } | null>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
+  const [paymentMethod, setPaymentMethod] = useState<string>('VNPAYEWALLET');
   const [selectedAddressId, setSelectedAddressId] = useState<string | number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -86,7 +87,8 @@ const Checkout = () => {
         state: { 
           orderId: response.data.id, 
           totalAmount: response.data.total, 
-          orderInfo: `Payment for order #${response.data.id}` 
+          orderInfo: `Payment for order #${response.data.id}`,
+          paymentMethod: paymentMethod
         } 
       });
       console.log('Navigation call finished.');
@@ -137,9 +139,26 @@ const Checkout = () => {
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-800">{item.name}</h3>
                         <p className="text-sm text-gray-600">Size: {item.size}</p>
-                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-sm text-gray-600">Quantity:</p>
+                          <div className="flex items-center border border-gray-300 rounded">
+                            <button
+                              onClick={() => updateCartItem(item.cartItemId, { quantity: item.quantity - 1 })}
+                              className="px-2 py-0.5 text-lg font-bold text-gray-700 hover:bg-gray-100"
+                            >
+                              -
+                            </button>
+                            <span className="px-3 py-0.5">{item.quantity}</span>
+                            <button
+                              onClick={() => updateCartItem(item.cartItemId, { quantity: item.quantity + 1 })}
+                              className="px-2 py-0.5 text-lg font-bold text-gray-700 hover:bg-gray-100"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                         {item.toppings?.length > 0 && (
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 mt-1">
                             Toppings: {item.toppings.map(t => t.name).join(', ')}
                           </p>
                         )}
@@ -154,39 +173,7 @@ const Checkout = () => {
             </div>
 
             {/* Delivery Method */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Delivery Method</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setDeliveryMethod('pickup')}
-                  className={`p-4 border-2 rounded-lg transition ${
-                    deliveryMethod === 'pickup'
-                      ? 'border-amber-600 bg-amber-50'
-                      : 'border-gray-300 hover:border-amber-400'
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">🏪</div>
-                    <p className="font-semibold">Pickup</p>
-                    <p className="text-sm text-gray-600">Miễn phí</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setDeliveryMethod('delivery')}
-                  className={`p-4 border-2 rounded-lg transition ${
-                    deliveryMethod === 'delivery'
-                      ? 'border-amber-600 bg-amber-50'
-                      : 'border-gray-300 hover:border-amber-400'
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">🚚</div>
-                    <p className="font-semibold">Delivery</p>
-                    <p className="text-sm text-gray-600">{new Intl.NumberFormat('vi-VN').format(25000)}₫</p>
-                  </div>
-                </button>
-              </div>
-            </div>
+            
           </div>
 
           {/* Order Summary */}
@@ -223,6 +210,7 @@ const Checkout = () => {
 
               {/* Delivery Options */}
               <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Hình thức nhận hàng</h2>
                 <CheckoutAddressForm
                   onAddressSelect={setSelectedAddressId}
                   onDeliveryMethodChange={setDeliveryMethod}
@@ -252,6 +240,73 @@ const Checkout = () => {
                 <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-800">
                   <span>Total</span>
                   <span className="text-amber-600">{new Intl.NumberFormat('vi-VN').format(total)}₫</span>
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Payment Method</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setPaymentMethod('VNPAYEWALLET')}
+                    className={`p-4 border-2 rounded-lg transition ${
+                      paymentMethod === 'VNPAYEWALLET'
+                        ? 'border-amber-600 bg-amber-50'
+                        : 'border-gray-300 hover:border-amber-400'
+                    }`}
+                  >
+                    <p className="font-semibold">VNPAY-QR</p>
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('ZALOPAY')}
+                    className={`p-4 border-2 rounded-lg transition ${
+                      paymentMethod === 'ZALOPAY'
+                        ? 'border-amber-600 bg-amber-50'
+                        : 'border-gray-300 hover:border-amber-400'
+                    }`}
+                  >
+                    <p className="font-semibold">ZaloPay</p>
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('SHOPEEPAY')}
+                    className={`p-4 border-2 rounded-lg transition ${
+                      paymentMethod === 'SHOPEEPAY'
+                        ? 'border-amber-600 bg-amber-50'
+                        : 'border-gray-300 hover:border-amber-400'
+                    }`}
+                  >
+                    <p className="font-semibold">ShopeePay</p>
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('VIETTELPAY')}
+                    className={`p-4 border-2 rounded-lg transition ${
+                      paymentMethod === 'VIETTELPAY'
+                        ? 'border-amber-600 bg-amber-50'
+                        : 'border-gray-300 hover:border-amber-400'
+                    }`}
+                  >
+                    <p className="font-semibold">Viettel Money</p>
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('VISA')}
+                    className={`p-4 border-2 rounded-lg transition ${
+                      paymentMethod === 'VISA'
+                        ? 'border-amber-600 bg-amber-50'
+                        : 'border-gray-300 hover:border-amber-400'
+                    }`}
+                  >
+                    <p className="font-semibold">Thẻ quốc tế</p>
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('VIETCOMBANK')}
+                    className={`p-4 border-2 rounded-lg transition ${
+                      paymentMethod === 'VIETCOMBANK'
+                        ? 'border-amber-600 bg-amber-50'
+                        : 'border-gray-300 hover:border-amber-400'
+                    }`}
+                  >
+                    <p className="font-semibold">Thẻ ATM</p>
+                  </button>
                 </div>
               </div>
 

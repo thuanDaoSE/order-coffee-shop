@@ -11,7 +11,7 @@ export default function PaymentPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { clearCart } = useCart();
-  const { orderId, totalAmount, orderInfo } = location.state || {};
+  const { orderId, totalAmount, orderInfo, paymentMethod } = location.state || {};
 
   useEffect(() => {
     if (!orderId || !totalAmount) {
@@ -30,6 +30,7 @@ export default function PaymentPage() {
         amount: totalAmount, // Amount is already in VND
         orderInfo: `Thanh toan don hang ${orderId}`,
         orderId: orderId.toString(),
+        bankCode: paymentMethod,
       });
       
       // Redirect to VNPAY payment URL
@@ -78,7 +79,7 @@ export default function PaymentPage() {
           startIcon={isLoading ? <CircularProgress size={20} /> : <PaymentIcon />}
           size="large"
         >
-          {isLoading ? 'Đang xử lý...' : 'Thanh toán qua VNPAY'}
+          {isLoading ? 'Đang xử lý...' : 'Thanh toán'}
         </Button>
         
         <Button

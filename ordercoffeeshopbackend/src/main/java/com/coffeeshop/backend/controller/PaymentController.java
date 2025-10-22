@@ -22,9 +22,11 @@ public class PaymentController {
     private VnpayService vnpayService;
 
     @PostMapping("/create-payment")
-    public ResponseEntity<String> createPayment(@RequestBody PaymentInitiationRequest initiationRequest, HttpServletRequest request) {
+    public ResponseEntity<String> createPayment(@RequestBody PaymentInitiationRequest initiationRequest,
+            HttpServletRequest request) {
         String clientIp = getClientIp(request);
-        logger.info("Creating VNPAY payment request for Order ID: {} with Amount: {}", initiationRequest.getOrderId(), initiationRequest.getAmount());
+        logger.info("Creating VNPAY payment request for Order ID: {} with Amount: {}", initiationRequest.getOrderId(),
+                initiationRequest.getAmount());
         // The service call now handles the creation and logging of the URL
         return vnpayService.createVnpayPaymentUrl(initiationRequest, clientIp);
     }

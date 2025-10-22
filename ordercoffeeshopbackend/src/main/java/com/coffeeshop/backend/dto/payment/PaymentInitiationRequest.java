@@ -7,4 +7,5 @@ public class PaymentInitiationRequest {
     private long amount;
     private String orderInfo;
     private String orderId;
+    private String bankCode;
 }

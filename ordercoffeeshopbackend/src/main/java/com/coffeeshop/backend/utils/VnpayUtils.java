@@ -21,7 +21,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Component
 public class VnpayUtils {
-    
+
     @Autowired
     private VnpayConfig vnpayConfig;
 
@@ -29,52 +29,62 @@ public class VnpayUtils {
         return vnpayConfig.getVnp_HashSecret();
     }
 
-    public String createVnpayPaymentUrl(PaymentInitiationRequest paymentInitiationRequest, String clientIp) throws UnsupportedEncodingException {
+    public String createVnpayPaymentUrl(PaymentInitiationRequest paymentInitiationRequest, String clientIp)
+            throws UnsupportedEncodingException {
         // amount, orderInfo, vnpayRequest
         long amount = (long) (paymentInitiationRequest.getAmount() * 100);
-        String vnp_TxnRef = paymentInitiationRequest.getOrderId(); // Use the actual orderId as the transaction reference
+        String vnp_TxnRef = paymentInitiationRequest.getOrderId(); // Use the actual orderId as the transaction
+                                                                   // reference
         // String vnp_IpAddr = "127.0.0.1";
         String vnp_IpAddr = clientIp;
         String vnp_TmnCode = vnpayConfig.getVnp_TmnCode();
 
-         Map<String, String> vnp_Params = new HashMap<>();
+        Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnpayConfig.getVnp_Version());
         vnp_Params.put("vnp_Command", vnpayConfig.getVnp_Command());
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
         vnp_Params.put("vnp_Amount", String.valueOf(amount));
+        if (paymentInitiationRequest.getBankCode() != null && !paymentInitiationRequest.getBankCode().isEmpty()) {
+            vnp_Params.put("vnp_BankCode", paymentInitiationRequest.getBankCode());
+        }
         vnp_Params.put("vnp_CurrCode", "VND");
-        
+
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
         vnp_Params.put("vnp_OrderType", vnpayConfig.getVnp_OrderType());
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", vnpayConfig.getVnp_ReturnUrl());
-        
+
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+
+        // Conditionally add vnp_BankCode if it exists
+        if (paymentInitiationRequest.getBankCode() != null && !paymentInitiationRequest.getBankCode().isEmpty()) {
+            vnp_Params.put("vnp_BankCode", paymentInitiationRequest.getBankCode());
+        }
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String vnp_CreateDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
-        
+
         cld.add(Calendar.MINUTE, 15);
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
-        
-        List fieldNames = new ArrayList(vnp_Params.keySet());
+
+        List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
         Collections.sort(fieldNames);
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
-        Iterator itr = fieldNames.iterator();
+        Iterator<String> itr = fieldNames.iterator();
         while (itr.hasNext()) {
-            String fieldName = (String) itr.next();
-            String fieldValue = (String) vnp_Params.get(fieldName);
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                //Build hash data
+            String fieldName = itr.next();
+            String fieldValue = vnp_Params.get(fieldName);
+            if ((fieldValue != null) && (!fieldValue.isEmpty())) {
+                // Build hash data
                 hashData.append(fieldName);
                 hashData.append('=');
                 hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
-                //Build query
+                // Build query
                 query.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8.toString()));
                 query.append('=');
                 query.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
@@ -112,28 +122,28 @@ public class VnpayUtils {
 
         StringBuilder hashData = new StringBuilder();
         Iterator<String> itr = fieldNames.iterator();
-            while (itr.hasNext()) {
-                String fieldName = itr.next();
-                String fieldValue = paramsToValidate.get(fieldName);
-                if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                    // Build hash data
-                    hashData.append(fieldName);
-                    hashData.append('=');
-                    // URL-encode the value
-                    try {
-                        hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
-                    } catch (UnsupportedEncodingException e) {
-                        // This should not happen with UTF-8
-                        throw new RuntimeException(e);
-                    }
-                    if (itr.hasNext()) {
-                        hashData.append('&');
-                    }
+        while (itr.hasNext()) {
+            String fieldName = itr.next();
+            String fieldValue = paramsToValidate.get(fieldName);
+            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                // Build hash data
+                hashData.append(fieldName);
+                hashData.append('=');
+                // URL-encode the value
+                try {
+                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
+                } catch (UnsupportedEncodingException e) {
+                    // This should not happen with UTF-8
+                    throw new RuntimeException(e);
+                }
+                if (itr.hasNext()) {
+                    hashData.append('&');
                 }
             }
+        }
 
-            String calculatedHash = hmacSHA512(vnpayConfig.getVnp_HashSecret(), hashData.toString());
-            return calculatedHash.equals(receivedHash);
+        String calculatedHash = hmacSHA512(vnpayConfig.getVnp_HashSecret(), hashData.toString());
+        return calculatedHash.equals(receivedHash);
     }
 
     private String getCurrentDateString(String format) {
@@ -146,7 +156,7 @@ public class VnpayUtils {
         return new SimpleDateFormat("yyyyMMddHHmmss").format(cal.getTime());
     }
 
-    //hmacSHA512
+    // hmacSHA512
     public static String hmacSHA512(String key, String data) {
         try {
             Mac mac = Mac.getInstance("HmacSHA512");

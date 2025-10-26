@@ -255,58 +255,19 @@ const Checkout = () => {
                         : 'border-gray-300 hover:border-amber-400'
                     }`}
                   >
-                    <p className="font-semibold">VNPAY-QR</p>
+                    <p className="font-semibold">Quét mã QR</p>
                   </button>
                   <button
-                    onClick={() => setPaymentMethod('ZALOPAY')}
+                    onClick={() => setPaymentMethod('VNBANK')}
                     className={`p-4 border-2 rounded-lg transition ${
-                      paymentMethod === 'ZALOPAY'
-                        ? 'border-amber-600 bg-amber-50'
-                        : 'border-gray-300 hover:border-amber-400'
-                    }`}
-                  >
-                    <p className="font-semibold">ZaloPay</p>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod('SHOPEEPAY')}
-                    className={`p-4 border-2 rounded-lg transition ${
-                      paymentMethod === 'SHOPEEPAY'
-                        ? 'border-amber-600 bg-amber-50'
-                        : 'border-gray-300 hover:border-amber-400'
-                    }`}
-                  >
-                    <p className="font-semibold">ShopeePay</p>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod('VIETTELPAY')}
-                    className={`p-4 border-2 rounded-lg transition ${
-                      paymentMethod === 'VIETTELPAY'
-                        ? 'border-amber-600 bg-amber-50'
-                        : 'border-gray-300 hover:border-amber-400'
-                    }`}
-                  >
-                    <p className="font-semibold">Viettel Money</p>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod('VISA')}
-                    className={`p-4 border-2 rounded-lg transition ${
-                      paymentMethod === 'VISA'
-                        ? 'border-amber-600 bg-amber-50'
-                        : 'border-gray-300 hover:border-amber-400'
-                    }`}
-                  >
-                    <p className="font-semibold">Thẻ quốc tế</p>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod('VIETCOMBANK')}
-                    className={`p-4 border-2 rounded-lg transition ${
-                      paymentMethod === 'VIETCOMBANK'
+                      paymentMethod === 'VNBANK'
                         ? 'border-amber-600 bg-amber-50'
                         : 'border-gray-300 hover:border-amber-400'
                     }`}
                   >
                     <p className="font-semibold">Thẻ ATM</p>
                   </button>
+                  
                 </div>
               </div>
 

@@ -16,19 +16,20 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
-@RequiredArgsConstructor
 public class SecurityConfig {
+
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
         // Bean này là nơi bạn sẽ định nghĩa các quy tắc bảo mật chính cho ứng dụng.
         @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                        JwtAuthenticationFilter jwtAuthenticationFilter)
+        public SecurityFilterChain securityFilterChain(HttpSecurity http)
                         throws Exception {
                 http
                                 // 1. Vô hiệu hóa CSRF: Với JWT stateless, CSRF thường không cần thiết.
@@ -44,11 +45,13 @@ public class SecurityConfig {
                                 // 3. Định nghĩa các quy tắc ủy quyền (Authorization)
                                 // ...
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/api/v1/auth/**", "/api/v1/r2/**",
+                                                .requestMatchers( "/api/v1/r2/**",
                                                                 "/api/v1/payment/create-payment",
                                                                 "/api/v1/payment/callback", "/api/v1/location/**")
                                                 .permitAll()
-                                                .requestMatchers("/api/v1/payment/status/**", "/api/v1/addresses/**").authenticated()
+                                                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register").permitAll()
+                                                .requestMatchers("/api/v1/payment/status/**", "/api/v1/addresses/**")
+                                                .authenticated()
                                                 .requestMatchers("/api/v1/products/**").permitAll()
                                                 .requestMatchers("/api/v1/coupons/**").permitAll() // Add this line for
                                                                                                    // coupon validation
@@ -118,14 +121,7 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
                 // In production, replace "*" with specific origins
-                configuration.setAllowedOrigins(Arrays.asList(
-                                "http://localhost:3000",
-                                "https://*.ngrok-free.app",
-                                "http://localhost:5173", // Vite default port
-                                "http://localhost:5174",
-                                "http://127.0.0.1:5173",
-                                "http://127.0.0.1:5174",
-                                "https://order-coffee-shop-1.onrender.com"));
+                configuration.setAllowedOriginPatterns(Arrays.asList("https://c1871e8aaf9a.ngrok-free.app"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(Arrays.asList(
                                 "Authorization",

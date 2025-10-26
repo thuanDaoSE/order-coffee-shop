@@ -44,19 +44,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkUserStatus();
   }, []);
 
-  const login = async (loggedInUser: User) => {
-    try {
-      setIsLoading(true);
-      setUser(loggedInUser);
-      // Verify the login was successful by getting the profile
-      await getProfile();
-    } catch (error) {
-      console.error("Failed to verify login:", error);
-      setUser(null);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+  const login = (loggedInUser: User) => {
+    setUser(loggedInUser);
+    setIsLoading(false);
   };
 
   const logout = async () => {

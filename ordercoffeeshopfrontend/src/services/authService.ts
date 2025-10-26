@@ -2,7 +2,9 @@ import axios from 'axios';
 
 
 // Use environment variables for API URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_URL = "https://41a29b870a63.ngrok-free.app/api";
+// const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+console.log("API_URL: ", API_URL);
 
 const api = axios.create({
   baseURL: API_URL,

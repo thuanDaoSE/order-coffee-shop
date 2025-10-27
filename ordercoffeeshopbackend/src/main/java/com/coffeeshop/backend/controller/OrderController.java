@@ -27,6 +27,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
     public ResponseEntity<OrderResponse> createOrder(@RequestBody CreateOrderRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         OrderResponse response = orderService.createOrder(request, userDetails.getUsername());
@@ -65,7 +66,7 @@ public class OrderController {
     }
 
     @PutMapping("/{orderId}/cancel")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
     public ResponseEntity<?> cancelOrder(
             @PathVariable Long orderId,
             @AuthenticationPrincipal UserDetails userDetails) {

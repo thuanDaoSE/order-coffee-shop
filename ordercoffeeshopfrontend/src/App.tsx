@@ -8,7 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Checkout from './pages/Checkout';
 import { Home } from './pages/Home';
-import StaffDashboard from './pages/BaristaDashboard';
+import StaffDashboard from './pages/StaffDashboard';
 import PaymentResultPage from './pages/PaymentResultPage';
 import PaymentPage from './pages/PaymentPage';
 

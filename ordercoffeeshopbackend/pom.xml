@@ -5,11 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
     
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.4</version>
-        <relativePath/>
-    </parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.2.5</version> <relativePath/> </parent>
     
     <groupId>com.coffeeshop</groupId>
     <artifactId>ordercoffeeshopbackend</artifactId>
@@ -28,6 +26,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <lombok.version>1.18.30</lombok.version>
+        
     </properties>
     
     <dependencyManagement>
@@ -178,7 +177,12 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- VNPAY -->
+        <!-- flyway -->
+        <dependency>
+         <groupId>org.flywaydb</groupId>
+         <artifactId>flyway-core</artifactId>
+       </dependency>
+
       
     </dependencies>
 

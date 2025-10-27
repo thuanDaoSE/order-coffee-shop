@@ -10,6 +10,7 @@ public class CreateOrderRequest {
     private List<OrderItemRequest> items;
     private String couponCode;
     private String deliveryMethod;
+    private Long addressId;
     private BigDecimal total;
     private BigDecimal subtotal;
     private BigDecimal discount;

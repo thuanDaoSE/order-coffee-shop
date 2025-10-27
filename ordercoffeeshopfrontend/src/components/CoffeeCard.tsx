@@ -22,22 +22,15 @@ const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
-    // Create a default variant if none exists
-    if (!product.variants || product.variants.length === 0) {
-      const defaultVariant: ProductVariant = {
-        id: product.id,
-        size: 'M',
-        price: 0
-      };
-      setSelectedVariant(defaultVariant);
-    } else {
-      // Use the first available variant
+    if (product.variants && product.variants.length > 0) {
       const variant = product.variants[0] as unknown as ServiceProductVariant;
       setSelectedVariant({
         id: variant.id,
         size: variant.size || 'M',
         price: variant.price || 0
       });
+    } else {
+      setSelectedVariant(null);
     }
   }, [product]);
 
@@ -109,9 +102,10 @@ const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
         
         <button
           onClick={handleAddToCart}
-          className="mt-4 w-full bg-amber-600 text-white py-2 rounded-md hover:bg-amber-700 transition-colors"
+          disabled={!selectedVariant}
+          className="mt-4 w-full bg-amber-600 text-white py-2 rounded-md hover:bg-amber-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          Add to Cart
+          {selectedVariant ? 'Add to Cart' : 'Not Available'}
         </button>
       </div>
     </div>

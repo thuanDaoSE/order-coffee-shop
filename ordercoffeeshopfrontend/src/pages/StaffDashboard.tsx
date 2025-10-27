@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAllOrders, updateOrderStatus } from '../services/orderService';
+import { markOrderAsDelivered, getAllOrders, updateOrderStatus } from '../services/orderService';
 import type { Order } from '../types/order';
 import { useEffect, useState, useMemo } from 'react';
 import { connect, disconnect } from '../services/socketService';
@@ -24,7 +24,7 @@ const getStatusInfo = (status: Order['status']) => {
   return statusMap[status] || { color: 'gray', icon: <Hash size={14} /> };
 };
 
-const OrderCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (orderId: number, status: string) => void }) => {
+const OrderCard = ({ order, onUpdateStatus, devMode }: { order: Order, onUpdateStatus: (orderId: number, status: string) => void, devMode: boolean }) => {
   const statusInfo = getStatusInfo(order.status);
 
   return (
@@ -72,14 +72,18 @@ const OrderCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (o
         {order.status === 'DELIVERING' && (
           <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full py-2.5 text-sm bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Mark Delivered</button>
         )}
+        {devMode && (
+            <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full mt-2 py-2.5 text-sm bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Mark Delivered (Dev)</button>
+        )}
       </div>
     </div>
   );
 };
 
-const BaristaDashboard = () => {
+const StaffDashboard = () => {
   const queryClient = useQueryClient();
   const [notification, setNotification] = useState<string | null>(null);
+  const [devMode, setDevMode] = useState(false);
 
   const { data: orders, isLoading } = useQuery<Order[], Error>({
     queryKey: ['allOrders'],
@@ -88,8 +92,12 @@ const BaristaDashboard = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ orderId, status }: { orderId: number; status: string }) => 
-      updateOrderStatus(orderId, status),
+    mutationFn: ({ orderId, status }: { orderId: number; status: string }) => {
+      if (devMode && status === 'DELIVERED') {
+        return markOrderAsDelivered(orderId);
+      }
+      return updateOrderStatus(orderId, status);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allOrders'] });
     },
@@ -111,7 +119,11 @@ const BaristaDashboard = () => {
   }, [queryClient]);
 
   const handleUpdateStatus = (orderId: number, status: string) => {
-    updateStatusMutation.mutate({ orderId, status });
+    if (devMode && status === 'DELIVERED') {
+      updateStatusMutation.mutate({ orderId, status: 'DELIVERED' });
+    } else {
+      updateStatusMutation.mutate({ orderId, status });
+    }
   };
 
   const ordersByStatus = useMemo(() => {
@@ -140,6 +152,13 @@ const BaristaDashboard = () => {
         <header className="mb-8">
             <h1 className="text-4xl font-bold text-gray-900">Staff Dashboard</h1>
             <p className="text-lg text-gray-600">Live order management</p>
+            <div className="flex items-center mt-4">
+              <span className="text-gray-600 mr-2">Dev Mode</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked={devMode} onChange={() => setDevMode(!devMode)} className="sr-only peer" />
+                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
         </header>
         {notification && (
           <div className="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-r-lg shadow-md">
@@ -159,7 +178,7 @@ const BaristaDashboard = () => {
                 </div>
                 <div className="p-2 overflow-y-auto" style={{maxHeight: 'calc(100vh - 18rem)'}}>
                   {columnOrders.length > 0 ? columnOrders.map(order => (
-                      <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} />
+                      <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} devMode={devMode} />
                   )) : (
                     <div className="flex items-center justify-center h-48">
                         <p className="text-gray-500">No orders in this stage.</p>
@@ -175,4 +194,4 @@ const BaristaDashboard = () => {
   );
 };
 
-export default BaristaDashboard;
+export default StaffDashboard;

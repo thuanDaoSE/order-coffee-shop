@@ -53,7 +53,7 @@ public class VnpayUtils {
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
         vnp_Params.put("vnp_OrderType", vnpayConfig.getVnp_OrderType());
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", "https://c1871e8aaf9a.ngrok-free.app/payment/vnpay/callback");
+        vnp_Params.put("vnp_ReturnUrl", vnpayConfig.getVnp_ReturnUrl());
 
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 

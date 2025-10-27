@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import { createOrder } from '../services/orderService';
 import api from '../services/api';
 import { cartApi } from '../services/mockApi';
 import { CheckoutAddressForm } from '../components/CheckoutAddressForm';
@@ -62,32 +63,25 @@ const Checkout = () => {
         throw new Error('Please select a delivery address');
       }
 
-      const response = await api.post('/v1/orders', {
-        items: cartItems.map(item => ({
-          productId: item.productId,
-          productVariantId: item.productVariantId,
-          name: item.name,
-          price: item.price,
-          size: item.size,
-          quantity: item.quantity,
-          toppings: item.toppings || []
-        })),
-        couponCode: appliedCoupon?.code,
+      const response = await createOrder(
+        cartItems,
+        couponCode,
         deliveryMethod,
-        addressId: selectedAddressId,
+        selectedAddressId || null,
         total,
         subtotal,
-        discount: discount || 0,
+        discount || 0,
         vat,
         shipping
-      });
-      console.log('Order creation successful, response:', response.data);
+      );
+      console.log("Response from createOrder:", JSON.stringify(response, null, 2));
+      console.log('Order creation successful, response:', response);
       
       navigate('/payment', { 
         state: { 
-          orderId: response.data.id, 
-          totalAmount: response.data.total, 
-          orderInfo: `Payment for order #${response.data.id}`,
+          orderId: response.id, 
+          totalAmount: response.totalPrice, 
+          orderInfo: `Payment for order #${response.id}`,
           paymentMethod: paymentMethod
         } 
       });

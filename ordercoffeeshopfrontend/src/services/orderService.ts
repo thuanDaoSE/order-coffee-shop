@@ -6,17 +6,23 @@ interface OrderItemPayload {
   quantity: number;
 }
 
-export const createOrder = async (cartItems: CartItem[], couponCode: string, deliveryMethod: string) => {
+export const createOrder = async (cartItems: CartItem[], couponCode: string, deliveryMethod: string, addressId: string | number | null, total: number, subtotal: number, discount: number, vat: number, shipping: number) => {
   try {
     const items: OrderItemPayload[] = cartItems.map(item => ({
-      productVariantId: item.id, // Assuming item.id from CartContext is the variant ID
+      productVariantId: item.productVariantId, // Use the correct productVariantId from the cart item
       quantity: item.quantity,
     }));
 
     const response = await api.post('/v1/orders', { 
       items, 
       couponCode, 
-      deliveryMethod
+      deliveryMethod,
+      addressId,
+      total,
+      subtotal,
+      discount,
+      vat,
+      shipping
     });
     console.log("create order response: ",response.data);
     return response.data;
@@ -55,6 +61,17 @@ export const updateOrderStatus = async (orderId: number, status: string) => {
     return response.data;
   } catch (error) {
     console.error('Error updating order status:', error);
+    throw error;
+  }
+};
+
+export const markOrderAsDelivered = async (orderId: number) => {
+  try {
+    const response = await api.put(`/v1/dev/orders/${orderId}/mark-delivered`);
+    console.log("mark order as delivered response: ",response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error marking order as delivered:', error);
     throw error;
   }
 };

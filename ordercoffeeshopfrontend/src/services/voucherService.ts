@@ -1,5 +1,5 @@
 // src/services/voucherService.ts
-import api from './authService';
+import api from './api';
 import type { VoucherValidationResponse } from '../types/voucher';
 
 export const validateVoucher = async (code: string): Promise<VoucherValidationResponse> => {

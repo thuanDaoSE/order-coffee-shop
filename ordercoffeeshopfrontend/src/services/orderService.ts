@@ -25,3 +25,14 @@ export const createOrder = async (cartItems: CartItem[], couponCode: string, del
     throw error;
   }
 };
+
+export const getOrders = async () => {
+  try {
+    const response = await api.get('/v1/orders');
+    console.log("get orders response: ",response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    throw error;
+  }
+};

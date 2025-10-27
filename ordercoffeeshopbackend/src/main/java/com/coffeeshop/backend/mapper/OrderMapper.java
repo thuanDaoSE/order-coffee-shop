@@ -1,28 +1,33 @@
 package com.coffeeshop.backend.mapper;
 
+import com.coffeeshop.backend.dto.order.OrderItemResponse;
 import com.coffeeshop.backend.dto.order.OrderResponse;
-import com.coffeeshop.backend.entity.Order;
+import com.coffeeshop.backend.dto.user.UserSummary;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationResponse;
+import com.coffeeshop.backend.entity.Order;
+import com.coffeeshop.backend.entity.OrderDetail;
+import com.coffeeshop.backend.entity.User;
 import com.coffeeshop.backend.entity.Voucher;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
 
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "totalPrice", target = "total")
-    @Mapping(source = "status", target = "status")
     OrderResponse toOrderResponse(Order order);
 
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "totalPrice", target = "total")
-    @Mapping(source = "status", target = "status")
-    OrderResponse toOrderDTO(Order order);
+    @Mapping(source = "productVariant.id", target = "productVariantId")
+    @Mapping(source = "productVariant.product.name", target = "productName")
+    @Mapping(source = "productVariant.size", target = "size")
+    OrderItemResponse toOrderItemResponse(OrderDetail orderDetail);
 
-    @Mapping(source = "code", target = "code")
-    @Mapping(source = "discountType", target = "discountType")
-    @Mapping(source = "discountValue", target = "discountValue")
+    UserSummary toUserSummary(User user);
+
+    List<OrderItemResponse> toOrderItemResponseList(List<OrderDetail> orderDetails);
+
     VoucherValidationResponse toVoucherValidationResponse(Voucher voucher);
+
+    OrderResponse toOrderDTO(Order order);
 }

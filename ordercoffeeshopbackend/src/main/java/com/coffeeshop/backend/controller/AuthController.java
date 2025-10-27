@@ -34,12 +34,12 @@ public class AuthController {
 
         Cookie cookie = new Cookie("jwt", loginResponse.getToken());
         cookie.setHttpOnly(true); // Prevents JavaScript access
-        cookie.setSecure(true); // Allow HTTPs for production
-        // cookie.setSecure(false); // Allow HTTP for development
+        // cookie.setSecure(true); // Allow HTTPs for production
+        cookie.setSecure(false); // Allow HTTP for development
         cookie.setPath("/"); // Cookie is available for all paths
         cookie.setMaxAge(jwtExpiration / 1000); // Cookie expiration same as JWT
-        // cookie.setAttribute("SameSite", "Lax"); // More permissive for development
-        cookie.setAttribute("SameSite", "None"); // More permissive for production
+        cookie.setAttribute("SameSite", "Lax"); // More permissive for development
+        // cookie.setAttribute("SameSite", "None"); // More permissive for production
 
         // Set additional security headers
         response.setHeader("X-Content-Type-Options", "nosniff");

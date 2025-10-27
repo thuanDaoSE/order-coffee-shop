@@ -17,6 +17,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.Arrays;
 
 @Configuration
@@ -24,8 +26,14 @@ import java.util.Arrays;
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+        @Autowired
+        private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+        @Value("${app.frontend-url-dev}")
+        String frontendURL_dev;
+
+        @Value("${app.frontend-url-production}")
+        String frontendURL_production;
 
         // Bean này là nơi bạn sẽ định nghĩa các quy tắc bảo mật chính cho ứng dụng.
         @Bean
@@ -45,11 +53,12 @@ public class SecurityConfig {
                                 // 3. Định nghĩa các quy tắc ủy quyền (Authorization)
                                 // ...
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers( "/api/v1/r2/**",
+                                                .requestMatchers("/api/v1/r2/**",
                                                                 "/api/v1/payment/create-payment",
                                                                 "/api/v1/payment/callback", "/api/v1/location/**")
                                                 .permitAll()
-                                                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register").permitAll()
+                                                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register")
+                                                .permitAll()
                                                 .requestMatchers("/api/v1/payment/status/**", "/api/v1/addresses/**")
                                                 .authenticated()
                                                 .requestMatchers("/api/v1/products/**").permitAll()
@@ -121,7 +130,7 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
                 // In production, replace "*" with specific origins
-                configuration.setAllowedOriginPatterns(Arrays.asList("https://c1871e8aaf9a.ngrok-free.app"));
+                configuration.setAllowedOriginPatterns(Arrays.asList(frontendURL_dev, frontendURL_production));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(Arrays.asList(
                                 "Authorization",

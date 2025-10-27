@@ -26,6 +26,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -148,5 +150,17 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findById(orderId)
                 .map(order -> order.getUser().getEmail().equals(username))
                 .orElse(false);
+    }
+
+    @Override
+    public List<OrderResponse> getOrdersByUserId(String username) {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + username));
+
+        List<Order> orders = orderRepository.findAllByUserId(user.getId());
+
+        return orders.stream()
+                .map(orderMapper::toOrderResponse)
+                .collect(Collectors.toList());
     }
 }

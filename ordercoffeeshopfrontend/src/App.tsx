@@ -1,5 +1,4 @@
 import { useAuth } from './contexts/AuthContext';
-import { CartProvider } from './contexts/CartContext';
 import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -57,7 +56,7 @@ const AppRoutes = () => {
       />
       <Route
         path="/orders"
-        element={<ProtectedRoute><MainLayout><Orders /></MainLayout></ProtectedRoute>}
+        element={<ProtectedRoute allowedRoles={['CUSTOMER']}><MainLayout><Orders /></MainLayout></ProtectedRoute>}
       />
       <Route
         path="/payment/vnpay/callback"
@@ -78,11 +77,7 @@ const AppRoutes = () => {
 };
 
 function App() {
-  return (
-    <CartProvider>
-      <AppRoutes />
-    </CartProvider>
-  );
+  return <AppRoutes />;
 }
 
 export default App;

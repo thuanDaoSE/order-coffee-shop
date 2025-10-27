@@ -1,5 +1,7 @@
 package com.coffeeshop.backend.controller;
 
+import com.coffeeshop.backend.dto.order.UpdateStatusRequest;
+import com.coffeeshop.backend.enums.OrderStatus;
 import com.coffeeshop.backend.dto.order.CreateOrderRequest;
 import com.coffeeshop.backend.dto.order.OrderResponse;
 import com.coffeeshop.backend.service.OrderService;
@@ -8,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.access.prepost.PreAuthorize;
+import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationRequest;
@@ -41,5 +45,31 @@ public class OrderController {
     public ResponseEntity<List<OrderResponse>> getOrdersByUserId(@AuthenticationPrincipal UserDetails userDetails) {
         List<OrderResponse> orders = orderService.getOrdersByUserId(userDetails.getUsername());
         return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+        List<OrderResponse> orders = orderService.getAllOrders();
+        return ResponseEntity.ok(orders);
+    }
+
+    @PutMapping("/{orderId}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<OrderResponse> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestBody UpdateStatusRequest statusRequest) {
+        OrderStatus status = OrderStatus.valueOf(statusRequest.getStatus().toUpperCase());
+        OrderResponse updatedOrder = orderService.updateOrderStatus(orderId, status);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
+    @PutMapping("/{orderId}/cancel")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> cancelOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        orderService.cancelOrder(orderId, userDetails.getUsername());
+        return ResponseEntity.ok().build();
     }
 }

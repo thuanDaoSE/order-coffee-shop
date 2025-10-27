@@ -18,4 +18,8 @@ public interface OrderService {
     boolean isOwnerOfOrder(Long orderId, String username);
 
     List<OrderResponse> getOrdersByUserId(String username);
+
+    List<OrderResponse> getAllOrders();
+
+    void cancelOrder(Long orderId, String username);
 }

@@ -36,3 +36,36 @@ export const getOrders = async () => {
     throw error;
   }
 };
+
+export const getAllOrders = async () => {
+  try {
+    const response = await api.get('/v1/orders/all');
+    console.log("get all orders response: ",response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all orders:', error);
+    throw error;
+  }
+};
+
+export const updateOrderStatus = async (orderId: number, status: string) => {
+  try {
+    const response = await api.put(`/v1/orders/${orderId}/status`, { status });
+    console.log("update order status response: ",response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw error;
+  }
+};
+
+export const cancelOrder = async (orderId: number) => {
+  try {
+    const response = await api.put(`/v1/orders/${orderId}/cancel`);
+    console.log("cancel order response: ",response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+    throw error;
+  }
+};

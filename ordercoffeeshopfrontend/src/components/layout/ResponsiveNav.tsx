@@ -90,7 +90,9 @@ const ResponsiveNav = () => {
   const renderNavLinks = (isMobile = false) => {
     const allNavs = [...navItems];
     if (user) {
-      allNavs.push(...userNavItems);
+      if (user.role === 'CUSTOMER') {
+        allNavs.push(...userNavItems);
+      }
       if (user.role === 'STAFF' || user.role === 'ADMIN') {
         allNavs.push(...staffNavItems);
       }

@@ -9,18 +9,15 @@ import com.coffeeshop.backend.dto.auth.RegisterRequest;
 import com.coffeeshop.backend.dto.auth.LoginRequest;
 import com.coffeeshop.backend.dto.auth.LoginResponse;
 
+import com.coffeeshop.backend.dto.auth.UserProfileResponse;
+
 @Mapper(componentModel = "spring")
 public interface AuthMapper {
-
-    @Mapping(target = "password", ignore = true)
-    @Mapping(target = "role", ignore = true)
     User toUser(RegisterRequest registerRequest);
-
-    @Mapping(target = "password", ignore = true)
-    @Mapping(target = "role", ignore = true)
-    User toUser(LoginRequest loginRequest);
 
     RegisterResponse toRegisterResponse(User user);
 
     LoginResponse toLoginResponse(User user, String token);
+
+    UserProfileResponse toUserProfileResponse(User user);
 }

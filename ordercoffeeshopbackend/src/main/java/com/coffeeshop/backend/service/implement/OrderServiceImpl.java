@@ -21,6 +21,7 @@ import com.coffeeshop.backend.service.OrderService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -162,5 +163,36 @@ public class OrderServiceImpl implements OrderService {
         return orders.stream()
                 .map(orderMapper::toOrderResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OrderResponse> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream()
+                .map(orderMapper::toOrderResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrder(Long orderId, String username) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        // Verify ownership
+        if (!order.getUser().getEmail().equals(username)) {
+            throw new AccessDeniedException("You are not authorized to cancel this order.");
+        }
+
+        // Check if order is in a cancellable state
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.PAID) {
+            throw new IllegalStateException("Order cannot be cancelled once it is being prepared.");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+
+        // Broadcast the status update
+        simpMessagingTemplate.convertAndSend("/topic/orders", orderMapper.toOrderDTO(order));
     }
 }

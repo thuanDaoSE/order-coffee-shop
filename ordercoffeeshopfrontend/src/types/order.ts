@@ -16,7 +16,7 @@ export interface UserSummary {
 export interface Order {
     id: number;
     orderDate: string;
-    status: 'PENDING' | 'PAID' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED' | 'PICKED_UP' | 'DELIVERED';
+    status: 'PENDING' | 'PAID' | 'PREPARING' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED';
     totalPrice: number;
     orderDetails: OrderItem[];
     deliveryMethod: 'DELIVERY' | 'IN_STORE';

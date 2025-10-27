@@ -3,6 +3,6 @@ export interface User {
   id: string;
   email: string;
   fullname: string;
-  role: 'CUSTOMER' | 'BARISTA' | 'ADMIN';
+  role: 'CUSTOMER' | 'STAFF' | 'ADMIN';
   phone?: string;
 }

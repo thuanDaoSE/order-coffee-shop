@@ -55,8 +55,9 @@ public class AuthController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<UserDetails> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(userDetails);
+    public ResponseEntity<UserProfileResponse> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        UserProfileResponse userProfile = authService.getProfile(userDetails.getUsername());
+        return ResponseEntity.ok(userProfile);
     }
 
     @PostMapping("/logout")

@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatVND } from '../utils/currency';
 import type { Order } from '../types/order';
 
 interface OrderSummaryProps {
@@ -12,7 +13,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => (
     </span>
     <div className="text-right">
       <p className="text-sm text-gray-500">Total</p>
-      <p className="font-bold text-lg">${order.totalPrice.toFixed(2)}</p>
+      <p className="font-bold text-lg">{formatVND(order.totalPrice)}</p>
     </div>
   </div>
 );

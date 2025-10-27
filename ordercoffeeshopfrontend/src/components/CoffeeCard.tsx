@@ -9,6 +9,8 @@ type ProductVariant = {
   price: number;
 };
 
+import { formatVND } from '../utils/currency';
+
 interface CoffeeCardProps {
   product: Product;
   onAddToCart: (product: Product, variant: ProductVariant, quantity: number) => void;
@@ -46,8 +48,6 @@ const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
     }
   };
 
-  const price = selectedVariant ? selectedVariant.price.toFixed(2) : '0.00';
-
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <div className="w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -62,7 +62,7 @@ const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
       <div className="p-4">
         <div className="flex justify-between items-start">
           <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
-          <span className="text-amber-700 font-bold">${price}</span>
+          <span className="text-amber-700 font-bold">{selectedVariant ? formatVND(selectedVariant.price) : '-'}</span>
         </div>
         
         <p className="text-gray-600 text-sm mt-1 h-10 overflow-hidden">

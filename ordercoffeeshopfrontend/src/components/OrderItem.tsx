@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { OrderItem as OrderItemType } from '../types/order';
 
+import { formatVND } from '../utils/currency';
+
 interface OrderItemProps {
   item: OrderItemType;
   imageUrl?: string;
@@ -21,12 +23,12 @@ const OrderItem: React.FC<OrderItemProps> = ({ item, imageUrl }) => {
         <div className="ml-4">
           <h3 className="font-medium">{item.productName}</h3>
           <p className="text-sm text-gray-500">
-            {item.size} • {item.quantity} × ${item.unitPrice.toFixed(2)}
+            {item.size} • {item.quantity} × {formatVND(item.unitPrice)}
           </p>
         </div>
       </div>
       <span className="font-medium">
-        ${(item.unitPrice * item.quantity).toFixed(2)}
+        {formatVND(item.unitPrice * item.quantity)}
       </span>
     </div>
   );

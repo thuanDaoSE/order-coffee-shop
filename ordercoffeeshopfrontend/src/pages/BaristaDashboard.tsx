@@ -1,115 +1,174 @@
-import { useState, useEffect } from 'react';
-import type { Order } from '../types/coffee';
-import { ordersApi, createMockWebSocket } from '../services/mockApi';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getAllOrders, updateOrderStatus } from '../services/orderService';
+import type { Order } from '../types/order';
+import { useEffect, useState, useMemo } from 'react';
+import { connect, disconnect } from '../services/socketService';
+import { Clock, User, Hash, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
+import { formatVND } from '../utils/currency';
+
+const KANBAN_COLUMNS: { title: string; statuses: Order['status'][]; icon: React.ReactNode }[] = [
+  { title: 'New Orders', statuses: ['PAID'], icon: <Package className="text-blue-500" /> },
+  { title: 'In Preparation', statuses: ['PREPARING'], icon: <Clock className="text-indigo-500" /> },
+  { title: 'Out for Delivery', statuses: ['DELIVERING'], icon: <Truck className="text-purple-500" /> },
+];
+
+const getStatusInfo = (status: Order['status']) => {
+  const statusMap: Record<Order['status'], { color: string; icon: React.ReactNode }> = {
+    PENDING: { color: 'yellow', icon: <Clock size={14} /> },
+    PAID: { color: 'blue', icon: <Package size={14} /> },
+    PREPARING: { color: 'indigo', icon: <Clock size={14} /> },
+    DELIVERING: { color: 'purple', icon: <Truck size={14} /> },
+    DELIVERED: { color: 'green', icon: <CheckCircle size={14} /> },
+    CANCELLED: { color: 'red', icon: <XCircle size={14} /> },
+  };
+  return statusMap[status] || { color: 'gray', icon: <Hash size={14} /> };
+};
+
+const OrderCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (orderId: number, status: string) => void }) => {
+  const statusInfo = getStatusInfo(order.status);
+
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-4 mb-4 transition-all hover:shadow-xl hover:-translate-y-1">
+      <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+        <h4 className="font-bold text-lg text-gray-800">Order #{order.id}</h4>
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${statusInfo.color}-100 text-${statusInfo.color}-800`}>
+          {statusInfo.icon}
+          <span className="ml-1.5">{order.status}</span>
+        </span>
+      </div>
+      <div className="py-3">
+        <div className="flex items-center text-sm text-gray-500 mb-3">
+          <User size={14} className="mr-2" />
+          <span>{order.user.fullname}</span>
+        </div>
+        <div className="flex items-center text-sm text-gray-500">
+          <Clock size={14} className="mr-2" />
+          <span>{new Date(order.orderDate).toLocaleString()}</span>
+        </div>
+      </div>
+      <div className="border-t border-gray-200 pt-3">
+        <ul className="text-sm text-gray-700 space-y-2">
+          {order.orderDetails.map((item, index) => (
+            <li key={index} className="flex justify-between items-center">
+              <span className="font-medium">{item.quantity}x {item.productName} ({item.size})</span>
+              <span className="text-gray-600 font-semibold">{formatVND(item.unitPrice * item.quantity)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="border-t border-gray-200 pt-3 mt-3">
+        <div className="flex justify-between items-center font-bold text-lg text-gray-800">
+          <span>Total</span>
+          <span>{formatVND(order.totalPrice)}</span>
+        </div>
+      </div>
+      <div className="mt-4">
+        {order.status === 'PAID' && (
+          <button onClick={() => onUpdateStatus(order.id, 'PREPARING')} className="w-full py-2.5 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Start Preparing</button>
+        )}
+        {order.status === 'PREPARING' && (
+          <button onClick={() => onUpdateStatus(order.id, 'DELIVERING')} className="w-full py-2.5 text-sm bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Start Delivery</button>
+        )}
+        {order.status === 'DELIVERING' && (
+          <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full py-2.5 text-sm bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Mark Delivered</button>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const BaristaDashboard = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [notification, setNotification] = useState<string | null>(null);
 
+  const { data: orders, isLoading } = useQuery<Order[], Error>({
+    queryKey: ['allOrders'],
+    queryFn: getAllOrders,
+    refetchOnWindowFocus: false,
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ orderId, status }: { orderId: number; status: string }) => 
+      updateOrderStatus(orderId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+    },
+  });
+
   useEffect(() => {
-    loadOrders();
-    const ws = createMockWebSocket();
-    ws.connect();
-    
-    ws.on('NEW_ORDER', (order: Order) => {
-      setOrders(prev => [order, ...prev]);
-      setNotification(`New order: ${order.id}`);
+    connect('/topic/orders', (newOrder: Order) => {
+      queryClient.setQueryData<Order[]>(['allOrders'], (oldData) => {
+        if (!oldData) return [newOrder];
+        if (oldData.some(order => order.id === newOrder.id)) {
+            return oldData.map(order => order.id === newOrder.id ? newOrder : order);
+        }
+        return [newOrder, ...oldData];
+      });
+      setNotification(`Order #${newOrder.id} has been updated.`);
       setTimeout(() => setNotification(null), 5000);
     });
+    return () => disconnect();
+  }, [queryClient]);
 
-    return () => ws.disconnect();
-  }, []);
-
-  const loadOrders = async () => {
-    try {
-      const data = await ordersApi.getAll();
-      setOrders(data);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleUpdateStatus = (orderId: number, status: string) => {
+    updateStatusMutation.mutate({ orderId, status });
   };
 
-  const updateStatus = async (orderId: string, status: Order['status']) => {
-    await ordersApi.updateStatus(orderId, status);
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-  };
+  const ordersByStatus = useMemo(() => {
+    const grouped: Record<string, Order[]> = {};
+    KANBAN_COLUMNS.forEach(col => {
+        col.statuses.forEach(status => {
+            grouped[status] = [];
+        });
+    });
 
-  const getStatusColor = (status: Order['status']) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      preparing: 'bg-blue-100 text-blue-800',
-      ready: 'bg-green-100 text-green-800',
-      completed: 'bg-gray-100 text-gray-800'
-    };
-    return colors[status];
-  };
+    orders?.forEach(order => {
+        if (grouped[order.status]) {
+            grouped[order.status].push(order);
+        }
+    });
+    return grouped;
+  }, [orders]);
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
-    </div>;
+    return <div className="h-screen flex items-center justify-center bg-gray-100"><div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-amber-600"></div></div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-amber-900 mb-6">Barista Dashboard</h1>
-
+    <div className="min-h-screen bg-gray-100 font-sans">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <header className="mb-8">
+            <h1 className="text-4xl font-bold text-gray-900">Staff Dashboard</h1>
+            <p className="text-lg text-gray-600">Live order management</p>
+        </header>
         {notification && (
-          <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-            🔔 {notification}
+          <div className="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-r-lg shadow-md">
+            <p className="font-bold">Update</p>
+            <p>{notification}</p>
           </div>
         )}
-
-        <div className="grid gap-4">
-          {orders.map(order => (
-            <div key={order.id} className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold">Order {order.id}</h3>
-                  <p className="text-gray-600">{new Date(order.orderTime).toLocaleString()}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {KANBAN_COLUMNS.map(col => {
+            const columnOrders = col.statuses.flatMap(status => ordersByStatus[status] || []);
+            return (
+              <div key={col.title} className="bg-gray-200/50 rounded-xl shadow-inner">
+                <div className="flex items-center p-4 border-b border-gray-300/80">
+                    <span className="mr-3">{col.icon}</span>
+                    <h3 className="font-semibold text-xl text-gray-800">{col.title}</h3>
+                    <span className="ml-auto bg-amber-200 text-amber-800 text-sm font-bold px-3 py-1 rounded-full">{columnOrders.length}</span>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
-                  {order.status}
-                </span>
-              </div>
-
-              <div className="mb-4">
-                {order.items.map((item, idx) => (
-                  <div key={idx} className="flex justify-between py-2 border-b">
-                    <span>{item.quantity}x {item.name} ({item.selectedSize})</span>
-                    <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between pt-2 font-bold">
-                  <span>Total</span>
-                  <span>${order.total.toFixed(2)}</span>
+                <div className="p-2 overflow-y-auto" style={{maxHeight: 'calc(100vh - 18rem)'}}>
+                  {columnOrders.length > 0 ? columnOrders.map(order => (
+                      <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} />
+                  )) : (
+                    <div className="flex items-center justify-center h-48">
+                        <p className="text-gray-500">No orders in this stage.</p>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <div className="flex gap-2">
-                {order.status === 'pending' && (
-                  <button onClick={() => updateStatus(order.id, 'preparing')}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                    Start Preparing
-                  </button>
-                )}
-                {order.status === 'preparing' && (
-                  <button onClick={() => updateStatus(order.id, 'ready')}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                    Mark Ready
-                  </button>
-                )}
-                {order.status === 'ready' && (
-                  <button onClick={() => updateStatus(order.id, 'completed')}
-                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
-                    Complete
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>

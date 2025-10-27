@@ -21,6 +21,9 @@ import com.coffeeshop.backend.security.JwtTokenProvider;
 import com.coffeeshop.backend.service.AuthService;
 import com.coffeeshop.backend.exception.EmailAlreadyExistsException;
 
+import com.coffeeshop.backend.dto.auth.UserProfileResponse;
+import com.coffeeshop.backend.exception.ResourceNotFoundException;
+
 import jakarta.security.auth.message.AuthException;
 import lombok.RequiredArgsConstructor;
 
@@ -69,6 +72,13 @@ public class AuthServiceImpl implements AuthService {
 
         // 4. ÁNH XẠ VÀ TRẢ VỀ
         return authMapper.toLoginResponse(userFound, token);
+    }
+
+    @Override
+    public UserProfileResponse getProfile(String username) {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + username));
+        return authMapper.toUserProfileResponse(user);
     }
 
 }

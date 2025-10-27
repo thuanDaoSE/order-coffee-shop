@@ -2,6 +2,8 @@ import { X, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useState, useEffect } from 'react';
 
+import { formatVND } from '../utils/currency';
+
 interface CartProps {
   isOpen: boolean;
   onClose: () => void;
@@ -90,7 +92,7 @@ const Cart = ({ isOpen, onClose, onCheckout }: CartProps) => {
                             <div>
                               <div className="flex justify-between text-base font-medium text-gray-900">
                                 <h3>{item.name}</h3>
-                                <p className="ml-4">${(item.price * item.quantity).toFixed(2)}</p>
+                                <p className="ml-4">{formatVND(item.price * item.quantity)}</p>
                               </div>
                               <p className="mt-1 text-sm text-gray-500">Size: {item.size}</p>
                               {(() => {
@@ -144,7 +146,7 @@ const Cart = ({ isOpen, onClose, onCheckout }: CartProps) => {
               <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
                 <div className="flex justify-between text-base font-medium text-gray-900">
                   <p>Subtotal</p>
-                  <p>${total.toFixed(2)}</p>
+                  <p>{formatVND(total)}</p>
                 </div>
                 <p className="mt-0.5 text-sm text-gray-500">
                   Shipping and taxes calculated at checkout.

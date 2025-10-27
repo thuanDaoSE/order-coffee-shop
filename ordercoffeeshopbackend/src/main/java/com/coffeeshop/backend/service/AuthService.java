@@ -7,10 +7,14 @@ import com.coffeeshop.backend.dto.auth.LoginResponse;
 import com.coffeeshop.backend.dto.auth.RegisterRequest;
 import com.coffeeshop.backend.dto.auth.RegisterResponse;
 
+import com.coffeeshop.backend.dto.auth.UserProfileResponse;
+
 @Service
 public interface AuthService {
     RegisterResponse registerNewUser(RegisterRequest registerRequest);
 
     LoginResponse login(LoginRequest loginRequest);
+
+    UserProfileResponse getProfile(String username);
 
 }

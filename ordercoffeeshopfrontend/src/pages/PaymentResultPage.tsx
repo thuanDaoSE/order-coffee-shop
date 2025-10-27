@@ -54,8 +54,8 @@ export default function PaymentResultPage() {
     navigate('/');
   };
 
-  const handleViewOrder = (orderId: string) => {
-    navigate(`/orders/${orderId}`);
+  const handleViewOrder = () => {
+    navigate('/orders');
   };
 
   if (isLoading) {
@@ -83,10 +83,7 @@ export default function PaymentResultPage() {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => {
-                  const params = new URLSearchParams(location.search);
-                  handleViewOrder(params.get('vnp_TxnRef') || '');
-                }}
+                onClick={handleViewOrder}
               >
                 Xem đơn hàng
               </Button>

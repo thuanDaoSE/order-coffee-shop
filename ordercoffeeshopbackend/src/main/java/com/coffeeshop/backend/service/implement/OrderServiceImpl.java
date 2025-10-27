@@ -114,10 +114,7 @@ public class OrderServiceImpl implements OrderService {
         // 6. Save the order
         Order savedOrder = orderRepository.save(order);
 
-        // 7. Send notification
-        simpMessagingTemplate.convertAndSend("/topic/orders", orderMapper.toOrderDTO(savedOrder));
-
-        // 8. Map to response DTO
+        // 7. Map to response DTO
         return orderMapper.toOrderResponse(savedOrder);
     }
 
@@ -142,8 +139,9 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(status);
         Order updatedOrder = orderRepository.save(order);
 
-        // Broadcast the status update
-        simpMessagingTemplate.convertAndSend("/topic/orders", orderMapper.toOrderDTO(updatedOrder));
+        if (status != OrderStatus.DELIVERED) {
+            simpMessagingTemplate.convertAndSend("/topic/orders", orderMapper.toOrderDTO(updatedOrder));
+        }
 
         return orderMapper.toOrderResponse(updatedOrder);
     }

@@ -10,12 +10,14 @@ import com.coffeeshop.backend.enums.PaymentStatus;
 import com.coffeeshop.backend.repository.OrderRepository;
 import com.coffeeshop.backend.repository.PaymentRepository;
 import com.coffeeshop.backend.utils.VnpayUtils;
+import com.coffeeshop.backend.mapper.OrderMapper;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +46,8 @@ public class VnpayService {
     private final VnpayUtils vnpayUtils;
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final OrderMapper orderMapper;
 
     
     public ResponseEntity<String> createVnpayPaymentUrl(@RequestBody
@@ -140,7 +144,8 @@ public class VnpayService {
             payment.setStatus(PaymentStatus.SUCCESS);
             paymentRepository.save(payment);
         }
-        orderRepository.save(order);
+        Order updatedOrder = orderRepository.save(order);
+        simpMessagingTemplate.convertAndSend("/topic/orders", orderMapper.toOrderDTO(updatedOrder));
     }
 
     private void handleFailedTransaction(Order order, String reason) {

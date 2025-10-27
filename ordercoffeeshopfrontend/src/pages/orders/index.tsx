@@ -6,7 +6,9 @@ import OrderStatus from '../../components/OrderStatus';
 import OrderItem from '../../components/OrderItem';
 import OrderSummary from '../../components/OrderSummary';
 import EmptyOrders from '../../components/EmptyOrders';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { connect, disconnect } from '../../services/socketService';
+import type { Product } from '../../types/product';
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleString('en-US', {
@@ -20,7 +22,6 @@ const formatDate = (dateString: string) => {
 
 const TABS = [
   { name: 'Tất cả', statuses: ['All'] },
-  { name: 'Chờ xác nhận', statuses: ['PENDING', 'PAID'] },
   { name: 'Đang chuẩn bị', statuses: ['PREPARING'] },
   { name: 'Đang giao', statuses: ['DELIVERING'] },
   { name: 'Hoàn thành', statuses: ['DELIVERED'] },
@@ -40,6 +41,26 @@ const Orders = () => {
     queryKey: ['products'],
     queryFn: getProducts,
   });
+
+  useEffect(() => {
+    connect('/topic/orders', (message: Order) => {
+      console.log('Received message:', message);
+      queryClient.setQueryData<Order[]>(['orders'], (oldData) => {
+        if (!oldData) return [message];
+        const index = oldData.findIndex((order) => order.id === message.id);
+        if (index !== -1) {
+          const newData = [...oldData];
+          newData[index] = message;
+          return newData;
+        }
+        return [...oldData, message];
+      });
+    });
+
+    return () => {
+      disconnect();
+    };
+  }, [queryClient]);
 
   console.log("Raw Orders Data:", orders);
   console.log("Raw Products Data:", products);
@@ -89,7 +110,7 @@ const Orders = () => {
         <h1 className="text-2xl font-bold text-amber-900 mb-6">My Orders</h1>
 
         <div className="mb-6 border-b border-gray-200">
-          <nav className="-mb-px flex space-x-6 overflow-x-auto">
+          <nav className="-mb-px flex space-x-6 overflow-x-auto justify-evenly">
             {TABS.map(tab => (
               <button
                 key={tab.name}

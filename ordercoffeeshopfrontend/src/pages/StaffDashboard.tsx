@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { markOrderAsDelivered, getAllOrders, updateOrderStatus } from '../services/orderService';
 import type { Order } from '../types/order';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { connect, disconnect } from '../services/socketService';
 import { Clock, User, Hash, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
 import { formatVND } from '../utils/currency';
@@ -10,6 +10,7 @@ const KANBAN_COLUMNS: { title: string; statuses: Order['status'][]; icon: React.
   { title: 'New Orders', statuses: ['PAID'], icon: <Package className="text-blue-500" /> },
   { title: 'In Preparation', statuses: ['PREPARING'], icon: <Clock className="text-indigo-500" /> },
   { title: 'Out for Delivery', statuses: ['DELIVERING'], icon: <Truck className="text-purple-500" /> },
+  { title: 'Cancelled', statuses: ['CANCELLED'], icon: <XCircle className="text-red-500" /> },
 ];
 
 const getStatusInfo = (status: Order['status']) => {
@@ -26,22 +27,23 @@ const getStatusInfo = (status: Order['status']) => {
 
 const OrderCard = ({ order, onUpdateStatus, devMode }: { order: Order, onUpdateStatus: (orderId: number, status: string) => void, devMode: boolean }) => {
   const statusInfo = getStatusInfo(order.status);
+  const isCancelled = order.status === 'CANCELLED';
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 mb-4 transition-all hover:shadow-xl hover:-translate-y-1">
+    <div className={`bg-white rounded-lg shadow-lg p-4 mb-4 transition-all hover:shadow-xl hover:-translate-y-1 ${isCancelled ? 'bg-red-100' : ''}`}>
       <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-        <h4 className="font-bold text-lg text-gray-800">Order #{order.id}</h4>
+        <h4 className={`font-bold text-lg text-gray-800 ${isCancelled ? 'line-through' : ''}`}>Order #{order.id}</h4>
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${statusInfo.color}-100 text-${statusInfo.color}-800`}>
           {statusInfo.icon}
           <span className="ml-1.5">{order.status}</span>
         </span>
       </div>
       <div className="py-3">
-        <div className="flex items-center text-sm text-gray-500 mb-3">
+        <div className={`flex items-center text-sm text-gray-500 mb-3 ${isCancelled ? 'line-through' : ''}`}>
           <User size={14} className="mr-2" />
           <span>{order.user.fullname}</span>
         </div>
-        <div className="flex items-center text-sm text-gray-500">
+        <div className={`flex items-center text-sm text-gray-500 ${isCancelled ? 'line-through' : ''}`}>
           <Clock size={14} className="mr-2" />
           <span>{new Date(order.orderDate).toLocaleString()}</span>
         </div>
@@ -49,7 +51,7 @@ const OrderCard = ({ order, onUpdateStatus, devMode }: { order: Order, onUpdateS
       <div className="border-t border-gray-200 pt-3">
         <ul className="text-sm text-gray-700 space-y-2">
           {order.orderDetails.map((item, index) => (
-            <li key={index} className="flex justify-between items-center">
+            <li key={index} className={`flex justify-between items-center ${isCancelled ? 'line-through' : ''}`}>
               <span className="font-medium">{item.quantity}x {item.productName} ({item.size})</span>
               <span className="text-gray-600 font-semibold">{formatVND(item.unitPrice * item.quantity)}</span>
             </li>
@@ -57,25 +59,27 @@ const OrderCard = ({ order, onUpdateStatus, devMode }: { order: Order, onUpdateS
         </ul>
       </div>
       <div className="border-t border-gray-200 pt-3 mt-3">
-        <div className="flex justify-between items-center font-bold text-lg text-gray-800">
+        <div className={`flex justify-between items-center font-bold text-lg text-gray-800 ${isCancelled ? 'line-through' : ''}`}>
           <span>Total</span>
           <span>{formatVND(order.totalPrice)}</span>
         </div>
       </div>
-      <div className="mt-4">
-        {order.status === 'PAID' && (
-          <button onClick={() => onUpdateStatus(order.id, 'PREPARING')} className="w-full py-2.5 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Start Preparing</button>
-        )}
-        {order.status === 'PREPARING' && (
-          <button onClick={() => onUpdateStatus(order.id, 'DELIVERING')} className="w-full py-2.5 text-sm bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Start Delivery</button>
-        )}
-        {order.status === 'DELIVERING' && (
-          <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full py-2.5 text-sm bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Mark Delivered</button>
-        )}
-        {devMode && (
-            <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full mt-2 py-2.5 text-sm bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Mark Delivered (Dev)</button>
-        )}
-      </div>
+      {!isCancelled && (
+        <div className="mt-4">
+          {order.status === 'PAID' && (
+            <button onClick={() => onUpdateStatus(order.id, 'PREPARING')} className="w-full py-2.5 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Start Preparing</button>
+          )}
+          {order.status === 'PREPARING' && (
+            <button onClick={() => onUpdateStatus(order.id, 'DELIVERING')} className="w-full py-2.5 text-sm bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Start Delivery</button>
+          )}
+          {order.status === 'DELIVERING' && (
+            <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full py-2.5 text-sm bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Mark Delivered</button>
+          )}
+          {devMode && (
+              <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full mt-2 py-2.5 text-sm bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Mark Delivered (Dev)</button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -84,6 +88,8 @@ const StaffDashboard = () => {
   const queryClient = useQueryClient();
   const [notification, setNotification] = useState<string | null>(null);
   const [devMode, setDevMode] = useState(false);
+  const newOrderAudioRef = useRef<HTMLAudioElement>(null);
+  const cancelledOrderAudioRef = useRef<HTMLAudioElement>(null);
 
   const { data: orders, isLoading } = useQuery<Order[], Error>({
     queryKey: ['allOrders'],
@@ -112,7 +118,17 @@ const StaffDashboard = () => {
         }
         return [newOrder, ...oldData];
       });
-      setNotification(`Order #${newOrder.id} has been updated.`);
+
+      if (newOrder.status === 'PAID') {
+        newOrderAudioRef.current?.play();
+        setNotification(`New Order #${newOrder.id}!`);
+      } else if (newOrder.status === 'CANCELLED') {
+        cancelledOrderAudioRef.current?.play();
+        setNotification(`Order #${newOrder.id} has been cancelled.`);
+      } else if (newOrder.status !== 'DELIVERED') {
+        setNotification(`Order #${newOrder.id} has been updated.`);
+      }
+
       setTimeout(() => setNotification(null), 5000);
     });
     return () => disconnect();
@@ -160,6 +176,8 @@ const StaffDashboard = () => {
               </label>
             </div>
         </header>
+        <audio ref={newOrderAudioRef} src="/ping.mp3" />
+        <audio ref={cancelledOrderAudioRef} src="/buzz.mp3" />
         {notification && (
           <div className="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-r-lg shadow-md">
             <p className="font-bold">Update</p>

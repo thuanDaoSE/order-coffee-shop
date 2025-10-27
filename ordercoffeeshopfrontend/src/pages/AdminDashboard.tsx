@@ -7,6 +7,19 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-bold text-amber-900 mb-8">Admin Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Product Management */}
+          <Link to="/admin/products" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+            <div className="flex items-center mb-4">
+              <div className="bg-amber-100 p-3 rounded-full">
+                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-semibold ml-4">Product Management</h2>
+            </div>
+            <p className="text-gray-600">Add, edit, or remove products</p>
+          </Link>
+
           {/* Menu Management */}
           <Link to="/admin/menu" className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
             <div className="flex items-center mb-4">
@@ -17,7 +30,7 @@ const AdminDashboard = () => {
               </div>
               <h2 className="text-xl font-semibold ml-4">Menu Management</h2>
             </div>
-            <p className="text-gray-600">Add, edit, or remove menu items</p>
+            <p className="text-gray-600">Manage menu categories and structure</p>
           </Link>
 
           {/* User Management */}

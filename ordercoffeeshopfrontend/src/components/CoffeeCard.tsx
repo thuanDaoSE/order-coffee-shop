@@ -54,7 +54,7 @@ const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
       
       <div className="p-4">
         <div className="flex justify-between items-start">
-          <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
+          <h3 className="text-lg font-semibold text-gray-800 h-12 overflow-hidden">{product.name}</h3>
           <span className="text-amber-700 font-bold">{selectedVariant ? formatVND(selectedVariant.price) : '-'}</span>
         </div>
         

@@ -4,9 +4,10 @@ import { uploadImageToR2 } from '../services/cloudflareR2';
 interface ImageUploadProps {
   onUploadSuccess: (key: string) => void;
   onUploadError: (error: Error) => void;
+  onUploadStateChange?: (isUploading: boolean) => void;
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onUploadError }) => {
+const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onUploadError, onUploadStateChange }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -16,6 +17,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onUploadErro
 
     try {
       setIsUploading(true);
+      onUploadStateChange?.(true);
       setProgress(0);
 
       // Check file type
@@ -35,6 +37,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onUploadErro
       onUploadError(error as Error);
     } finally {
       setIsUploading(false);
+      onUploadStateChange?.(false);
       setProgress(0);
     }
   };

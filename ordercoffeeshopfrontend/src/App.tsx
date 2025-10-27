@@ -12,6 +12,11 @@ import StaffDashboard from './pages/StaffDashboard';
 import PaymentResultPage from './pages/PaymentResultPage';
 import PaymentPage from './pages/PaymentPage';
 import CartPage from './pages/CartPage';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminMenu from './pages/AdminMenu';
+import AdminUsers from './pages/AdminUsers';
+import AdminReports from './pages/AdminReports';
+import AdminProductManagement from './pages/AdminProductManagement';
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -66,6 +71,30 @@ const AppRoutes = () => {
       <Route
         path="/staff"
         element={<ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><MainLayout><StaffDashboard /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/staff"
+        element={<ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><MainLayout><StaffDashboard /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/admin"
+        element={<ProtectedRoute allowedRoles={['ADMIN']}><MainLayout><AdminDashboard /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/admin/menu"
+        element={<ProtectedRoute allowedRoles={['ADMIN']}><MainLayout><AdminMenu /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/admin/users"
+        element={<ProtectedRoute allowedRoles={['ADMIN']}><MainLayout><AdminUsers /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/admin/reports"
+        element={<ProtectedRoute allowedRoles={['ADMIN']}><MainLayout><AdminReports /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/admin/products"
+        element={<ProtectedRoute allowedRoles={['ADMIN']}><MainLayout><AdminProductManagement /></MainLayout></ProtectedRoute>}
       />
       <Route
         path="/cart"

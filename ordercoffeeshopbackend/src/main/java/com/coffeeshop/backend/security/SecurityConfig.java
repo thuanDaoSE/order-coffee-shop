@@ -53,7 +53,7 @@ public class SecurityConfig {
                                 // 3. Định nghĩa các quy tắc ủy quyền (Authorization)
                                 // ...
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/api/v1/r2/**",
+                                                .requestMatchers("/api/r2/**",
                                                                 "/api/v1/payment/create-payment",
                                                                 "/api/v1/payment/callback", "/api/v1/location/**")
                                                 .permitAll()

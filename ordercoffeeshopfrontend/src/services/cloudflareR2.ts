@@ -34,6 +34,10 @@ export async function getSignedImageUrl(objectKey: string): Promise<string> {
   }
 }
 
+import api from './api';
+
+// ... existing code ...
+
 export async function uploadImageToR2(
   file: File,
   options: SignedUrlOptions = {}
@@ -41,7 +45,8 @@ export async function uploadImageToR2(
   try {
     // Get a pre-signed URL for upload
     const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const response = await fetch('/api/upload-url', {
+    const fullUrl = `${api.defaults.baseURL}/r2/upload-url`;
+    const response = await fetch(fullUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

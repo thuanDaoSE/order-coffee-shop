@@ -2,6 +2,7 @@ package com.coffeeshop.backend.service.implement;
 
 import com.coffeeshop.backend.dto.product.ProductDTO;
 import com.coffeeshop.backend.dto.product.ProductRequest;
+import com.coffeeshop.backend.dto.product.ProductVariantRequest;
 import com.coffeeshop.backend.entity.Category;
 import com.coffeeshop.backend.entity.Product;
 import com.coffeeshop.backend.entity.ProductVariant;
@@ -9,21 +10,28 @@ import com.coffeeshop.backend.exception.ResourceNotFoundException;
 import com.coffeeshop.backend.mapper.ProductMapper;
 import com.coffeeshop.backend.repository.CategoryRepository;
 import com.coffeeshop.backend.repository.ProductRepository;
-import com.coffeeshop.backend.service.ProductService;
+import com.coffeeshop.backend.repository.ProductVariantRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.coffeeshop.backend.service.ProductService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final ProductVariantRepository productVariantRepository;
 
     @Override
     public List<ProductDTO> getAllProducts() {
@@ -68,6 +76,7 @@ public class ProductServiceImpl implements ProductService {
             variant.setPrice(variantRequest.getPrice());
             variant.setStockQuantity(variantRequest.getStockQuantity());
             variant.setIsActive(variantRequest.getIsActive());
+            variant.setProduct(product);
             product.getVariants().add(variant);
         });
 
@@ -78,8 +87,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductDTO updateProduct(Long productId, ProductRequest productRequest) {
+        log.info("Updating product with id: {}", productId);
+        log.info("Request body: {}", productRequest);
+
         Product existingProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+        log.info("Product before update: {}", existingProduct);
 
         Category category = categoryRepository.findById(productRequest.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + productRequest.getCategoryId()));
@@ -90,20 +103,42 @@ public class ProductServiceImpl implements ProductService {
         existingProduct.setCategory(category);
         existingProduct.setIsActive(productRequest.getIsActive());
 
-        // For simplicity, clear existing variants and add new ones.
-        // A more sophisticated implementation would update existing variants.
+        // --- REVISED VARIANT MANAGEMENT ---
+        Map<String, ProductVariant> existingVariantsMap = existingProduct.getVariants().stream()
+                .collect(Collectors.toMap(ProductVariant::getSku, variant -> variant));
+
+        List<ProductVariant> updatedVariants = new ArrayList<>();
+
+        for (ProductVariantRequest variantRequest : productRequest.getVariants()) {
+            ProductVariant existingVariant = existingVariantsMap.get(variantRequest.getSku());
+            if (existingVariant != null) {
+                // Update existing variant
+                existingVariant.setSize(variantRequest.getSize());
+                existingVariant.setPrice(variantRequest.getPrice());
+                existingVariant.setStockQuantity(variantRequest.getStockQuantity());
+                existingVariant.setIsActive(variantRequest.getIsActive());
+                updatedVariants.add(existingVariant);
+                existingVariantsMap.remove(variantRequest.getSku());
+            } else {
+                // Create new variant
+                ProductVariant newVariant = new ProductVariant();
+                newVariant.setSku(variantRequest.getSku());
+                newVariant.setSize(variantRequest.getSize());
+                newVariant.setPrice(variantRequest.getPrice());
+                newVariant.setStockQuantity(variantRequest.getStockQuantity());
+                newVariant.setIsActive(variantRequest.getIsActive());
+                newVariant.setProduct(existingProduct);
+                updatedVariants.add(newVariant);
+            }
+        }
+
+        // Variants remaining in the map are to be deleted
         existingProduct.getVariants().clear();
-        productRequest.getVariants().forEach(variantRequest -> {
-            ProductVariant variant = new ProductVariant();
-            variant.setSku(variantRequest.getSku());
-            variant.setSize(variantRequest.getSize());
-            variant.setPrice(variantRequest.getPrice());
-            variant.setStockQuantity(variantRequest.getStockQuantity());
-            variant.setIsActive(variantRequest.getIsActive());
-            existingProduct.getVariants().add(variant);
-        });
+        existingProduct.getVariants().addAll(updatedVariants);
+        // --- END REVISED VARIANT MANAGEMENT ---
 
         Product updatedProduct = productRepository.save(existingProduct);
+        log.info("Product after update: {}", updatedProduct);
         return productMapper.toProductDTO(updatedProduct);
     }
 

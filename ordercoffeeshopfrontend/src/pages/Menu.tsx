@@ -3,16 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import type { Product, ProductVariant } from '../types/product';
 import { useCart } from '../contexts/CartContext';
 import CoffeeCard from '../components/CoffeeCard';
-import Cart from '../components/Cart';
 import ResponsiveGrid from '../components/ui/ResponsiveGrid';
 import { getProducts } from '../services/productService';
+import Toast from '../components/ui/Toast';
 
 const Menu = () => {
   const { addToCart: addToCartContext } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -56,13 +56,7 @@ const Menu = () => {
       imageUrl: product.imageUrl,
       toppings: []
     });
-    
-    setIsCartOpen(true);
-  };
-
-  const handleCheckout = () => {
-    setIsCartOpen(false);
-    navigate('/checkout');
+    setToastMessage(`${product.name} has been added to the cart.`);
   };
 
   // Get unique categories from products
@@ -122,12 +116,7 @@ const Menu = () => {
         </ResponsiveGrid>
       )}
 
-      {/* Cart Sidebar */}
-      <Cart 
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        onCheckout={handleCheckout}
-      />
+      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
     </div>
   );
 };

@@ -11,6 +11,7 @@ import { Home } from './pages/Home';
 import StaffDashboard from './pages/StaffDashboard';
 import PaymentResultPage from './pages/PaymentResultPage';
 import PaymentPage from './pages/PaymentPage';
+import CartPage from './pages/CartPage';
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -65,6 +66,10 @@ const AppRoutes = () => {
       <Route
         path="/staff"
         element={<ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><MainLayout><StaffDashboard /></MainLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/cart"
+        element={<ProtectedRoute><MainLayout><CartPage /></MainLayout></ProtectedRoute>}
       />
 
       {/* Fallback Route */}

@@ -1,13 +1,23 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { getProducts } from '../services/productService';
+import type { Product } from '../types/product';
 
 export const Home = () => {
-  // TODO: Fetch menu items from the API instead of using static data.
-  const R2_BASE_URL = import.meta.env.VITE_R2_BASE_URL || 'https://7862f02525f3249fd976641daef37c16.r2.cloudflarestorage.com/coffee-product-bucket/products';
-  const menuItems = [
-    { name: 'Espresso', price: 3.50, description: 'Rich and bold', image: `${R2_BASE_URL}/espresso.png` },
-    { name: 'Cappuccino', price: 4.50, description: 'Creamy and smooth', image: `${R2_BASE_URL}/cappuccino.png` },
-    { name: 'Latte', price: 4.75, description: 'Smooth and milky', image: `${R2_BASE_URL}/latte.png` },
-  ];
+  const [menuItems, setMenuItems] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const products = await getProducts();
+        setMenuItems(products.slice(0, 3)); // Take the first 3 products
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <div className="w-full">
@@ -55,7 +65,7 @@ export const Home = () => {
               <div key={index} className="bg-amber-50 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <div className="h-48 mb-4 flex items-center justify-center">
                   <img 
-                    src={item.image} 
+                    src={item.imageUrl || '/image.png'} 
                     alt={item.name}
                     className="h-full object-contain"
                   />
@@ -63,7 +73,7 @@ export const Home = () => {
                 <h3 className="text-2xl font-bold text-amber-950 mb-2">{item.name}</h3>
                 <p className="text-amber-900 mb-4">{item.description}</p>
                 <div className="flex justify-between items-center">
-                  <span className="text-xl font-bold text-amber-900">${item.price.toFixed(2)}</span>
+                  <span className="text-xl font-bold text-amber-900">${item.variants[0]?.price.toFixed(2)}</span>
                   <button className="bg-amber-900 text-white px-4 py-2 rounded-full text-sm hover:bg-amber-800 transition-colors">
                     Add to Cart
                   </button>

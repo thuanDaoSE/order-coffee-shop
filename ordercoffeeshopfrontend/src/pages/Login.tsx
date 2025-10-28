@@ -11,21 +11,30 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (email, password) => {
     setError('');
     setIsLoading(true);
 
     try {
       const response = await apiLogin({ email, password });
-      // Backend đã set httpOnly cookie. Frontend chỉ cần lấy thông tin user.
-      login(response.data); // Giả sử response.data.user chứa thông tin người dùng
+      login(response.data);
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFastLogin = (email, password) => {
+    setEmail(email);
+    setPassword(password);
+    handleLogin(email, password);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLogin(email, password);
   };
 
   return (
@@ -36,16 +45,16 @@ const Login = () => {
           <p className="text-gray-600">Sign in to your account</p>
         </div>
 
-        {/* Demo Accounts Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm">
-          <p className="font-semibold text-blue-900 mb-2">Demo Accounts:</p>
-          <div className="space-y-1 text-blue-800">
-            <p>👤 Customer: customer@coffeeshop.com</p>
-            <p>☕ Barista: barista@coffeeshop.com</p>
-            <p>👑 Admin: admin@coffeeshop.com</p>
-            <p className="mt-2 text-blue-600">Password: customer123</p>
+        {import.meta.env.DEV && (
+          <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 mb-6 text-sm">
+            <p className="font-semibold text-gray-700 mb-2">🚀 Fast Login (Dev only)</p>
+            <div className="grid grid-cols-3 gap-2">
+              <button onClick={() => handleFastLogin('customer@coffeeshop.com', 'customer123')} className="bg-blue-500 text-white px-2 py-1 rounded-lg text-xs">Customer</button>
+              <button onClick={() => handleFastLogin('staff@coffeeshop.com', 'staff123')} className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs">Staff</button>
+              <button onClick={() => handleFastLogin('admin@coffeeshop.com', 'admin123')} className="bg-red-500 text-white px-2 py-1 rounded-lg text-xs">Admin</button>
+            </div>
           </div>
-        </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (

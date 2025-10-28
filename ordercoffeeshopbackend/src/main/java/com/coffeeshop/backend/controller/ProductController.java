@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
@@ -23,6 +25,14 @@ public class ProductController {
         List<ProductDTO> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ProductDTO>> getAllProductsForAdmin() {
+        List<ProductDTO> products = productService.getAllProductsForAdmin();
+        return ResponseEntity.ok(products);
+    }
+
 
     @GetMapping("/{productId}")
     public ResponseEntity<ProductDTO> getProductById(@PathVariable Long productId) {
@@ -55,5 +65,13 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
         productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{productId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDTO> updateProductStatus(@PathVariable Long productId, @RequestBody Map<String, Boolean> body) {
+        Boolean isActive = body.get("isActive");
+        ProductDTO updatedProduct = productService.updateProductStatus(productId, isActive);
+        return ResponseEntity.ok(updatedProduct);
     }
 }

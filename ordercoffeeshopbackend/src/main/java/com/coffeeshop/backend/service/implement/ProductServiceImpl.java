@@ -35,11 +35,20 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDTO> getAllProducts() {
+        List<Product> products = productRepository.findByIsActive(true);
+        return products.stream()
+                .map(productMapper::toProductDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductDTO> getAllProductsForAdmin() {
         List<Product> products = productRepository.findAll();
         return products.stream()
                 .map(productMapper::toProductDTO)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public List<ProductDTO> getProductsByCategory(String categoryName) {
@@ -147,5 +156,15 @@ public class ProductServiceImpl implements ProductService {
         Product existingProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
         productRepository.delete(existingProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductDTO updateProductStatus(Long productId, Boolean isActive) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+        product.setIsActive(isActive);
+        Product updatedProduct = productRepository.save(product);
+        return productMapper.toProductDTO(updatedProduct);
     }
 }

@@ -88,16 +88,15 @@ const ResponsiveNav = () => {
   };
 
   const renderNavLinks = (isMobile = false) => {
-    const allNavs = [...navItems];
+    let allNavs = [...navItems];
+
     if (user) {
-      if (user.role === 'CUSTOMER') {
-        allNavs.push(...userNavItems);
-      }
-      if (user.role === 'STAFF' || user.role === 'ADMIN') {
-        allNavs.push(...staffNavItems);
-      }
       if (user.role === 'ADMIN') {
-        allNavs.push(...adminNavItems);
+        allNavs = adminNavItems;
+      } else if (user.role === 'STAFF') {
+        allNavs.push(...staffNavItems);
+      } else { // CUSTOMER
+        allNavs.push(...userNavItems);
       }
     }
 

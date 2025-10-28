@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Product, ProductRequest, ProductVariantRequest } from '../types/product';
-import { getProducts, createProduct, updateProduct, deleteProduct } from '../services/productService';
+import { getProductsForAdmin, createProduct, updateProduct, deleteProduct, updateProductStatus } from '../services/productService';
+
 import ImageUpload from '../components/ImageUpload';
 import { getPublicUrl } from '../services/cloudflareR2'; // Import getPublicUrl
 
@@ -35,10 +36,20 @@ const AdminProductManagement = () => {
 
   const loadProducts = async () => {
     try {
-      const data = await getProducts();
+      const data = await getProductsForAdmin();
       setProducts(data);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (product: Product) => {
+    try {
+      await updateProductStatus(product.id, !product.isActive);
+      loadProducts();
+    } catch (error) {
+      alert('Failed to update product status');
+      console.error('Error updating product status:', error);
     }
   };
 
@@ -159,6 +170,7 @@ const AdminProductManagement = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
@@ -187,6 +199,12 @@ const AdminProductManagement = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.variants[0]?.price.toFixed(2) || 'N/A'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={product.isActive} onChange={() => handleStatusChange(product)} className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-amber-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                    </label>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button onClick={() => openModal(product)} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
                     <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-900">Delete</button>

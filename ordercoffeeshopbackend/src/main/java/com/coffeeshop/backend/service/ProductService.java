@@ -9,6 +9,8 @@ public interface ProductService {
 
     List<ProductDTO> getAllProducts();
 
+    List<ProductDTO> getAllProductsForAdmin();
+
     List<ProductDTO> getProductsByCategory(String categoryName);
 
     ProductDTO getProductById(Long productId);
@@ -18,4 +20,6 @@ public interface ProductService {
     ProductDTO updateProduct(Long productId, ProductRequest productRequest);
 
     void deleteProduct(Long productId);
+
+    ProductDTO updateProductStatus(Long productId, Boolean isActive);
 }

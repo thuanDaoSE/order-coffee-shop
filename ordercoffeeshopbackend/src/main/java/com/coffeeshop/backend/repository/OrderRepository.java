@@ -6,7 +6,10 @@ import org.springframework.stereotype.Repository;
 import com.coffeeshop.backend.entity.Order;
 import java.util.List;
 
+import java.time.LocalDateTime;
+
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllByUserId(Long userId);
+    List<Order> findAllByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

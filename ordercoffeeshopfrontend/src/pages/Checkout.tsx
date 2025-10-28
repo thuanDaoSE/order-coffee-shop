@@ -128,23 +128,26 @@ const Checkout = () => {
                 {cartItems.map((item, index) => {
                   const itemPrice = item.price;
                   return (
-                    <div key={`${item.cartItemId}-${index}`} className="flex items-center gap-4 pb-4 border-b last:border-b-0">
-                      <img src={item.imageUrl} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800">{item.name}</h3>
+                    <div key={`${item.id}-${index}`} className="flex flex-col sm:flex-row items-center gap-4 pb-4 border-b last:border-b-0">
+                      <img src={item.imageUrl} alt={item.name} className="w-24 h-24 object-cover rounded-lg" />
+                      <div className="flex-1 w-full">
+                        <div className="flex justify-between">
+                            <h3 className="font-semibold text-gray-800">{item.name}</h3>
+                            <p className="font-semibold text-amber-600 text-right">{new Intl.NumberFormat('vi-VN').format(itemPrice * item.quantity)}₫</p>
+                        </div>
                         <p className="text-sm text-gray-600">Size: {item.size}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <p className="text-sm text-gray-600">Quantity:</p>
                           <div className="flex items-center border border-gray-300 rounded">
                             <button
-                              onClick={() => updateCartItem(item.cartItemId, { quantity: item.quantity - 1 })}
+                              onClick={() => updateCartItem(item.id, { quantity: item.quantity - 1 })}
                               className="px-2 py-0.5 text-lg font-bold text-gray-700 hover:bg-gray-100"
                             >
                               -
                             </button>
                             <span className="px-3 py-0.5">{item.quantity}</span>
                             <button
-                              onClick={() => updateCartItem(item.cartItemId, { quantity: item.quantity + 1 })}
+                              onClick={() => updateCartItem(item.id, { quantity: item.quantity + 1 })}
                               className="px-2 py-0.5 text-lg font-bold text-gray-700 hover:bg-gray-100"
                             >
                               +
@@ -156,9 +159,6 @@ const Checkout = () => {
                             Toppings: {item.toppings.map(t => t.name).join(', ')}
                           </p>
                         )}
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-amber-600">{new Intl.NumberFormat('vi-VN').format(itemPrice * item.quantity)}₫</p>
                       </div>
                     </div>
                   );

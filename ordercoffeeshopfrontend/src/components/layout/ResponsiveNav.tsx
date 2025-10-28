@@ -98,6 +98,9 @@ const ResponsiveNav = () => {
       } else { // CUSTOMER
         allNavs.push(...userNavItems);
       }
+    } else {
+      // For guests, only show "Home" and "Menu"
+      allNavs = navItems;
     }
 
     return allNavs.map((item) => (
@@ -117,7 +120,7 @@ const ResponsiveNav = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to={PATHS.HOME} className="flex-shrink-0 flex items-center space-x-2">
-            <img src="/logo.svg" alt="The Coffee Corner" className="h-8 w-auto" />
+            <img src="/logo/coffee-svgrepo-com.svg" alt="The Coffee Corner" className="h-8 w-auto" />
             <span className="text-xl font-bold text-amber-50">The Coffee Corner</span>
           </Link>
 
@@ -286,6 +289,31 @@ const ResponsiveNav = () => {
           </div>
         </div>
       </div>
+
+      {/* Floating Cart Button for Mobile */}
+      {user?.role === 'CUSTOMER' && cartCount > 0 && (
+        <Link
+          to={PATHS.CART}
+          className="md:hidden fixed bottom-4 right-4 bg-amber-600 text-white p-4 rounded-full shadow-lg hover:bg-amber-700 transition-transform duration-200 ease-in-out transform hover:scale-110"
+        >
+          <ShoppingCart className="h-6 w-6" />
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            {cartCount > 9 ? '9+' : cartCount}
+          </span>
+        </Link>
+      )}
+          {/* Floating Cart Button for Mobile */}
+      {user?.role === 'CUSTOMER' && cartCount > 0 && (
+        <Link
+          to={PATHS.CART}
+          className="md:hidden fixed bottom-4 right-4 bg-amber-600 text-white p-4 rounded-full shadow-lg hover:bg-amber-700 transition-transform duration-200 ease-in-out transform hover:scale-110"
+        >
+          <ShoppingCart className="h-6 w-6" />
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            {cartCount > 9 ? '9+' : cartCount}
+          </span>
+        </Link>
+      )}
     </nav>
   );
 };

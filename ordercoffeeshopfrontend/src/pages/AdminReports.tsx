@@ -1,27 +1,24 @@
 import { useState, useEffect } from 'react';
-import { adminApi } from '../services/mockApi';
+import { getSalesReport, SalesReport } from '../services/reportService';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const AdminReports = () => {
-  const [reportType, setReportType] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
-  const [reportData, setReportData] = useState<any>(null);
+  const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [reportData, setReportData] = useState<SalesReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadReport();
-  }, [reportType]);
+  }, [period]);
 
   const loadReport = async () => {
     setIsLoading(true);
     try {
-      const data = await adminApi.getReports(reportType);
+      const data = await getSalesReport(period);
       setReportData(data);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const exportData = (format: 'xlsx' | 'pdf') => {
-    alert(`Exporting data as ${format.toUpperCase()}... (Mock functionality)`);
   };
 
   if (isLoading) {
@@ -34,43 +31,35 @@ const AdminReports = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-amber-900">Revenue Reports</h1>
-          <div className="flex gap-2">
-            <button onClick={() => exportData('xlsx')} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-              Export Excel
-            </button>
-            <button onClick={() => exportData('pdf')} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-              Export PDF
-            </button>
-          </div>
+          <h1 className="text-3xl font-bold text-amber-900">Sales Reports</h1>
         </div>
 
         {/* Filter */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex gap-4">
             <button
-              onClick={() => setReportType('daily')}
-              className={`px-4 py-2 rounded-lg ${reportType === 'daily' ? 'bg-amber-600 text-white' : 'bg-gray-200'}`}
+              onClick={() => setPeriod('daily')}
+              className={`px-4 py-2 rounded-lg ${period === 'daily' ? 'bg-amber-600 text-white' : 'bg-gray-200'}`}
             >
               Daily
             </button>
             <button
-              onClick={() => setReportType('monthly')}
-              className={`px-4 py-2 rounded-lg ${reportType === 'monthly' ? 'bg-amber-600 text-white' : 'bg-gray-200'}`}
+              onClick={() => setPeriod('weekly')}
+              className={`px-4 py-2 rounded-lg ${period === 'weekly' ? 'bg-amber-600 text-white' : 'bg-gray-200'}`}
             >
-              Monthly
+              Weekly
             </button>
             <button
-              onClick={() => setReportType('yearly')}
-              className={`px-4 py-2 rounded-lg ${reportType === 'yearly' ? 'bg-amber-600 text-white' : 'bg-gray-200'}`}
+              onClick={() => setPeriod('monthly')}
+              className={`px-4 py-2 rounded-lg ${period === 'monthly' ? 'bg-amber-600 text-white' : 'bg-gray-200'}`}
             >
-              Yearly
+              Monthly
             </button>
           </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Total Revenue</h3>
             <p className="text-3xl font-bold text-amber-600">${reportData?.totalRevenue.toFixed(2)}</p>
@@ -79,27 +68,21 @@ const AdminReports = () => {
             <h3 className="text-gray-500 text-sm font-medium mb-2">Total Orders</h3>
             <p className="text-3xl font-bold text-blue-600">{reportData?.totalOrders}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-500 text-sm font-medium mb-2">Avg Order Value</h3>
-            <p className="text-3xl font-bold text-green-600">${reportData?.averageOrderValue.toFixed(2)}</p>
-          </div>
         </div>
 
         {/* Chart */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Revenue Chart</h2>
-          <div className="h-64 flex items-end justify-between gap-2">
-            {reportData?.chartData.values.map((value: number, index: number) => (
-              <div key={index} className="flex-1 flex flex-col items-center">
-                <div
-                  className="w-full bg-amber-500 rounded-t hover:bg-amber-600 transition"
-                  style={{ height: `${(value / Math.max(...reportData.chartData.values)) * 100}%` }}
-                  title={`$${value.toFixed(2)}`}
-                ></div>
-                <span className="text-xs mt-2 text-gray-600">{reportData.chartData.labels[index]}</span>
-              </div>
-            ))}
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={reportData?.revenueOverTime}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="revenue" fill="#c0a062" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Top Products */}
@@ -114,10 +97,10 @@ const AdminReports = () => {
               </tr>
             </thead>
             <tbody>
-              {reportData?.topProducts.map((product: any, index: number) => (
+              {reportData?.topSellingProducts.map((product: any, index: number) => (
                 <tr key={index} className="border-b">
                   <td className="py-2">{product.name}</td>
-                  <td className="text-right py-2">{product.sales}</td>
+                  <td className="text-right py-2">{product.quantity}</td>
                   <td className="text-right py-2">${product.revenue.toFixed(2)}</td>
                 </tr>
               ))}

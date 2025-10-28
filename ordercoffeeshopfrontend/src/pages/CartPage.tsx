@@ -40,8 +40,8 @@ const CartPage = () => {
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-6">
               {cart.items.map((item) => (
-                <div key={item.cartItemId} className="flex items-center bg-white p-6 rounded-lg shadow-md transition-shadow hover:shadow-lg">
-                  <div className="flex-shrink-0 w-32 h-32 border border-gray-200 rounded-lg overflow-hidden">
+                <div key={item.id} className="flex flex-col sm:flex-row items-center bg-white p-6 rounded-lg shadow-md transition-shadow hover:shadow-lg">
+                  <div className="flex-shrink-0 w-32 h-32 sm:w-24 sm:h-24 border border-gray-200 rounded-lg overflow-hidden">
                     <img
                       src={item.imageUrl || '/images/placeholder.jpg'}
                       alt={item.name}
@@ -49,42 +49,39 @@ const CartPage = () => {
                     />
                   </div>
 
-                  <div className="ml-6 flex-1 flex flex-col">
+                  <div className="ml-0 sm:ml-6 mt-4 sm:mt-0 flex-1 flex flex-col justify-between">
                     <div>
-                      <div className="flex justify-between text-xl font-semibold text-gray-900">
-                        <h3>{item.name}</h3>
-                        <p className="ml-4">{formatVND(item.price * item.quantity)}</p>
+                      <div className="flex justify-between">
+                        <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
+                        <p className="text-lg font-bold text-gray-800">{formatVND(item.price * item.quantity)}</p>
                       </div>
-                      <p className="mt-1 text-md text-gray-600">Size: {item.size}</p>
+                      <p className="mt-1 text-sm text-gray-500">Size: {item.size}</p>
                     </div>
-                    <div className="flex-1 flex items-end justify-between text-md mt-4">
-                      <div className="flex items-center border border-gray-300 rounded-full">
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center border border-gray-200 rounded-md">
                         <button
                           type="button"
-                          onClick={() => updateCartItem(item.cartItemId, { quantity: item.quantity - 1 })}
-                          className="p-2 text-gray-500 hover:text-gray-700"
+                          onClick={() => updateCartItem(item.id, { quantity: item.quantity - 1 })}
+                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-l-md"
                         >
-                          <Minus className="h-5 w-5" />
+                          <Minus className="h-4 w-4" />
                         </button>
-                        <span className="px-4 text-gray-800 font-medium">{item.quantity}</span>
+                        <span className="px-4 py-1 text-gray-800 font-medium">{item.quantity}</span>
                         <button
                           type="button"
-                          onClick={() => updateCartItem(item.cartItemId, { quantity: item.quantity + 1 })}
-                          className="p-2 text-gray-500 hover:text-gray-700"
+                          onClick={() => updateCartItem(item.id, { quantity: item.quantity + 1 })}
+                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-r-md"
                         >
-                          <Plus className="h-5 w-5" />
-                        </button>
-                      </div>
-
-                      <div className="flex">
-                        <button
-                          type="button"
-                          onClick={() => removeFromCart(item.cartItemId)}
-                          className="font-medium text-red-600 hover:text-red-500 flex items-center"
-                        >
-                          <Trash2 className="h-5 w-5 mr-1"/> Remove
+                          <Plus className="h-4 w-4" />
                         </button>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(item.id)}
+                        className="font-medium text-red-600 hover:text-red-500 flex items-center text-sm"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1 ml-6"/> Remove
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -95,18 +92,20 @@ const CartPage = () => {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-lg p-6 sticky top-24">
                 <h2 className="text-2xl font-semibold text-gray-900 border-b pb-4 mb-4">Order Summary</h2>
-                <div className="space-y-4">
-                  <div className="flex justify-between text-lg">
-                    <p className="text-gray-600">Subtotal ({itemCount} items)</p>
-                    <p className="font-semibold text-gray-800">{formatVND(total)}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>{formatVND(total)}</span>
                   </div>
-                  <div className="flex justify-between text-lg">
-                    <p className="text-gray-600">Shipping</p>
-                    <p className="font-semibold text-gray-800">Free</p>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span>Free</span>
                   </div>
-                  <div className="border-t pt-4 mt-4 flex justify-between text-xl font-bold text-gray-900">
-                    <p>Total</p>
-                    <p>{formatVND(total)}</p>
+                </div>
+                <div className="border-t border-gray-200 mt-4 pt-4">
+                  <div className="flex justify-between text-lg font-bold text-gray-900">
+                    <span>Total</span>
+                    <span>{formatVND(total)}</span>
                   </div>
                 </div>
                 <div className="mt-8">

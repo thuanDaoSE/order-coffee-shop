@@ -12,6 +12,8 @@ const Menu = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
@@ -22,9 +24,13 @@ const Menu = () => {
         setIsLoading(true);
         let serviceProducts;
         if (activeCategory === 'all') {
-          serviceProducts = await getProducts(searchTerm);
+          const data = await getProducts(searchTerm, currentPage, 12);
+          serviceProducts = data.content;
+          setTotalPages(data.totalPages);
         } else {
+          // Assuming getProductsByCategory is not paginated for now
           serviceProducts = await getProductsByCategory(activeCategory, searchTerm);
+          setTotalPages(1); // Reset to 1 for non-paginated categories
         }
         const mappedProducts: Product[] = serviceProducts.map(prod => ({
           id: prod.id,
@@ -51,7 +57,7 @@ const Menu = () => {
     };
 
     fetchProducts();
-  }, [searchTerm, activeCategory]);
+  }, [searchTerm, activeCategory, currentPage]);
 
   const handleAddToCart = (product: Product, variant: ProductVariant) => {
     addToCartContext({
@@ -64,6 +70,10 @@ const Menu = () => {
       toppings: []
     });
 
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   // Get unique categories from products
@@ -136,7 +146,34 @@ const Menu = () => {
         </ResponsiveGrid>
       )}
 
-
+      {/* Pagination */}
+      <div className="flex justify-center mt-8">
+        <nav className="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 0}
+            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          {[...Array(totalPages).keys()].map(page => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${currentPage === page ? 'z-10 bg-amber-50 border-amber-500 text-amber-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            >
+              {page + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages - 1}
+            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </nav>
+      </div>
     </div>
   );
 };

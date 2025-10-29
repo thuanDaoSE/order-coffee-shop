@@ -1,8 +1,16 @@
 import api from './api';
 import type { Product, ProductRequest } from '../types/product';
 
-export const getProducts = async (search?: string): Promise<Product[]> => {
-  const response = await api.get('/v1/products', { params: { search } });
+export interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+}
+
+export const getProducts = async (search?: string, page = 0, size = 10): Promise<Page<Product>> => {
+  const response = await api.get('/v1/products', { params: { search, page, size } });
   return response.data;
 };
 
@@ -11,8 +19,8 @@ export const getProductsByCategory = async (category: string, search?: string): 
   return response.data;
 };
 
-export const getProductsForAdmin = async (): Promise<Product[]> => {
-  const response = await api.get('/v1/products/admin');
+export const getProductsForAdmin = async (page = 0, size = 10): Promise<Page<Product>> => {
+  const response = await api.get('/v1/products/admin', { params: { page, size } });
   return response.data;
 };
 

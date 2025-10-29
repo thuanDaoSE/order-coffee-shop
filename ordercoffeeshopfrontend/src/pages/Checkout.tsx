@@ -52,7 +52,6 @@ const Checkout = () => {
   };
 
   const handleCheckout = async () => {
-    alert('Place Order button clicked!'); // Debugging alert
     setIsLoading(true);
     setError('');
     console.log('Checkout process started...');

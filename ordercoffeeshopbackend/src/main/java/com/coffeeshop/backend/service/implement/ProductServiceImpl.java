@@ -11,8 +11,11 @@ import com.coffeeshop.backend.mapper.ProductMapper;
 import com.coffeeshop.backend.repository.CategoryRepository;
 import com.coffeeshop.backend.repository.ProductRepository;
 import com.coffeeshop.backend.repository.ProductVariantRepository;
+import com.coffeeshop.backend.service.R2Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.coffeeshop.backend.service.ProductService;
 
@@ -33,26 +36,23 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final ProductVariantRepository productVariantRepository;
     private final com.coffeeshop.backend.repository.OrderDetailRepository orderDetailRepository;
+    private final R2Service r2Service;
 
     @Override
-    public List<ProductDTO> getAllProducts(String search) {
-        List<Product> products;
+    public Page<ProductDTO> getAllProducts(String search, Pageable pageable) {
+        Page<Product> products;
         if (search != null && !search.isEmpty()) {
-            products = productRepository.findByNameContainingIgnoreCaseAndIsActive(search, true);
+            products = productRepository.findByNameContainingIgnoreCaseAndIsActive(search, true, pageable);
         } else {
-            products = productRepository.findByIsActive(true);
+            products = productRepository.findByIsActive(true, pageable);
         }
-        return products.stream()
-                .map(productMapper::toProductDTO)
-                .collect(Collectors.toList());
+        return products.map(productMapper::toProductDTO);
     }
 
     @Override
-    public List<ProductDTO> getAllProductsForAdmin() {
-        List<Product> products = productRepository.findAll();
-        return products.stream()
-                .map(productMapper::toProductDTO)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getAllProductsForAdmin(Pageable pageable) {
+        Page<Product> products = productRepository.findAll(pageable);
+        return products.map(productMapper::toProductDTO);
     }
 
     @Override
@@ -171,9 +171,29 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void deleteProduct(Long productId) {
         Product existingProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+
+        // Delete image from R2
+        String imageUrl = existingProduct.getImageUrl();
+        log.info("Deleting image from R2. Image URL: {}", imageUrl);
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            try {
+                java.net.URI uri = new java.net.URI(imageUrl);
+                String path = uri.getPath();
+                if (path.startsWith("/")) {
+                    path = path.substring(1);
+                }
+                log.info("Extracted object key: {}", path);
+                r2Service.deleteObject(path);
+            } catch (Exception e) {
+                log.error("Error deleting image from R2: {}", e.getMessage());
+                // Decide if you want to stop the process or just log the error
+            }
+        }
+
         productRepository.delete(existingProduct);
     }
 

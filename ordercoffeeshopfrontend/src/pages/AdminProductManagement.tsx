@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { Product, ProductRequest, ProductVariantRequest } from '../types/product';
 import { getProductsForAdmin, createProduct, updateProduct, deleteProduct, updateProductStatus } from '../services/productService';
+import { uploadImageToR2, getPublicUrl } from '../services/cloudflareR2';
 
 import ImageUpload from '../components/ImageUpload';
-import { getPublicUrl } from '../services/cloudflareR2'; // Import getPublicUrl
 
 // Temporary mapping for category names to IDs. In a real app, these would be fetched from the backend.
 const categoryNameToIdMap: { [key: string]: number } = {
@@ -29,15 +29,20 @@ const AdminProductManagement = () => {
   const [variants, setVariants] = useState<ProductVariantRequest[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    loadProducts(currentPage);
+  }, [currentPage]);
 
-  const loadProducts = async () => {
+  const loadProducts = async (page: number) => {
+    setIsLoading(true);
     try {
-      const data = await getProductsForAdmin();
-      setProducts(data);
+      const data = await getProductsForAdmin(page, 10);
+      setProducts(data.content);
+      setTotalPages(data.totalPages);
     } finally {
       setIsLoading(false);
     }
@@ -46,20 +51,17 @@ const AdminProductManagement = () => {
   const handleStatusChange = async (product: Product) => {
     try {
       await updateProductStatus(product.id, !product.isActive);
-      loadProducts();
+      loadProducts(currentPage);
     } catch (error) {
       alert('Failed to update product status');
       console.error('Error updating product status:', error);
     }
   };
 
-  const handleImageUploadSuccess = (key: string) => {
-    setFormData(prev => ({ ...prev, imageUrl: getPublicUrl(key) })); // Store full public URL
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file);
+    setFormData(prev => ({ ...prev, imageUrl: URL.createObjectURL(file) }));
     setUploadError(null);
-  };
-
-  const handleImageUploadError = (error: Error) => {
-    setUploadError(error.message);
   };
 
   const handleVariantChange = (index: number, field: keyof ProductVariantRequest, value: any) => {
@@ -80,11 +82,18 @@ const AdminProductManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsUploadingImage(true);
     try {
+      let imageUrl = formData.imageUrl;
+      if (selectedFile) {
+        const key = await uploadImageToR2(selectedFile);
+        imageUrl = getPublicUrl(key);
+      }
+
       const productRequest: ProductRequest = {
         name: formData.name,
         description: formData.description,
-        imageUrl: formData.imageUrl,
+        imageUrl: imageUrl,
         categoryId: categoryNameToIdMap[formData.category],
         isActive: true,
         variants: variants.map(v => ({ ...v, price: parseFloat(v.price as any), stockQuantity: parseInt(v.stockQuantity as any) }))
@@ -95,7 +104,7 @@ const AdminProductManagement = () => {
       } else {
         await createProduct(productRequest);
       }
-      loadProducts();
+      loadProducts(currentPage);
       closeModal();
     } catch (error: any) {
       let errorMessage = 'Failed to save product';
@@ -106,6 +115,8 @@ const AdminProductManagement = () => {
       }
       alert(errorMessage);
       console.error('Error saving product:', error.response ? error.response.data : error);
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -113,7 +124,7 @@ const AdminProductManagement = () => {
     if (confirm('Are you sure you want to delete this product?')) {
       try {
         await deleteProduct(id);
-        loadProducts();
+        loadProducts(currentPage);
       } catch (error) {
         alert('Failed to delete product');
         console.error('Error deleting product:', error);
@@ -144,7 +155,12 @@ const AdminProductManagement = () => {
     setShowModal(false);
     setEditingProduct(null);
     setUploadError(null);
+    setSelectedFile(null);
     setVariants([]); // Clear variants on close
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   if (isLoading) {
@@ -215,6 +231,34 @@ const AdminProductManagement = () => {
           </table>
         </div>
 
+        <div className="flex justify-center mt-4">
+          <nav className="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0}
+              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            {[...Array(totalPages).keys()].map(page => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${currentPage === page ? 'z-10 bg-amber-50 border-amber-500 text-amber-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              >
+                {page + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages - 1}
+              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </nav>
+        </div>
+
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 max-w-md w-full max-h-screen overflow-y-auto">
@@ -245,7 +289,7 @@ const AdminProductManagement = () => {
                   {formData.imageUrl && formData.imageUrl !== '/image.png' && (
                     <img src={formData.imageUrl} alt="Product Preview" className="w-32 h-32 object-cover rounded-lg mb-2" />
                   )}
-                  <ImageUpload onUploadSuccess={handleImageUploadSuccess} onUploadError={handleImageUploadError} onUploadStateChange={setIsUploadingImage} />
+                  <ImageUpload onFileSelect={handleFileSelect} isUploading={isUploadingImage} />
                   {uploadError && <p className="text-red-500 text-sm mt-1">Error: {uploadError}</p>}
                 </div>
 
@@ -287,7 +331,7 @@ const AdminProductManagement = () => {
                 <div className="flex gap-2 pt-4">
                   <button type="submit" className="flex-1 bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 disabled:opacity-50"
                     disabled={isUploadingImage}>
-                    {editingProduct ? 'Update' : 'Create'}
+                    {isUploadingImage ? 'Saving...' : (editingProduct ? 'Update' : 'Create')}
                   </button>
                   <button type="button" onClick={closeModal} className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400">
                     Cancel

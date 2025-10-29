@@ -7,6 +7,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -42,9 +43,11 @@ public class R2ServiceImpl implements R2Service {
                 .endpointOverride(URI.create(baseUrl))
                 .build();
 
+        String objectKey = "products/" + fileName;
+
         PutObjectRequest objectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(fileName)
+                .key(objectKey)
                 .contentType(contentType)
                 .build();
 
@@ -57,8 +60,27 @@ public class R2ServiceImpl implements R2Service {
 
         Map<String, String> response = new HashMap<>();
         response.put("url", presignedRequest.url().toString());
-        response.put("key", fileName); // The key is the fileName in R2
+        response.put("key", objectKey); // The key is the fileName in R2
         presigner.close();
         return response;
+    }
+
+    @Override
+    public void deleteObject(String objectKey) {
+        S3Client s3Client = S3Client.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+                ))
+                .endpointOverride(URI.create(baseUrl))
+                .build();
+
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .build();
+
+        s3Client.deleteObject(deleteObjectRequest);
+        s3Client.close();
     }
 }

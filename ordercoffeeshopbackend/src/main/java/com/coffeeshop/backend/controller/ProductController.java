@@ -4,13 +4,15 @@ import com.coffeeshop.backend.dto.product.ProductDTO;
 import com.coffeeshop.backend.dto.product.ProductRequest;
 import com.coffeeshop.backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 import java.util.Map;
 
 @RestController
@@ -20,53 +22,35 @@ public class ProductController {
 
     private final ProductService productService;
 
-        @GetMapping
+    @GetMapping
+    public ResponseEntity<Page<ProductDTO>> getAllProducts(@RequestParam(required = false) String search,
+                                                           @RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductDTO> products = productService.getAllProducts(search, pageable);
+        return ResponseEntity.ok(products);
+    }
 
-        public ResponseEntity<List<ProductDTO>> getAllProducts(@RequestParam(required = false) String search) {
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<ProductDTO>> getAllProductsForAdmin(@RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductDTO> products = productService.getAllProductsForAdmin(pageable);
+        return ResponseEntity.ok(products);
+    }
 
-            List<ProductDTO> products = productService.getAllProducts(search);
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long productId) {
+        ProductDTO product = productService.getProductById(productId);
+        return ResponseEntity.ok(product);
+    }
 
-            return ResponseEntity.ok(products);
-
-        }
-
-    
-
-        @GetMapping("/admin")
-
-        @PreAuthorize("hasRole('ADMIN')")
-
-        public ResponseEntity<List<ProductDTO>> getAllProductsForAdmin() {
-
-            List<ProductDTO> products = productService.getAllProductsForAdmin();
-
-            return ResponseEntity.ok(products);
-
-        }
-
-    
-
-        @GetMapping("/{productId}")
-
-        public ResponseEntity<ProductDTO> getProductById(@PathVariable Long productId) {
-
-            ProductDTO product = productService.getProductById(productId);
-
-            return ResponseEntity.ok(product);
-
-        }
-
-    
-
-        @GetMapping("/category/{categoryName}")
-
-        public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable String categoryName, @RequestParam(required = false) String search) {
-
-            List<ProductDTO> products = productService.getProductsByCategory(categoryName, search);
-
-            return ResponseEntity.ok(products);
-
-        }
+    @GetMapping("/category/{categoryName}")
+    public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable String categoryName, @RequestParam(required = false) String search) {
+        List<ProductDTO> products = productService.getProductsByCategory(categoryName, search);
+        return ResponseEntity.ok(products);
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")

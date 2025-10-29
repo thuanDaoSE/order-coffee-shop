@@ -1,15 +1,17 @@
 package com.coffeeshop.backend.service;
 
-import java.util.List;
-
 import com.coffeeshop.backend.dto.product.ProductDTO;
 import com.coffeeshop.backend.dto.product.ProductRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface ProductService {
 
-    List<ProductDTO> getAllProducts(String search);
+    Page<ProductDTO> getAllProducts(String search, Pageable pageable);
 
-    List<ProductDTO> getAllProductsForAdmin();
+    Page<ProductDTO> getAllProductsForAdmin(Pageable pageable);
 
     List<ProductDTO> getProductsByCategory(String categoryName, String search);
 

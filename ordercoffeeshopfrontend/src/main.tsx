@@ -6,10 +6,12 @@ import { CartProvider } from './contexts/CartContext';
 import { QueryProvider } from './providers/QueryProvider';
 import './index.css';
 import App from './App';
+import ScrollToTop from './components/ScrollToTop';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <CartProvider>
           <QueryProvider>

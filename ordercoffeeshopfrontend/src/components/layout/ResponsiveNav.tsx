@@ -112,11 +112,11 @@ const ResponsiveNav = () => {
   };
 
   return (
-    <nav 
-      className={`fixed w-full z-50 transition-all duration-300 ${
+        <nav 
+          className={`fixed w-full z-50 transition-all duration-300 ${
         scrolled ? 'bg-amber-900/95 shadow-lg' : 'bg-amber-900'
-      }`}
-    >
+          }`}
+        >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to={PATHS.HOME} className="flex-shrink-0 flex items-center space-x-2">

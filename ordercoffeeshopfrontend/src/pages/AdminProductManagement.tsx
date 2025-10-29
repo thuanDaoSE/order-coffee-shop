@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Product, ProductRequest, ProductVariantRequest } from '../types/product';
 import { getProductsForAdmin, createProduct, updateProduct, deleteProduct, updateProductStatus } from '../services/productService';
 import { uploadImageToR2, getPublicUrl } from '../services/cloudflareR2';
+import { createCategory } from '../services/categoryService';
 import useMediaQuery from '../hooks/useMediaQuery';
 
 import ImageUpload from '../components/ImageUpload';
@@ -19,6 +20,8 @@ const AdminProductManagement = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -163,6 +166,19 @@ const AdminProductManagement = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleAddCategory = async () => {
+    if (newCategoryName.trim() === '') return;
+    try {
+      const newCategory = await createCategory(newCategoryName);
+      categoryNameToIdMap[newCategory.name.toLowerCase()] = newCategory.id;
+      setNewCategoryName('');
+      setShowCategoryModal(false);
+    } catch (error) {
+      console.error("Failed to create category:", error);
+      alert("Failed to create category");
+    }
   };
 
   if (isLoading) {
@@ -310,15 +326,17 @@ const AdminProductManagement = () => {
                   <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
                     required className="w-full px-3 py-2 border border-gray-300 rounded-lg" rows={3} />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                    <option value="espresso">Espresso</option>
-                    <option value="latte">Latte</option>
-                    <option value="cappuccino">Cappuccino</option>
-                    <option value="cold">Cold</option>
-                  </select>
+                <div className="flex items-end gap-2">
+                  <div className="flex-grow">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                      {Object.keys(categoryNameToIdMap).map(name => (
+                        <option key={name} value={name}>{name.charAt(0).toUpperCase() + name.slice(1)}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button type="button" onClick={() => setShowCategoryModal(true)} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">+</button>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
@@ -374,6 +392,31 @@ const AdminProductManagement = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {showCategoryModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full">
+              <h2 className="text-2xl font-bold mb-4">Add New Category</h2>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={e => setNewCategoryName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div className="flex gap-4">
+                <button onClick={handleAddCategory} className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700">
+                  Add Category
+                </button>
+                <button onClick={() => setShowCategoryModal(false)} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}

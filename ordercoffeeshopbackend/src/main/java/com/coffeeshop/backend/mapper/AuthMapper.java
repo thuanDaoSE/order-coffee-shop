@@ -17,7 +17,7 @@ public interface AuthMapper {
 
     RegisterResponse toRegisterResponse(User user);
 
-    LoginResponse toLoginResponse(User user, String token);
+    LoginResponse toLoginResponse(User user, String token, String refreshToken);
 
     UserProfileResponse toUserProfileResponse(User user);
 }

@@ -17,6 +17,9 @@ public class JwtTokenProvider {
 
     @Value("${spring.security.jwt.expiration}")
     private int jwtExpiration;
+
+    @Value("${spring.security.jwt.refresh-token-expiration}")
+    private int refreshTokenExpiration;
     
     public String generateToken(Authentication authentication) {
         String email = authentication.getName();
@@ -26,6 +29,19 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("roles", authentication.getAuthorities())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+    }
+
+    public String generateRefreshToken(Authentication authentication) {
+        String email = authentication.getName();
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
+
+        return Jwts.builder()
+                .setSubject(email)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS256, secretKey)

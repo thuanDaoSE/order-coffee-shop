@@ -13,5 +13,6 @@ public class LoginResponse {
     private UserRole role;
     
     private String token; // This will be set to null before sending the response
+    private String refreshToken;
     
 }

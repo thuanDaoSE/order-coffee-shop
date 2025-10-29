@@ -7,19 +7,20 @@ interface LayoutProps {
 
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { Link } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
 import { PATHS } from '../../constants';
+import { Link, useLocation } from 'react-router-dom';
 
 const Layout = ({ children }: LayoutProps) => {
   const { user } = useAuth();
   const { getItemCount } = useCart();
   const cartCount = getItemCount();
+  const location = useLocation();
+  const isHomePage = location.pathname === PATHS.HOME;
 
   return (
     <div className="min-h-screen w-full bg-amber-50 flex flex-col">
       <Navbar />
-      <main className="flex-grow w-full pt-16">
+      <main className={`flex-grow w-full ${isHomePage ? '' : 'pt-16'}`}>
         <div className="w-full max-w-7xl mx-auto px-4 py-6 md:px-6 lg:px-8">
           {children}
         </div>

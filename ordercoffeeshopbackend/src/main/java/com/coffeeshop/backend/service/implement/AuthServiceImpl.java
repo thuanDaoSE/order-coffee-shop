@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.coffeeshop.backend.dto.auth.LoginRequest;
 import com.coffeeshop.backend.dto.auth.LoginResponse;
@@ -64,6 +65,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 2. TẠO TOKEN TỪ OBJECT AUTHENTICATION ĐÃ XÁC THỰC
         String token = jwtTokenProvider.generateToken(authentication);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
         // 3. LẤY USERNAME TỪ PRINCIPAL VÀ TÌM USER TRONG DATABASE
         String username = authentication.getName();
@@ -71,7 +73,23 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + username));
 
         // 4. ÁNH XẠ VÀ TRẢ VỀ
-        return authMapper.toLoginResponse(userFound, token);
+        return authMapper.toLoginResponse(userFound, token, refreshToken);
+    }
+
+
+
+    @Override
+    public LoginResponse refreshToken(String refreshToken) {
+        if (jwtTokenProvider.validateToken(refreshToken)) {
+            String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, java.util.Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name())));
+            String newAccessToken = jwtTokenProvider.generateToken(authentication);
+            String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+            return authMapper.toLoginResponse(user, newAccessToken, newRefreshToken);
+        } else {
+            throw new AuthenticationException("Invalid refresh token");
+        }
     }
 
     @Override

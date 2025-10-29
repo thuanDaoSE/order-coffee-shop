@@ -33,23 +33,51 @@ public class AuthController {
         LoginResponse loginResponse = authService.login(loginRequest);
 
         Cookie cookie = new Cookie("jwt", loginResponse.getToken());
-        cookie.setHttpOnly(true); // Prevents JavaScript access
-        // cookie.setSecure(true); // Allow HTTPs for production
-        cookie.setSecure(false); // Allow HTTP for development
-        cookie.setPath("/"); // Cookie is available for all paths
-        cookie.setMaxAge(jwtExpiration / 1000); // Cookie expiration same as JWT
-        cookie.setAttribute("SameSite", "Lax"); // More permissive for development
-        // cookie.setAttribute("SameSite", "None"); // More permissive for production
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(jwtExpiration / 1000);
+        cookie.setAttribute("SameSite", "Lax");
 
-        // Set additional security headers
-        response.setHeader("X-Content-Type-Options", "nosniff");
-        response.setHeader("X-Frame-Options", "DENY");
-        response.setHeader("X-XSS-Protection", "1; mode=block");
+        Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(604800); // 7 days
+        refreshTokenCookie.setAttribute("SameSite", "Lax");
 
         response.addCookie(cookie);
+        response.addCookie(refreshTokenCookie);
 
-        // Don't send the token in the response body for security
         loginResponse.setToken(null);
+        loginResponse.setRefreshToken(null);
+
+        return new ResponseEntity<>(loginResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refreshToken(@CookieValue(name = "refreshToken") String refreshToken, HttpServletResponse response) {
+        LoginResponse loginResponse = authService.refreshToken(refreshToken);
+
+        Cookie cookie = new Cookie("jwt", loginResponse.getToken());
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(jwtExpiration / 1000);
+        cookie.setAttribute("SameSite", "Lax");
+
+        Cookie newRefreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
+        newRefreshTokenCookie.setHttpOnly(true);
+        newRefreshTokenCookie.setSecure(false);
+        newRefreshTokenCookie.setPath("/");
+        newRefreshTokenCookie.setMaxAge(604800); // 7 days
+        newRefreshTokenCookie.setAttribute("SameSite", "Lax");
+
+        response.addCookie(cookie);
+        response.addCookie(newRefreshTokenCookie);
+
+        loginResponse.setToken(null);
+        loginResponse.setRefreshToken(null);
 
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Product, ProductRequest, ProductVariantRequest } from '../types/product';
 import { getProductsForAdmin, createProduct, updateProduct, deleteProduct, updateProductStatus } from '../services/productService';
 import { uploadImageToR2, getPublicUrl } from '../services/cloudflareR2';
+import useMediaQuery from '../hooks/useMediaQuery';
 
 import ImageUpload from '../components/ImageUpload';
 
@@ -32,6 +33,7 @@ const AdminProductManagement = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     loadProducts(currentPage);
@@ -172,64 +174,98 @@ const AdminProductManagement = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-3xl font-bold text-amber-900">Product Management</h1>
-          <button onClick={() => openModal()} className="bg-amber-600 text-white px-6 py-2 rounded-lg hover:bg-amber-700">
+          <button onClick={() => openModal()} className="bg-amber-600 text-white px-6 py-2 rounded-lg hover:bg-amber-700 self-end sm:self-auto">
             + Add Product
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {products.map(product => (
-                <tr key={product.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-10 h-10 rounded object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = '/image.png';
-                        }}
-                      />
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                        <div className="text-sm text-gray-500">{product.description?.substring(0, 50)}...</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
-                      {product.category.name}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.variants[0]?.price.toFixed(2) || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" checked={product.isActive} onChange={() => handleStatusChange(product)} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-amber-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
-                    </label>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button onClick={() => openModal(product)} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
-                    <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-900">Delete</button>
-                  </td>
+        {isMobile ? (
+          <div className="space-y-4">
+            {products.map(product => (
+              <div key={product.id} className="bg-white rounded-lg shadow p-4">
+                <div className="flex items-center mb-4">
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="w-16 h-16 rounded object-cover mr-4"
+                    onError={(e) => {
+                      e.currentTarget.src = '/image.png';
+                    }}
+                  />
+                  <div>
+                    <div className="text-lg font-medium text-gray-900">{product.name}</div>
+                    <div className="text-sm text-gray-500">{product.category.name}</div>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="text-lg font-bold text-gray-900">${product.variants[0]?.price.toFixed(2) || 'N/A'}</div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={product.isActive} onChange={() => handleStatusChange(product)} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-amber-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                  </label>
+                </div>
+                <div className="flex justify-end gap-4">
+                  <button onClick={() => openModal(product)} className="text-blue-600 hover:text-blue-900">Edit</button>
+                  <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-900">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {products.map(product => (
+                  <tr key={product.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="w-10 h-10 rounded object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = '/image.png';
+                          }}
+                        />
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                          <div className="text-sm text-gray-500">{product.description?.substring(0, 50)}...</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                        {product.category.name}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.variants[0]?.price.toFixed(2) || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked={product.isActive} onChange={() => handleStatusChange(product)} className="sr-only peer" />
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-amber-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                      </label>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button onClick={() => openModal(product)} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
+                      <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-900">Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="flex justify-center mt-4">
           <nav className="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">

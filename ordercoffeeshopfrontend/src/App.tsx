@@ -17,6 +17,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 import AdminReports from './pages/AdminReports';
 import AdminProductManagement from './pages/AdminProductManagement';
+import Profile from './pages/Profile';
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -96,6 +97,11 @@ const AppRoutes = () => {
       <Route
         path="/cart"
         element={<ProtectedRoute><MainLayout><CartPage /></MainLayout></ProtectedRoute>}
+      />
+
+      <Route
+        path="/profile"
+        element={<ProtectedRoute><MainLayout><Profile /></MainLayout></ProtectedRoute>}
       />
 
       {/* Fallback Route */}

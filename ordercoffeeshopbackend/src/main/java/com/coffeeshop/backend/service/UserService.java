@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.coffeeshop.backend.dto.UserDTO;
 import com.coffeeshop.backend.entity.User;
 import com.coffeeshop.backend.enums.UserRole;
 
@@ -18,5 +19,9 @@ public interface UserService {
     Page<User> getAllUsers(String search, Pageable pageable);
 
     User updateUserRole(Long userId, UserRole role);
+
+    User getProfile(String email);
+
+    User updateProfile(String email, UserDTO userDTO);
 
 }

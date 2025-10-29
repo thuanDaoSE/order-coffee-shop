@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Order } from '../../types/order';
 import { getOrders, cancelOrder } from '../../services/orderService';
-import { getProducts } from '../../services/productService';
+import { getAllProductsList } from '../../services/productService';
 import OrderStatus from '../../components/OrderStatus';
 import OrderItem from '../../components/OrderItem';
 import OrderSummary from '../../components/OrderSummary';
@@ -39,7 +39,7 @@ const Orders = () => {
 
   const { data: products } = useQuery<Product[], Error>({
     queryKey: ['products'],
-    queryFn: getProducts,
+    queryFn: getAllProductsList,
   });
 
   useEffect(() => {

@@ -10,7 +10,7 @@ export const Home = () => {
     const fetchProducts = async () => {
       try {
         const products = await getProducts();
-        setMenuItems(products.slice(0, 3)); // Take the first 3 products
+        setMenuItems(products.content.slice(0, 3)); // Take the first 3 products
       } catch (error) {
         console.error("Failed to fetch products:", error);
       }

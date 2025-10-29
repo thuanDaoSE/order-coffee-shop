@@ -11,6 +11,8 @@ public interface ProductService {
 
     Page<ProductDTO> getAllProducts(String search, Pageable pageable);
 
+    List<ProductDTO> getAllProductsList();
+
     Page<ProductDTO> getAllProductsForAdmin(Pageable pageable);
 
     List<ProductDTO> getProductsByCategory(String categoryName, String search);

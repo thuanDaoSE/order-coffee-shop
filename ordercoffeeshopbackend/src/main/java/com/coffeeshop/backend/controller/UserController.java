@@ -35,6 +35,18 @@ public class UserController {
         return ResponseEntity.ok(convertToDto(updatedUser));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getProfile(java.security.Principal principal) {
+        User user = userService.getProfile(principal.getName());
+        return ResponseEntity.ok(convertToDto(user));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserDTO> updateProfile(java.security.Principal principal, @RequestBody UserDTO userDTO) {
+        User updatedUser = userService.updateProfile(principal.getName(), userDTO);
+        return ResponseEntity.ok(convertToDto(updatedUser));
+    }
+
     private UserDTO convertToDto(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());

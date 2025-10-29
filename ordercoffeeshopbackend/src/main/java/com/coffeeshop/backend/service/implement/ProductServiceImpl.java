@@ -50,6 +50,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<ProductDTO> getAllProductsList() {
+        List<Product> products = productRepository.findByIsActive(true);
+        return products.stream()
+                .map(productMapper::toProductDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Page<ProductDTO> getAllProductsForAdmin(Pageable pageable) {
         Page<Product> products = productRepository.findAll(pageable);
         return products.map(productMapper::toProductDTO);

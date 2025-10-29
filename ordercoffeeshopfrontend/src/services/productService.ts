@@ -14,6 +14,11 @@ export const getProducts = async (search?: string, page = 0, size = 10): Promise
   return response.data;
 };
 
+export const getAllProductsList = async (): Promise<Product[]> => {
+  const response = await api.get('/v1/products/all');
+  return response.data;
+};
+
 export const getProductsByCategory = async (category: string, search?: string): Promise<Product[]> => {
   const response = await api.get(`/v1/products/category/${category}`, { params: { search } });
   return response.data;

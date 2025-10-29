@@ -7,6 +7,7 @@ interface AuthContextType {
   login: (user: User) => void;
   logout: () => void;
   isLoading: boolean;
+  fetchUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -15,33 +16,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const checkUserStatus = async () => {
-      try {
-        setIsLoading(true);
-        const response = await getProfile();
-        if (response?.data) {
-          setUser(response.data);
-        } else {
-          setUser(null);
-        }
-      } catch (error: any) {
-        console.error("Authentication error:", error?.response?.data || error.message);
+  const fetchUser = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getProfile();
+      if (response?.data) {
+        setUser(response.data);
+      } else {
         setUser(null);
-        // Don't automatically logout on 401/403 errors as they're expected when not logged in
-        if (error?.response?.status !== 401 && error?.response?.status !== 403) {
-          try {
-            await logoutUser();
-          } catch (logoutError) {
-            console.error("Failed to clear session:", logoutError);
-          }
-        }
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error: any) {
+      console.error("Authentication error:", error?.response?.data || error.message);
+      setUser(null);
+      if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+        try {
+          await logoutUser();
+        } catch (logoutError) {
+          console.error("Failed to clear session:", logoutError);
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    checkUserStatus();
+  useEffect(() => {
+    fetchUser();
   }, []);
 
   const login = (loggedInUser: User) => {
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -29,3 +29,18 @@ export const userService = {
     return response.data;
   },
 };
+
+export const updateProductStatus = async (id: number, isActive: boolean): Promise<Product> => {
+  const response = await api.patch(`/v1/products/${id}/status`, { isActive });
+  return response.data;
+};
+
+export const getProfile = async (): Promise<any> => {
+  const response = await api.get('/v1/users/me');
+  return response.data;
+};
+
+export const updateProfile = async (profile: any): Promise<any> => {
+  const response = await api.put('/v1/users/me', profile);
+  return response.data;
+};

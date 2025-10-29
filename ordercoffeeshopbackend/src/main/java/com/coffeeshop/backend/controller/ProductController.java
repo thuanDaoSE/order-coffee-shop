@@ -4,6 +4,7 @@ import com.coffeeshop.backend.dto.product.ProductDTO;
 import com.coffeeshop.backend.dto.product.ProductRequest;
 import com.coffeeshop.backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,14 +19,23 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
+@Slf4j
 public class ProductController {
 
     private final ProductService productService;
 
-    @GetMapping
+    @GetMapping("/all")
+    public ResponseEntity<List<ProductDTO>> getAllProductsList() {
+        log.info("Calling getAllProductsList");
+        List<ProductDTO> products = productService.getAllProductsList();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("")
     public ResponseEntity<Page<ProductDTO>> getAllProducts(@RequestParam(required = false) String search,
                                                            @RequestParam(defaultValue = "0") int page,
                                                            @RequestParam(defaultValue = "10") int size) {
+        log.info("Calling getAllProducts with search: {}, page: {}, size: {}", search, page, size);
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductDTO> products = productService.getAllProducts(search, pageable);
         return ResponseEntity.ok(products);

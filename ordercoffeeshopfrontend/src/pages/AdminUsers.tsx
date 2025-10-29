@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { userService, User, Page } from '../services/userService';
 import RoleChangeModal from '../components/RoleChangeModal';
 import { useAuth } from '../contexts/AuthContext';
+import useMediaQuery from '../hooks/useMediaQuery';
 
 const AdminUsers = () => {
   const { user: currentUser } = useAuth();
@@ -11,6 +12,7 @@ const AdminUsers = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     loadUsers(searchTerm, currentPage);
@@ -73,53 +75,88 @@ const AdminUsers = () => {
           />
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
+        {isMobile ? (
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
+              </div>
+            ) : (
+              usersPage?.content.map(user => (
+                <div key={user.id} className="bg-white rounded-lg shadow p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="text-lg font-medium text-gray-900">{user.fullname}</div>
+                      <div className="text-sm text-gray-500">{user.email}</div>
+                    </div>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
+                      {user.role}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-500 mb-4">{user.phone || '-'}</div>
+                  <div className="flex justify-end gap-4">
+                    <button onClick={() => openModal(user)} disabled={user.id === currentUser?.id} className="text-amber-600 hover:text-amber-900 disabled:opacity-50 disabled:cursor-not-allowed">Change Role</button>
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      disabled={user.id === currentUser?.id}
+                      className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={6} className="text-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
-              ) : (
-                usersPage?.content.map(user => (
-                  <tr key={user.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.fullname}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.phone || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button onClick={() => openModal(user)} disabled={user.id === currentUser?.id} className="text-amber-600 hover:text-amber-900 mr-4 disabled:opacity-50 disabled:cursor-not-allowed">Change Role</button>
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        disabled={user.id === currentUser?.id}
-                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Delete
-                      </button>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  usersPage?.content.map(user => (
+                    <tr key={user.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.fullname}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.phone || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onClick={() => openModal(user)} disabled={user.id === currentUser?.id} className="text-amber-600 hover:text-amber-900 mr-4 disabled:opacity-50 disabled:cursor-not-allowed">Change Role</button>
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          disabled={user.id === currentUser?.id}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="mt-4 flex justify-between items-center">
           <div>
@@ -150,6 +187,7 @@ const AdminUsers = () => {
         {isModalOpen && (
           <RoleChangeModal
             user={selectedUser}
+            currentUser={currentUser}
             onClose={closeModal}
             onRoleChange={handleRoleChange}
           />

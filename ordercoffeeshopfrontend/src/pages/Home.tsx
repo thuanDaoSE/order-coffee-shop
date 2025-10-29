@@ -22,30 +22,30 @@ export const Home = () => {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <section id="home" className="py-20 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-            <div className="flex-1 space-y-8">
-              <h1 className="text-6xl lg:text-7xl font-bold text-amber-950 leading-tight">
+      <section id="home" className="py-16 sm:py-20 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-12">
+            <div className="flex-1 text-center lg:text-left space-y-6">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-amber-950 leading-tight">
                 COFFEE SHOP
               </h1>
-              <p className="text-xl lg:text-2xl text-amber-900 max-w-xl">
+              <p className="text-lg sm:text-xl lg:text-2xl text-amber-900 max-w-xl mx-auto lg:mx-0">
                 Enjoy our premium coffee selection for both takeaway and dine-in experiences
               </p>
-              <div className="flex gap-4">
-                <button className="bg-amber-900 hover:bg-amber-800 text-white px-8 py-3 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs sm:max-w-sm mx-auto lg:mx-0">
+                <Link to="/menu" className="w-full sm:w-auto bg-amber-900 hover:bg-amber-800 text-white px-8 py-3 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg text-center">
                   ORDER NOW
-                </button>
-                <Link to="/menu" className="border-2 border-amber-900 text-amber-900 hover:bg-amber-50 px-8 py-3 rounded-full text-lg font-semibold transition-all duration-300">
+                </Link>
+                <Link to="/menu" className="w-full sm:w-auto border-2 border-amber-900 text-amber-900 hover:bg-amber-50 px-8 py-3 rounded-full text-lg font-semibold transition-all duration-300">
                   View Full Menu
                 </Link>
               </div>
             </div>
-            <div className="flex-1 flex justify-center lg:justify-end">
+            <div className="flex-1 flex justify-center lg:justify-end mt-8 lg:mt-0">
               <img 
                 src="/coffeeCup.png" 
                 alt="Coffee Cup" 
-                className="w-80 h-80 object-contain"
+                className="w-56 h-56 sm:w-80 sm:h-80 object-contain"
               />
             </div>
           </div>

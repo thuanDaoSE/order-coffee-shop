@@ -5,7 +5,17 @@ interface LayoutProps {
   children: ReactNode;
 }
 
+import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import { ShoppingCart } from 'lucide-react';
+import { PATHS } from '../../constants';
+
 const Layout = ({ children }: LayoutProps) => {
+  const { user } = useAuth();
+  const { getItemCount } = useCart();
+  const cartCount = getItemCount();
+
   return (
     <div className="min-h-screen w-full bg-amber-50 flex flex-col">
       <Navbar />
@@ -110,6 +120,16 @@ const Layout = ({ children }: LayoutProps) => {
           </div>
         </div>
       </footer>
+      {user && cartCount > 0 && (
+        <Link
+          to={PATHS.CART}
+          className="fixed bottom-4 right-4 bg-amber-700 text-white p-3 rounded-full shadow-lg md:hidden z-40 flex items-center justify-center space-x-2"
+          aria-label="View cart"
+        >
+          <ShoppingCart className="h-6 w-6" />
+          <span className="font-bold text-lg">{cartCount}</span>
+        </Link>
+      )}
     </div>
   );
 };

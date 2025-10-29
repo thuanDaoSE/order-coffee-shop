@@ -32,10 +32,16 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
     private final ProductVariantRepository productVariantRepository;
+    private final com.coffeeshop.backend.repository.OrderDetailRepository orderDetailRepository;
 
     @Override
-    public List<ProductDTO> getAllProducts() {
-        List<Product> products = productRepository.findByIsActive(true);
+    public List<ProductDTO> getAllProducts(String search) {
+        List<Product> products;
+        if (search != null && !search.isEmpty()) {
+            products = productRepository.findByNameContainingIgnoreCaseAndIsActive(search, true);
+        } else {
+            products = productRepository.findByIsActive(true);
+        }
         return products.stream()
                 .map(productMapper::toProductDTO)
                 .collect(Collectors.toList());
@@ -49,10 +55,23 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
-    public List<ProductDTO> getProductsByCategory(String categoryName) {
-        List<Product> products = productRepository.findByCategory_Name(categoryName);
+    public List<ProductDTO> getProductsByCategory(String categoryName, String search) {
+        List<Product> products;
+        if ("best-selling".equalsIgnoreCase(categoryName)) {
+            // Custom logic for best-selling products
+            products = orderDetailRepository.findAll().stream()
+                .collect(Collectors.groupingBy(od -> od.getProductVariant().getProduct(),
+                    Collectors.summingInt(od -> od.getQuantity())))
+                .entrySet().stream()
+                .sorted(Map.Entry.<Product, Integer>comparingByValue().reversed())
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        } else if (search != null && !search.isEmpty()) {
+            products = productRepository.findByCategory_NameAndNameContainingIgnoreCaseAndIsActive(categoryName, search, true);
+        } else {
+            products = productRepository.findByCategory_Name(categoryName);
+        }
         return products.stream()
                 .map(productMapper::toProductDTO)
                 .collect(Collectors.toList());

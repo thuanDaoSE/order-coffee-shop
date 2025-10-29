@@ -4,21 +4,28 @@ import type { Product, ProductVariant } from '../types/product';
 import { useCart } from '../contexts/CartContext';
 import CoffeeCard from '../components/CoffeeCard';
 import ResponsiveGrid from '../components/ui/ResponsiveGrid';
-import { getProducts } from '../services/productService';
-import Toast from '../components/ui/Toast';
+import { getProducts, getProductsByCategory } from '../services/productService';
+
 
 const Menu = () => {
   const { addToCart: addToCartContext } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const serviceProducts = await getProducts();
+        setIsLoading(true);
+        let serviceProducts;
+        if (activeCategory === 'all') {
+          serviceProducts = await getProducts(searchTerm);
+        } else {
+          serviceProducts = await getProductsByCategory(activeCategory, searchTerm);
+        }
         const mappedProducts: Product[] = serviceProducts.map(prod => ({
           id: prod.id,
           name: prod.name,
@@ -26,8 +33,8 @@ const Menu = () => {
           price: 0, // Will be handled by variants
           imageUrl: prod.imageUrl || '/images/placeholder.jpg',
           category: {
-            id: 1, // Default category ID
-            name: 'Coffee' // Default category name
+            id: prod.category?.id || 1, // Default category ID
+            name: prod.category?.name || 'Coffee' // Default category name
           },
           variants: prod.variants?.map(v => ({
             id: v.id,
@@ -44,7 +51,7 @@ const Menu = () => {
     };
 
     fetchProducts();
-  }, []);
+  }, [searchTerm, activeCategory]);
 
   const handleAddToCart = (product: Product, variant: ProductVariant) => {
     addToCartContext({
@@ -56,11 +63,11 @@ const Menu = () => {
       imageUrl: product.imageUrl,
       toppings: []
     });
-    setToastMessage(`${product.name} has been added to the cart.`);
+
   };
 
   // Get unique categories from products
-  const categories = ['all', ...new Set(products.flatMap(p => p.category?.name || []))];
+  const categories = ['all', 'best-selling', ...new Set(products.flatMap(p => p.category?.name || []))];
   const filteredProducts = activeCategory === 'all' 
     ? products 
     : products.filter(p => p.category?.name === activeCategory);
@@ -82,21 +89,34 @@ const Menu = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-amber-900 mb-8">Our Menu</h1>
       
-      {/* Category Filter */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        {categories.map(category => (
-          <button
-            key={category}
-            onClick={() => setActiveCategory(category)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeCategory === category
-                ? 'bg-amber-700 text-white'
-                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-            }`}
-          >
-            {category.charAt(0).toUpperCase() + category.slice(1)}
-          </button>
-        ))}
+      <div className="mb-8">
+        {/* Search Input */}
+        <div className="w-full mb-4">
+          <input
+            type="text"
+            placeholder="Search for your favorite coffee..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          />
+        </div>
+
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-2">
+          {categories.map(category => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeCategory === category
+                  ? 'bg-amber-700 text-white'
+                  : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+              }`}
+            >
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Products Grid */}
@@ -116,7 +136,7 @@ const Menu = () => {
         </ResponsiveGrid>
       )}
 
-      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
+
     </div>
   );
 };

@@ -53,7 +53,7 @@ const CartPage = () => {
                     <div>
                       <div className="flex justify-between">
                         <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
-                        <p className="text-lg font-bold text-gray-800">{formatVND(item.price * item.quantity)}</p>
+                        <p className="text-lg font-bold text-amber-600">{formatVND(item.price * item.quantity)}</p>
                       </div>
                       <p className="mt-1 text-sm text-gray-500">Size: {item.size}</p>
                     </div>

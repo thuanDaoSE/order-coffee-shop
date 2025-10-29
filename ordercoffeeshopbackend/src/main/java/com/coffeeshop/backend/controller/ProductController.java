@@ -20,31 +20,53 @@ public class ProductController {
 
     private final ProductService productService;
 
-    @GetMapping
-    public ResponseEntity<List<ProductDTO>> getAllProducts() {
-        List<ProductDTO> products = productService.getAllProducts();
-        return ResponseEntity.ok(products);
-    }
+        @GetMapping
 
-    @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<ProductDTO>> getAllProductsForAdmin() {
-        List<ProductDTO> products = productService.getAllProductsForAdmin();
-        return ResponseEntity.ok(products);
-    }
+        public ResponseEntity<List<ProductDTO>> getAllProducts(@RequestParam(required = false) String search) {
 
+            List<ProductDTO> products = productService.getAllProducts(search);
 
-    @GetMapping("/{productId}")
-    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long productId) {
-        ProductDTO product = productService.getProductById(productId);
-        return ResponseEntity.ok(product);
-    }
+            return ResponseEntity.ok(products);
 
-    @GetMapping("/category/{categoryName}")
-    public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable String categoryName) {
-        List<ProductDTO> products = productService.getProductsByCategory(categoryName);
-        return ResponseEntity.ok(products);
-    }
+        }
+
+    
+
+        @GetMapping("/admin")
+
+        @PreAuthorize("hasRole('ADMIN')")
+
+        public ResponseEntity<List<ProductDTO>> getAllProductsForAdmin() {
+
+            List<ProductDTO> products = productService.getAllProductsForAdmin();
+
+            return ResponseEntity.ok(products);
+
+        }
+
+    
+
+        @GetMapping("/{productId}")
+
+        public ResponseEntity<ProductDTO> getProductById(@PathVariable Long productId) {
+
+            ProductDTO product = productService.getProductById(productId);
+
+            return ResponseEntity.ok(product);
+
+        }
+
+    
+
+        @GetMapping("/category/{categoryName}")
+
+        public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable String categoryName, @RequestParam(required = false) String search) {
+
+            List<ProductDTO> products = productService.getProductsByCategory(categoryName, search);
+
+            return ResponseEntity.ok(products);
+
+        }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")

@@ -1,8 +1,13 @@
 import api from './api';
 import type { Product, ProductRequest } from '../types/product';
 
-export const getProducts = async (): Promise<Product[]> => {
-  const response = await api.get('/v1/products');
+export const getProducts = async (search?: string): Promise<Product[]> => {
+  const response = await api.get('/v1/products', { params: { search } });
+  return response.data;
+};
+
+export const getProductsByCategory = async (category: string, search?: string): Promise<Product[]> => {
+  const response = await api.get(`/v1/products/category/${category}`, { params: { search } });
   return response.data;
 };
 

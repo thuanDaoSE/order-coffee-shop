@@ -95,10 +95,10 @@ const AdminUsers = () => {
                   </div>
                   <div className="text-sm text-gray-500 mb-4">{user.phone || '-'}</div>
                   <div className="flex justify-end gap-4">
-                    <button onClick={() => openModal(user)} disabled={user.id === currentUser?.id} className="text-amber-600 hover:text-amber-900 disabled:opacity-50 disabled:cursor-not-allowed">Change Role</button>
+                    <button onClick={() => openModal(user)} disabled={user.role === 'ADMIN'} className="text-amber-600 hover:text-amber-900 disabled:opacity-50 disabled:cursor-not-allowed">Change Role</button>
                     <button
                       onClick={() => handleDelete(user.id)}
-                      disabled={user.id === currentUser?.id}
+                      disabled={user.role === 'ADMIN'}
                       className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Delete
@@ -141,10 +141,10 @@ const AdminUsers = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onClick={() => openModal(user)} disabled={user.id === currentUser?.id} className="text-amber-600 hover:text-amber-900 mr-4 disabled:opacity-50 disabled:cursor-not-allowed">Change Role</button>
+                        <button onClick={() => openModal(user)} disabled={user.role === 'ADMIN'} className="text-amber-600 hover:text-amber-900 mr-4 disabled:opacity-50 disabled:cursor-not-allowed">Change Role</button>
                         <button
                           onClick={() => handleDelete(user.id)}
-                          disabled={user.id === currentUser?.id}
+                          disabled={user.role === 'ADMIN'}
                           className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Delete

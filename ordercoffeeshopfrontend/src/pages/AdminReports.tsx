@@ -101,7 +101,7 @@ const AdminReports = () => {
                 <tr key={index} className="border-b">
                   <td className="py-2">{product.name}</td>
                   <td className="text-right py-2">{product.quantity}</td>
-                  <td className="text-right py-2">${product.revenue.toFixed(2)}</td>
+                  <td className="text-right py-2">{product.revenue.toFixed(2)}đ</td>
                 </tr>
               ))}
             </tbody>

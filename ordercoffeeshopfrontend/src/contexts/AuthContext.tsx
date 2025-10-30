@@ -12,7 +12,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+import { useCart } from './CartContext';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const { clearCart } = useCart();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -56,6 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to logout:", error);
     }
     setUser(null);
+    clearCart();
   };
 
   return (
@@ -66,9 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => {
-  console.log("useAuth called");
   const context = useContext(AuthContext);
-  console.log("useAuth context: ", context);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

@@ -6,38 +6,12 @@ import { useState, useMemo, useEffect } from 'react';
 import { connect, disconnect } from '../../services/socketService';
 import type { Product } from '../../types/product';
 import { useNavigate } from 'react-router-dom';
-import OrderFilter from './OrderFilter';
 import OrderList from './OrderList';
-
-const TABS = [
-  { name: 'Chờ thanh toán', statuses: ['PENDING'] },
-  { name: 'Chờ xử lý', statuses: ['PAID'] },
-  { name: 'Đang xử lý', statuses: ['PREPARING', 'DELIVERING'] },
-  { name: 'Hoàn thành', statuses: ['DELIVERED'] },
-  { name: 'Đã hủy', statuses: ['CANCELLED'] },
-];
-
-const fetchAllUserOrders = async () => {
-  let allOrders: Order[] = [];
-  let page = 0;
-  let totalPages = 1;
-
-  do {
-    const response = await getOrders(page, 5);
-    allOrders = allOrders.concat(response.content);
-    totalPages = response.totalPages;
-    page++;
-  } while (page < totalPages);
-
-  return allOrders;
-};
 
 const Orders = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('Chờ thanh toán');
   const [currentPage, setCurrentPage] = useState(0);
-  const [perPage, setPerPage] = useState(5);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -47,9 +21,9 @@ const Orders = () => {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  const { data: allOrders, isLoading, isError } = useQuery<any[], Error>({
-    queryKey: ['orders'],
-    queryFn: fetchAllUserOrders,
+  const { data: ordersPage, isLoading, isError } = useQuery<any, Error>({
+    queryKey: ['orders', currentPage],
+    queryFn: () => getOrders(currentPage, 5),
   });
 
   const { data: products } = useQuery<Product[], Error>({
@@ -110,20 +84,14 @@ const Orders = () => {
     return <div>Error fetching orders</div>;
   }
 
-  const sortedOrders = allOrders ? [...allOrders].sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()) : [];
-
-  const filteredOrders = sortedOrders.filter(order => TABS.find(tab => tab.name === activeTab)?.statuses.includes(order.status));
-
-  const paginatedOrders = filteredOrders.slice(currentPage * perPage, (currentPage + 1) * perPage);
-  const totalPages = Math.ceil(filteredOrders.length / perPage);
+  const sortedOrders = ordersPage ? [...ordersPage.content].sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()) : [];
 
   return (
     <div className="min-h-screen bg-amber-50 p-6">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-amber-900 mb-6">My Orders</h1>
-        <OrderFilter activeTab={activeTab} setActiveTab={setActiveTab} tabs={TABS} />
         <OrderList
-          orders={paginatedOrders}
+          orders={sortedOrders}
           variantIdToImageUrlMap={variantIdToImageUrlMap}
           handlePay={handlePay}
           handleCancelOrder={handleCancelOrder}
@@ -138,7 +106,7 @@ const Orders = () => {
             >
               Previous
             </button>
-            {[...Array(totalPages).keys()].map(page => (
+            {[...Array(ordersPage?.totalPages).keys()].map(page => (
               <button
                 key={page}
                 onClick={() => handlePageChange(page)}
@@ -149,14 +117,13 @@ const Orders = () => {
             ))}
             <button
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages - 1}
+              disabled={currentPage === ordersPage?.totalPages - 1}
               className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
             >
               Next
             </button>
           </nav>
         </div>
-
       </div>
     </div>
   );

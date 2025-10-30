@@ -20,6 +20,10 @@ import com.coffeeshop.backend.dto.voucher.VoucherValidationRequest;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationResponse;
 import lombok.extern.slf4j.Slf4j;
 
+
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -45,8 +49,10 @@ public class OrderController {
     }
 
 
+
+
     @GetMapping("")
-    public ResponseEntity<Page<OrderResponse>> getOrdersByUserId(@AuthenticationPrincipal UserDetails userDetails, Pageable pageable) {
+    public ResponseEntity<Page<OrderResponse>> getOrdersByUserId(@AuthenticationPrincipal UserDetails userDetails, @PageableDefault(sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<OrderResponse> orders = orderService.getOrdersByUserId(userDetails.getUsername(), pageable);
         return ResponseEntity.ok(orders);
     }

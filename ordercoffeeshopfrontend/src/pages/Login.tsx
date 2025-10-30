@@ -47,7 +47,7 @@ const Login = () => {
           <p className="text-gray-600">Sign in to your account</p>
         </div>
 
-        {import.meta.env.DEV && (
+        {/* {import.meta.env.DEV && ( */}
           <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 mb-6 text-sm">
             <p className="font-semibold text-gray-700 mb-2">🚀 Fast Login (Dev only)</p>
             <div className="grid grid-cols-3 gap-2">
@@ -56,7 +56,7 @@ const Login = () => {
               <button onClick={() => handleFastLogin('admin@coffeeshop.com', 'admin123')} className="bg-red-500 text-white px-2 py-1 rounded-lg text-xs">Admin</button>
             </div>
           </div>
-        )}
+        {/* )} */}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (

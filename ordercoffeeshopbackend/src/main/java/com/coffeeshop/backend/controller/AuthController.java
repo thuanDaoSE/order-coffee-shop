@@ -36,8 +36,8 @@ public class AuthController {
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setMaxAge(jwtExpiration / 1000);
-        cookie.setAttribute("SameSite", "Lax");
+        cookie.setMaxAge(jwtExpiration / 1000); // Thời gian sống của JWT
+        cookie.setAttribute("SameSite", "None"); // Thay đổi từ Lax sang None để cho phép gửi cross-site
 
         Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
@@ -105,7 +105,7 @@ public class AuthController {
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(0); // Immediately expire the cookie
-        cookie.setAttribute("SameSite", "Lax");
+        cookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
         response.setHeader("Clear-Site-Data", "\"cache\", \"cookies\"");

@@ -302,18 +302,7 @@ const ResponsiveNav = () => {
           </span>
         </Link>
       )}
-          {/* Floating Cart Button for Mobile */}
-      {user?.role === 'CUSTOMER' && cartCount > 0 && (
-        <Link
-          to={PATHS.CART}
-          className="md:hidden fixed bottom-4 right-4 bg-amber-600 text-white p-4 rounded-full shadow-lg hover:bg-amber-700 transition-transform duration-200 ease-in-out transform hover:scale-110"
-        >
-          <ShoppingCart className="h-6 w-6" />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-            {cartCount > 9 ? '9+' : cartCount}
-          </span>
-        </Link>
-      )}
+
     </nav>
   );
 };

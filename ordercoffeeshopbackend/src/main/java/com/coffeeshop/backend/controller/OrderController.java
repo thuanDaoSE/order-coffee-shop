@@ -14,6 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationRequest;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -42,9 +44,10 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+
     @GetMapping("")
-    public ResponseEntity<List<OrderResponse>> getOrdersByUserId(@AuthenticationPrincipal UserDetails userDetails) {
-        List<OrderResponse> orders = orderService.getOrdersByUserId(userDetails.getUsername());
+    public ResponseEntity<Page<OrderResponse>> getOrdersByUserId(@AuthenticationPrincipal UserDetails userDetails, Pageable pageable) {
+        Page<OrderResponse> orders = orderService.getOrdersByUserId(userDetails.getUsername(), pageable);
         return ResponseEntity.ok(orders);
     }
 

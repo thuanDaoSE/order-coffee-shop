@@ -20,6 +20,8 @@ import com.coffeeshop.backend.service.OrderService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.security.access.AccessDeniedException;
@@ -31,6 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.coffeeshop.backend.repository.AddressRepository;
+import com.coffeeshop.backend.service.ShippingService;
+
+//...
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -39,6 +45,8 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final ProductVariantRepository productVariantRepository;
     private final VoucherRepository voucherRepository;
+    private final AddressRepository addressRepository;
+    private final ShippingService shippingService;
     private final OrderMapper orderMapper;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
@@ -56,8 +64,8 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.PENDING);
         order.setOrderDetails(new ArrayList<>());
 
-        // 3. Process order items and calculate total price
-        BigDecimal totalPrice = BigDecimal.ZERO;
+        // 3. Process order items and calculate subtotal
+        BigDecimal subtotal = BigDecimal.ZERO;
         for (OrderItemRequest itemRequest : request.getItems()) {
             ProductVariant variant = productVariantRepository.findById(itemRequest.getProductVariantId())
                     .orElseThrow(() -> new ResourceNotFoundException(
@@ -76,26 +84,40 @@ public class OrderServiceImpl implements OrderService {
 
             order.getOrderDetails().add(detail);
 
-            totalPrice = totalPrice.add(variant.getPrice().multiply(new BigDecimal(itemRequest.getQuantity())));
+            subtotal = subtotal.add(variant.getPrice().multiply(new BigDecimal(itemRequest.getQuantity())));
 
             // Decrease stock
             variant.setStockQuantity(variant.getStockQuantity() - itemRequest.getQuantity());
         }
 
         // 4. Handle voucher (if any)
+        BigDecimal discount = BigDecimal.ZERO;
         if (request.getCouponCode() != null && !request.getCouponCode().isEmpty()) {
             Voucher voucher = voucherRepository.findByCode(request.getCouponCode())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Voucher not found with code: " + request.getCouponCode()));
             // Basic validation, more can be added (e.g., expiry date, usage limits)
             if (voucher.getDiscountType() == DiscountType.PERCENT) {
-                BigDecimal discount = totalPrice.multiply(voucher.getDiscountValue().divide(new BigDecimal(100)));
-                totalPrice = totalPrice.subtract(discount);
+                discount = subtotal.multiply(voucher.getDiscountValue().divide(new BigDecimal(100)));
             } else if (voucher.getDiscountType() == DiscountType.AMOUNT) {
-                totalPrice = totalPrice.subtract(voucher.getDiscountValue());
+                discount = voucher.getDiscountValue();
             }
             order.setVoucher(voucher);
         }
+
+        BigDecimal subtotalAfterDiscount = subtotal.subtract(discount);
+
+        // 5. Calculate VAT
+        BigDecimal vat = subtotalAfterDiscount.multiply(new BigDecimal("0.08"));
+
+        // 6. Calculate shipping fee
+        BigDecimal shippingFee = BigDecimal.ZERO;
+        if ("delivery".equalsIgnoreCase(request.getDeliveryMethod())) {
+            Address address = addressRepository.findById(request.getAddressId()).orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+            shippingFee = shippingService.calculateShippingFee(address.getLatitude(), address.getLongitude());
+        }
+
+        BigDecimal totalPrice = subtotalAfterDiscount.add(vat).add(shippingFee);
 
         if (totalPrice.compareTo(BigDecimal.ZERO) < 0) {
             totalPrice = BigDecimal.ZERO;
@@ -103,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setTotalPrice(totalPrice);
 
-        // 5. Create and associate Payment
+        // 7. Create and associate Payment
         Payment payment = new Payment();
         payment.setOrder(order);
         payment.setAmount(totalPrice);
@@ -111,10 +133,10 @@ public class OrderServiceImpl implements OrderService {
         payment.setStatus(PaymentStatus.PENDING);
         order.setPayment(payment);
 
-        // 6. Save the order
+        // 8. Save the order
         Order savedOrder = orderRepository.save(order);
 
-        // 7. Map to response DTO
+        // 9. Map to response DTO
         return orderMapper.toOrderResponse(savedOrder);
     }
 
@@ -153,15 +175,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderResponse> getOrdersByUserId(String username) {
+    public Page<OrderResponse> getOrdersByUserId(String username, Pageable pageable) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + username));
 
-        List<Order> orders = orderRepository.findAllByUserId(user.getId());
+        Page<Order> orders = orderRepository.findAllByUserId(user.getId(), pageable);
 
-        return orders.stream()
-                .map(orderMapper::toOrderResponse)
-                .collect(Collectors.toList());
+        return orders.map(orderMapper::toOrderResponse);
     }
 
     @Override

@@ -10,4 +10,5 @@ public interface AddressService {
     void deleteAddress(Long addressId, String userEmail);
     AddressDTO setDefaultAddress(Long addressId, String userEmail);
     AddressDTO getDefaultAddress(String userEmail);
+    AddressDTO getAddressById(Long addressId, String userEmail);
 }

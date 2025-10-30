@@ -195,7 +195,7 @@ const StaffDashboard = () => {
                     <span className="ml-auto bg-amber-200 text-amber-800 text-sm font-bold px-3 py-1 rounded-full">{columnOrders.length}</span>
                 </div>
                 <div className="p-2 overflow-y-auto" style={{maxHeight: 'calc(100vh - 18rem)'}}>
-                  {columnOrders.length > 0 ? columnOrders.map(order => (
+                  {columnOrders.length > 0 ? columnOrders.sort((a, b) => - new Date(b.orderDate).getTime() + new Date(a.orderDate).getTime()).map(order => (
                       <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} devMode={devMode} />
                   )) : (
                     <div className="flex items-center justify-center h-48">

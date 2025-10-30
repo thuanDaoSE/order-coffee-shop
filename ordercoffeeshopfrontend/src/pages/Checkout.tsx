@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { createOrder } from '../services/orderService';
+import { calculateShippingFee } from '../services/shippingService';
+import { addressService } from '../services/addressService';
 import api from '../services/api';
 import { cartApi } from '../services/mockApi';
 import { CheckoutAddressForm } from '../components/CheckoutAddressForm';
@@ -14,6 +16,7 @@ const Checkout = () => {
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
   const [paymentMethod, setPaymentMethod] = useState<string>('VNPAYEWALLET');
   const [selectedAddressId, setSelectedAddressId] = useState<string | number | null>(null);
+  const [shippingCost, setShippingCost] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -22,11 +25,27 @@ const Checkout = () => {
     return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   };
 
+  useEffect(() => {
+    const getShippingFee = async () => {
+      if (deliveryMethod === 'delivery' && selectedAddressId) {
+        try {
+          const address = await addressService.getAddressById(selectedAddressId);
+          const fee = await calculateShippingFee(address.latitude, address.longitude);
+          setShippingCost(fee.shippingFee);
+        } catch (error) {
+          console.error('Failed to calculate shipping fee:', error);
+        }
+      } else {
+        setShippingCost(0);
+      }
+    };
+    getShippingFee();
+  }, [selectedAddressId, deliveryMethod]);
+
   const subtotal = calculateSubtotal();
   const discount = appliedCoupon?.discount || 0;
   const vat = (subtotal - discount) * 0.08; // Assuming 8% VAT
-  const shipping = deliveryMethod === 'delivery' ? 2.00 : 0;
-  const total = subtotal - discount + vat + shipping;
+  const total = subtotal - discount + vat + shippingCost;
 
   interface DiscountResponse {
     code: string;
@@ -66,12 +85,7 @@ const Checkout = () => {
         cartItems,
         couponCode,
         deliveryMethod,
-        selectedAddressId || null,
-        total,
-        subtotal,
-        discount || 0,
-        vat,
-        shipping
+        selectedAddressId || null
       );
       console.log("Response from createOrder:", JSON.stringify(response, null, 2));
       console.log('Order creation successful, response:', response);
@@ -228,7 +242,7 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
-                  <span>{shipping === 0 ? 'Miễn phí' : `${new Intl.NumberFormat('vi-VN').format(shipping)}₫`}</span>
+                  <span>{shippingCost === 0 ? 'Miễn phí' : `${new Intl.NumberFormat('vi-VN').format(shippingCost)}₫`}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-800">
                   <span>Total</span>

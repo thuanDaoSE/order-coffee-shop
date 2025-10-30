@@ -1,4 +1,4 @@
-package com.coffeeshop.backend.dto;
+package com.coffeeshop.backend.dto.user;
 
 import com.coffeeshop.backend.enums.UserRole;
 import lombok.Data;

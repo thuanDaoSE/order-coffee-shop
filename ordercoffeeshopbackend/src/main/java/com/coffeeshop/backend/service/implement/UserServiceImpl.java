@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateProfile(String email, com.coffeeshop.backend.dto.UserDTO userDTO) {
+    public User updateProfile(String email, com.coffeeshop.backend.dto.user.UserDTO userDTO) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setFullname(userDTO.getFullname());
         user.setPhone(userDTO.getPhone());

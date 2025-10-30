@@ -121,4 +121,19 @@ public class AddressServiceImpl implements AddressService {
                 .map(addressMapper::toDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("No default address found for user: " + userEmail));
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AddressDTO getAddressById(Long addressId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found with id: " + addressId));
+
+        if (!address.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("You are not authorized to view this address.");
+        }
+
+        return addressMapper.toDTO(address);
+    }
 }

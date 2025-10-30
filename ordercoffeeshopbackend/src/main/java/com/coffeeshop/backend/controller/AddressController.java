@@ -24,6 +24,12 @@ public class AddressController {
         return ResponseEntity.ok(addresses);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<AddressDTO> getAddressById(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        AddressDTO address = addressService.getAddressById(id, userDetails.getUsername());
+        return ResponseEntity.ok(address);
+    }
+
     @PostMapping
     public ResponseEntity<AddressDTO> createAddress(@RequestBody AddressDTO addressDTO, @AuthenticationPrincipal UserDetails userDetails) {
         AddressDTO createdAddress = addressService.createAddress(addressDTO, userDetails.getUsername());

@@ -9,7 +9,7 @@ type ProductVariant = {
   price: number;
 };
 
-import { formatVND } from '../utils/currency';
+
 
 interface CoffeeCardProps {
   product: Product;
@@ -55,7 +55,7 @@ const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
       <div className="p-4">
         <div className="flex justify-between items-start">
           <h3 className="text-lg font-semibold text-gray-800 h-12 overflow-hidden">{product.name}</h3>
-          <span className="text-amber-700 font-bold">{selectedVariant ? formatVND(selectedVariant.price) : '-'}</span>
+          <span className="text-amber-700 font-bold">{selectedVariant ? selectedVariant.price.toLocaleString('vi-VN') + '₫' : '-'}</span>
         </div>
         
         <p className="text-gray-600 text-sm mt-1 h-10 overflow-hidden">

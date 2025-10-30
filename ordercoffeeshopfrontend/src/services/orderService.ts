@@ -6,23 +6,18 @@ interface OrderItemPayload {
   quantity: number;
 }
 
-export const createOrder = async (cartItems: CartItem[], couponCode: string, deliveryMethod: string, addressId: string | number | null, total: number, subtotal: number, discount: number, vat: number, shipping: number) => {
+export const createOrder = async (cartItems: CartItem[], couponCode: string, deliveryMethod: string, addressId: string | number | null) => {
   try {
     const items: OrderItemPayload[] = cartItems.map(item => ({
       productVariantId: item.productVariantId, // Use the correct productVariantId from the cart item
       quantity: item.quantity,
     }));
 
-    const response = await api.post('/v1/orders', { 
-      items, 
-      couponCode, 
+    const response = await api.post('/v1/orders', {
+      items,
+      couponCode,
       deliveryMethod,
       addressId,
-      total,
-      subtotal,
-      discount,
-      vat,
-      shipping
     });
     console.log("create order response: ",response.data);
     return response.data;
@@ -31,10 +26,9 @@ export const createOrder = async (cartItems: CartItem[], couponCode: string, del
     throw error;
   }
 };
-
-export const getOrders = async () => {
+export const getOrders = async (page = 0, size = 10): Promise<any> => {
   try {
-    const response = await api.get('/v1/orders');
+    const response = await api.get('/v1/orders', { params: { page, size } });
     console.log("get orders response: ",response.data);
     return response.data;
   } catch (error) {

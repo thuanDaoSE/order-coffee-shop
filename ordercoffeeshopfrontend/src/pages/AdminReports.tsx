@@ -62,7 +62,7 @@ const AdminReports = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Total Revenue</h3>
-            <p className="text-3xl font-bold text-amber-600">${reportData?.totalRevenue.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-amber-600">{reportData?.totalRevenue.toLocaleString('vi-VN')}₫</p>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Total Orders</h3>

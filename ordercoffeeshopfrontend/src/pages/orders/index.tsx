@@ -22,7 +22,7 @@ const formatDate = (dateString: string) => {
 
 const TABS = [
   { name: 'Tất cả', statuses: ['All'] },
-  { name: 'Đang chuẩn bị', statuses: ['PREPARING'] },
+  { name: 'Đang pha chế', statuses: ['PREPARING'] },
   { name: 'Đang giao', statuses: ['DELIVERING'] },
   { name: 'Hoàn thành', statuses: ['DELIVERED'] },
   { name: 'Đã hủy', statuses: ['CANCELLED'] },
@@ -31,10 +31,11 @@ const TABS = [
 const Orders = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('Tất cả');
+  const [currentPage, setCurrentPage] = useState(0);
 
-  const { data: orders, isLoading, isError } = useQuery<Order[], Error>({
-    queryKey: ['orders'],
-    queryFn: getOrders,
+  const { data: ordersPage, isLoading, isError } = useQuery<any, Error>({
+    queryKey: ['orders', currentPage],
+    queryFn: () => getOrders(currentPage, 5),
   });
 
   const { data: products } = useQuery<Product[], Error>({
@@ -45,25 +46,13 @@ const Orders = () => {
   useEffect(() => {
     connect('/topic/orders', (message: Order) => {
       console.log('Received message:', message);
-      queryClient.setQueryData<Order[]>(['orders'], (oldData) => {
-        if (!oldData) return [message];
-        const index = oldData.findIndex((order) => order.id === message.id);
-        if (index !== -1) {
-          const newData = [...oldData];
-          newData[index] = message;
-          return newData;
-        }
-        return [...oldData, message];
-      });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
     });
 
     return () => {
       disconnect();
     };
   }, [queryClient]);
-
-  console.log("Raw Orders Data:", orders);
-  console.log("Raw Products Data:", products);
 
   const variantIdToImageUrlMap = useMemo(() => {
     if (!products) return {};
@@ -73,7 +62,6 @@ const Orders = () => {
       });
       return acc;
     }, {} as Record<number, string>);
-    console.log("Generated Variant-to-Image Map:", map);
     return map;
   }, [products]);
 
@@ -90,6 +78,14 @@ const Orders = () => {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -98,7 +94,7 @@ const Orders = () => {
     return <div>Error fetching orders</div>;
   }
 
-  const sortedOrders = orders ? [...orders].sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()) : [];
+  const sortedOrders = ordersPage ? [...ordersPage.content].sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()) : [];
 
   const filteredOrders = activeTab === 'Tất cả'
     ? sortedOrders
@@ -172,6 +168,34 @@ const Orders = () => {
             ))}
           </div>
         )}
+
+        <div className="flex justify-center mt-8">
+          <nav className="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0}
+              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            {[...Array(ordersPage?.totalPages).keys()].map(page => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${currentPage === page ? 'z-10 bg-amber-50 border-amber-500 text-amber-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              >
+                {page + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === ordersPage?.totalPages - 1}
+              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </nav>
+        </div>
       </div>
     </div>
   );

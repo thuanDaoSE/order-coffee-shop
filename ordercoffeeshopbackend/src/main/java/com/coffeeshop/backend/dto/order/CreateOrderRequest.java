@@ -11,9 +11,4 @@ public class CreateOrderRequest {
     private String couponCode;
     private String deliveryMethod;
     private Long addressId;
-    private BigDecimal total;
-    private BigDecimal subtotal;
-    private BigDecimal discount;
-    private BigDecimal vat;
-    private BigDecimal shipping;
 }

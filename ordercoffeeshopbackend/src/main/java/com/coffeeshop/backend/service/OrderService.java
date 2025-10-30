@@ -5,6 +5,9 @@ import com.coffeeshop.backend.dto.order.OrderResponse;
 import com.coffeeshop.backend.enums.OrderStatus;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.coffeeshop.backend.dto.voucher.VoucherValidationRequest;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationResponse;
 
@@ -15,9 +18,12 @@ public interface OrderService {
 
     OrderResponse updateOrderStatus(Long orderId, OrderStatus status);
 
+
+
+
     boolean isOwnerOfOrder(Long orderId, String username);
 
-    List<OrderResponse> getOrdersByUserId(String username);
+    Page<OrderResponse> getOrdersByUserId(String username, Pageable pageable);
 
     List<OrderResponse> getAllOrders();
 

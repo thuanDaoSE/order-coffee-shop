@@ -21,6 +21,11 @@ export const addressService = {
     await api.delete(`/v1/addresses/${id}`);
   },
 
+  getAddressById: async (id: string | number): Promise<Address> => {
+    const response = await api.get(`/v1/addresses/${id}`);
+    return response.data;
+  },
+
   setDefaultAddress: async (id: number): Promise<Address> => {
     const response = await api.put(`/v1/addresses/${id}/default`);
     return response.data;

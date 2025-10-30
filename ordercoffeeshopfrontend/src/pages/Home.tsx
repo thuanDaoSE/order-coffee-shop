@@ -59,7 +59,7 @@ export const Home = () => {
                 <h3 className="text-2xl font-playfair text-amber-950 mb-2">{item.name}</h3>
                 <p className="text-amber-900 mb-4">{item.description}</p>
                 <div className="flex justify-between items-center">
-                  <span className="text-xl font-bold text-amber-900">${item.variants[0]?.price.toFixed(2)}</span>
+                  <span className="text-xl font-bold text-amber-900">{item.variants[0]?.price.toLocaleString('vi-VN')}₫</span>
                   <button className="bg-amber-900 text-white px-4 py-2 rounded-full text-sm hover:bg-amber-800 transition-colors">
                     Add to Cart
                   </button>

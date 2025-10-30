@@ -1,6 +1,6 @@
 package com.coffeeshop.backend.controller;
 
-import com.coffeeshop.backend.dto.UserDTO;
+import com.coffeeshop.backend.dto.user.UserDTO;
 import com.coffeeshop.backend.entity.User;
 import com.coffeeshop.backend.enums.UserRole;
 import com.coffeeshop.backend.service.UserService;

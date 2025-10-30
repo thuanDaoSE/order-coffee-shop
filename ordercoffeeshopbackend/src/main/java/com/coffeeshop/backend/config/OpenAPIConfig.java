@@ -31,7 +31,7 @@ public class OpenAPIConfig {
         Contact contact = new Contact();
         contact.setEmail("your.email@example.com");
         contact.setName("Your Name");
-        contact.setUrl("https://your-website.com");
+        contact.setUrl("https://order-coffee-shop-1.onrender.com");
 
         License mitLicense = new License()
                 .name("MIT License")

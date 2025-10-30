@@ -1,0 +1,29 @@
+{
+  "nav": {
+    "home": "Home",
+    "menu": "Menu",
+    "my_orders": "My Orders",
+    "staff_dashboard": "Staff Dashboard",
+    "admin_dashboard": "Admin Dashboard",
+    "users": "Users",
+    "reports": "Reports",
+    "title": "The Coffee Corner",
+    "login": "Login",
+    "register": "Register",
+    "profile": "Profile",
+    "sign_out": "Sign out",
+    "open_menu": "Open main menu"
+  },
+  "home": {
+    "hero_title": "Discover Your Perfect Coffee",
+    "hero_subtitle": "Brewed with passion, served with love.",
+    "explore_menu": "Explore Our Menu",
+    "specialties_title": "Our Specialties",
+    "add_to_cart": "Add to Cart",
+    "view_full_menu": "View Full Menu",
+    "about_title": "Our Story",
+    "about_p1": "Founded in 2023, our coffee shop is dedicated to serving the finest quality coffee in a warm and welcoming environment. We source our beans from sustainable farms around the world and roast them to perfection in-house.",
+    "about_p2": "Our baristas are trained to craft each cup with care and precision, ensuring that every sip brings you the rich, complex flavors that coffee lovers crave.",
+    "learn_more": "Learn More About Us"
+  }
+}

@@ -11,7 +11,7 @@ const VNPAY_IPN_URL = 'https://sandbox.vnpayment.vn/vnpaygw-sit-testing/ipn';
 
 const USERNAME = "td2005dataeg@gmail.com";
 const PASSWORD = "Td12345678@";
-const BACKEND_URL = "https://022171e75053.ngrok-free.app";
+const BACKEND_URL = "https://spring-boot-coffeeshop-backend.onrender.com";
 // const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080";
 
 test('update VNPay IPN URL', async ({ page }) => {

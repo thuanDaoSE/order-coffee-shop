@@ -1,0 +1,29 @@
+{
+  "nav": {
+    "home": "Trang chủ",
+    "menu": "Thực đơn",
+    "my_orders": "Đơn hàng của tôi",
+    "staff_dashboard": "Bảng điều khiển nhân viên",
+    "admin_dashboard": "Bảng điều khiển quản trị viên",
+    "users": "Người dùng",
+    "reports": "Báo cáo",
+    "title": "The Coffee Corner",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "profile": "Hồ sơ",
+    "sign_out": "Đăng xuất",
+    "open_menu": "Mở menu chính"
+  },
+  "home": {
+    "hero_title": "Khám phá loại cà phê hoàn hảo của bạn",
+    "hero_subtitle": "Pha chế bằng đam mê, phục vụ bằng cả trái tim.",
+    "explore_menu": "Khám phá thực đơn",
+    "specialties_title": "Đặc sản của chúng tôi",
+    "add_to_cart": "Thêm vào giỏ hàng",
+    "view_full_menu": "Xem toàn bộ thực đơn",
+    "about_title": "Câu chuyện của chúng tôi",
+    "about_p1": "Được thành lập vào năm 2023, quán cà phê của chúng tôi chuyên phục vụ cà phê chất lượng tốt nhất trong một môi trường ấm áp và thân thiện. Chúng tôi thu mua hạt cà phê từ các trang trại bền vững trên khắp thế giới và rang chúng một cách hoàn hảo tại quán.",
+    "about_p2": "Các nhân viên pha chế của chúng tôi được đào tạo để chế biến từng tách cà phê một cách cẩn thận và chính xác, đảm bảo rằng mỗi ngụm cà phê đều mang đến cho bạn hương vị đậm đà, phức hợp mà những người yêu cà phê đều mong muốn.",
+    "learn_more": "Tìm hiểu thêm về chúng tôi"
+  }
+}

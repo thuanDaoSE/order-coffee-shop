@@ -1,29 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Menu, X, ShoppingCart, User, LogOut, Settings, Home, Coffee as CoffeeIcon, Users, BarChart2, UserCog, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { PATHS } from '../../constants';
 import { useClickOutside } from '../../hooks/useClickOutside';
-
-const navItems = [
-  { name: 'Home', path: PATHS.HOME, icon: <Home size={18} className="mr-2" /> },
-  { name: 'Menu', path: PATHS.MENU, icon: <CoffeeIcon size={18} className="mr-2" /> },
-];
-
-const userNavItems = [
-  { name: 'My Orders', path: PATHS.ORDERS, icon: <ShoppingCart size={18} className="mr-2" /> },
-];
-
-const staffNavItems = [
-  { name: 'Staff Dashboard', path: PATHS.STAFF, icon: <UserCog size={18} className="mr-2" /> },
-];
-
-const adminNavItems = [
-  { name: 'Admin Dashboard', path: PATHS.ADMIN, icon: <Settings size={18} className="mr-2" /> },
-  { name: 'Users', path: PATHS.ADMIN_USERS, icon: <Users size={18} className="mr-2" /> },
-  { name: 'Reports', path: PATHS.ADMIN_REPORTS, icon: <BarChart2 size={18} className="mr-2" /> },
-];
 
 const NavLink = ({ to, children, className = '' }: { to: string, children: React.ReactNode, className?: string }) => {
   const location = useLocation();
@@ -44,6 +26,27 @@ const NavLink = ({ to, children, className = '' }: { to: string, children: React
 };
 
 const ResponsiveNav = () => {
+  const { t, i18n } = useTranslation();
+
+  const navItems = [
+    { name: t('nav.home'), path: PATHS.HOME, icon: <Home size={18} className="mr-2" /> },
+    { name: t('nav.menu'), path: PATHS.MENU, icon: <CoffeeIcon size={18} className="mr-2" /> },
+  ];
+
+  const userNavItems = [
+    { name: t('nav.my_orders'), path: PATHS.ORDERS, icon: <ShoppingCart size={18} className="mr-2" /> },
+  ];
+
+  const staffNavItems = [
+    { name: t('nav.staff_dashboard'), path: PATHS.STAFF, icon: <UserCog size={18} className="mr-2" /> },
+  ];
+
+  const adminNavItems = [
+    { name: t('nav.admin_dashboard'), path: PATHS.ADMIN, icon: <Settings size={18} className="mr-2" /> },
+    { name: t('nav.users'), path: PATHS.ADMIN_USERS, icon: <Users size={18} className="mr-2" /> },
+    { name: t('nav.reports'), path: PATHS.ADMIN_REPORTS, icon: <BarChart2 size={18} className="mr-2" /> },
+  ];
+
   const { cart } = useCart();
   const cartCount = cart.itemCount;
 
@@ -121,7 +124,7 @@ const ResponsiveNav = () => {
         <div className="flex items-center justify-between h-16">
           <Link to={PATHS.HOME} className="flex-shrink-0 flex items-center space-x-2">
             <img src="/logo/coffee-svgrepo-com.svg" alt="The Coffee Corner" className="h-8 w-auto" />
-            <span className="text-xl font-bold text-amber-50">The Coffee Corner</span>
+            <span className="text-xl font-bold text-amber-50">{t('nav.title')}</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
@@ -166,7 +169,7 @@ const ResponsiveNav = () => {
                           onClick={() => setIsProfileOpen(false)}
                         >
                           <User size={16} className="inline mr-2" />
-                          Profile
+                          {t('nav.profile')}
                         </Link>
 
                         {user.role === 'ADMIN' && (
@@ -176,7 +179,7 @@ const ResponsiveNav = () => {
                             onClick={() => setIsProfileOpen(false)}
                           >
                             <Settings size={16} className="inline mr-2" />
-                            Admin Dashboard
+                            {t('nav.admin_dashboard')}
                           </Link>
                         )}
 
@@ -187,16 +190,23 @@ const ResponsiveNav = () => {
                             onClick={() => setIsProfileOpen(false)}
                           >
                             <UserCog size={16} className="inline mr-2" />
-                            Staff Dashboard
+                            {t('nav.staff_dashboard')}
                           </Link>
                         )}
+
+                        <button
+                          onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'vi' : 'en')}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          {i18n.language === 'en' ? 'Tiếng Việt' : 'English'}
+                        </button>
 
                         <button
                           onClick={handleLogout}
                           className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 border-t border-gray-100"
                         >
                           <LogOut size={16} className="inline mr-2" />
-                          Sign out
+                          {t('nav.sign_out')}
                         </button>
                       </div>
                     </div>
@@ -208,13 +218,13 @@ const ResponsiveNav = () => {
                     to={PATHS.LOGIN}
                     className="px-4 py-2 text-sm font-medium text-amber-900 bg-amber-50 rounded-full hover:bg-amber-100 transition-colors duration-200"
                   >
-                    Login
+                    {t('nav.login')}
                   </Link>
                   <Link
                     to={PATHS.REGISTER}
                     className="px-4 py-2 text-sm font-medium text-amber-50 border border-amber-200 rounded-full hover:bg-amber-800/50 transition-colors duration-200"
                   >
-                    Register
+                    {t('nav.register')}
                   </Link>
                 </>
               )}
@@ -226,7 +236,7 @@ const ResponsiveNav = () => {
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-amber-200 hover:text-amber-50 hover:bg-amber-800/50 focus:outline-none transition-colors duration-200"
             >
-              <span className="sr-only">Open main menu</span>
+              <span className="sr-only">{t('nav.open_menu')}</span>
               {isOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
             </button>
           </div>
@@ -256,16 +266,24 @@ const ResponsiveNav = () => {
                     onClick={() => setIsOpen(false)}
                   >
                     <User size={16} className="mr-2" />
-                    Profile
+                    {t('nav.profile')}
                   </Link>
+
+                  <button
+                    onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'vi' : 'en')}
+                    className="w-full text-left px-3 py-2 text-sm text-amber-200 hover:bg-amber-800/50 rounded-md flex items-center"
+                  >
+                    {i18n.language === 'en' ? 'Tiếng Việt' : 'English'}
+                  </button>
 
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-amber-800/50 rounded-md flex items-center mt-2"
                   >
                     <LogOut size={16} className="mr-2" />
-                    Sign out
+                    {t('nav.sign_out')}
                   </button>
+
                 </div>
               </div>
             ) : (

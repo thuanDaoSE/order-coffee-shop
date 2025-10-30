@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getProducts } from '../services/productService';
@@ -6,6 +7,7 @@ import Carousel from '../components/ui/Carousel';
 import './Home.css';
 
 export const Home = () => {
+  const { t } = useTranslation();
   const [menuItems, setMenuItems] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -30,10 +32,10 @@ export const Home = () => {
         style={{ backgroundImage: "url('/backgroud.jpg')" }}
       >
         <div className="bg-black bg-opacity-50 p-8 md:p-12 rounded-lg text-center">
-          <h1 className="text-5xl md:text-7xl font-playfair mb-4">Discover Your Perfect Coffee</h1>
-          <p className="text-lg md:text-xl mb-8">Brewed with passion, served with love.</p>
+          <h1 className="text-5xl md:text-7xl font-playfair mb-4">{t('home.hero_title')}</h1>
+          <p className="text-lg md:text-xl mb-8">{t('home.hero_subtitle')}</p>
           <Link to="/menu" className="bg-amber-800 hover:bg-amber-700 text-white px-6 py-3 md:px-8 md:py-3 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg">
-            Explore Our Menu
+            {t('home.explore_menu')}
           </Link>
         </div>
       </section>
@@ -42,7 +44,7 @@ export const Home = () => {
       <section id="menu-preview" className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-playfair text-amber-950 mb-4">Our Specialties</h2>
+            <h2 className="text-4xl font-playfair text-amber-950 mb-4">{t('home.specialties_title')}</h2>
             <div className="w-24 h-1 bg-amber-900 mx-auto"></div>
           </div>
           
@@ -61,7 +63,7 @@ export const Home = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-xl font-bold text-amber-900">{item.variants[0]?.price.toLocaleString('vi-VN')}₫</span>
                   <button className="bg-amber-900 text-white px-4 py-2 rounded-full text-sm hover:bg-amber-800 transition-colors">
-                    Add to Cart
+                    {t('home.add_to_cart')}
                   </button>
                 </div>
               </div>
@@ -70,7 +72,7 @@ export const Home = () => {
           
           <div className="text-center mt-12">
             <Link to="/menu" className="inline-block border-2 border-amber-900 text-amber-900 hover:bg-amber-50 px-8 py-3 rounded-full text-lg font-semibold transition-all duration-300">
-              View Full Menu
+              {t('home.view_full_menu')}
             </Link>
           </div>
         </div>
@@ -88,15 +90,15 @@ export const Home = () => {
               />
             </div>
             <div className="lg:w-1/2">
-              <h2 className="text-4xl font-playfair text-amber-950 mb-6">Our Story</h2>
+              <h2 className="text-4xl font-playfair text-amber-950 mb-6">{t('home.about_title')}</h2>
               <p className="text-lg text-amber-900 mb-6">
-                Founded in 2023, our coffee shop is dedicated to serving the finest quality coffee in a warm and welcoming environment. We source our beans from sustainable farms around the world and roast them to perfection in-house.
+                {t('home.about_p1')}
               </p>
               <p className="text-lg text-amber-900 mb-8">
-                Our baristas are trained to craft each cup with care and precision, ensuring that every sip brings you the rich, complex flavors that coffee lovers crave.
+                {t('home.about_p2')}
               </p>
               <button className="bg-amber-900 hover:bg-amber-800 text-white px-8 py-3 rounded-full text-lg font-semibold transition-colors duration-300">
-                Learn More About Us
+                {t('home.learn_more')}
               </button>
             </div>
           </div>

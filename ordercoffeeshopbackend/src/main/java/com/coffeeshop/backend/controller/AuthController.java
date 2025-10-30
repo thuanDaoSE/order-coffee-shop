@@ -34,17 +34,17 @@ public class AuthController {
 
         Cookie cookie = new Cookie("jwt", loginResponse.getToken());
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(jwtExpiration / 1000);
         cookie.setAttribute("SameSite", "Lax");
 
         Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(604800); // 7 days
-        refreshTokenCookie.setAttribute("SameSite", "Lax");
+        refreshTokenCookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
         response.addCookie(refreshTokenCookie);
@@ -56,22 +56,23 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refreshToken(@CookieValue(name = "refreshToken") String refreshToken, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> refreshToken(@CookieValue(name = "refreshToken") String refreshToken,
+            HttpServletResponse response) {
         LoginResponse loginResponse = authService.refreshToken(refreshToken);
 
         Cookie cookie = new Cookie("jwt", loginResponse.getToken());
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setHttpOnly(true); // Nên luôn là true để ngăn chặn XSS
+        cookie.setSecure(true);   // BẮT BUỘC là true trong môi trường production
         cookie.setPath("/");
         cookie.setMaxAge(jwtExpiration / 1000);
-        cookie.setAttribute("SameSite", "Lax");
+        cookie.setAttribute("SameSite", "None");
 
         Cookie newRefreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
-        newRefreshTokenCookie.setHttpOnly(true);
-        newRefreshTokenCookie.setSecure(false);
+        newRefreshTokenCookie.setHttpOnly(true); // Nên luôn là true để ngăn chặn XSS
+        newRefreshTokenCookie.setSecure(true);   // BẮT BUỘC là true trong môi trường production
         newRefreshTokenCookie.setPath("/");
         newRefreshTokenCookie.setMaxAge(604800); // 7 days
-        newRefreshTokenCookie.setAttribute("SameSite", "Lax");
+        newRefreshTokenCookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
         response.addCookie(newRefreshTokenCookie);

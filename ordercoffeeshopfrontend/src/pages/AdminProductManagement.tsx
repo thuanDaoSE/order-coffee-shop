@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatVND } from '../utils/currency';
 import type { Product, ProductRequest, ProductVariantRequest } from '../types/product';
 import { getProductsForAdmin, createProduct, updateProduct, deleteProduct, updateProductStatus } from '../services/productService';
 import { uploadImageToR2, getPublicUrl } from '../services/cloudflareR2';

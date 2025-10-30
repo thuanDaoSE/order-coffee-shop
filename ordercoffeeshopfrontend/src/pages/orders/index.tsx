@@ -106,15 +106,45 @@ const Orders = () => {
             >
               Previous
             </button>
-            {[...Array(ordersPage?.totalPages).keys()].map(page => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${currentPage === page ? 'z-10 bg-amber-50 border-amber-500 text-amber-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-              >
-                {page + 1}
-              </button>
-            ))}
+            {
+              (() => {
+                const pageNumbers = [];
+                const totalPages = ordersPage?.totalPages || 0;
+                const maxPagesToShow = 5;
+                let startPage = Math.max(0, currentPage - Math.floor(maxPagesToShow / 2));
+                let endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
+
+                if (endPage - startPage + 1 < maxPagesToShow) {
+                  startPage = Math.max(0, endPage - maxPagesToShow + 1);
+                }
+
+                if (startPage > 0) {
+                  pageNumbers.push(
+                    <button key="start-ellipsis" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700" disabled>...</button>
+                  );
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                  pageNumbers.push(
+                    <button
+                      key={i}
+                      onClick={() => handlePageChange(i)}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${currentPage === i ? 'z-10 bg-amber-50 border-amber-500 text-amber-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      {i + 1}
+                    </button>
+                  );
+                }
+
+                if (endPage < totalPages - 1) {
+                  pageNumbers.push(
+                    <button key="end-ellipsis" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700" disabled>...</button>
+                  );
+                }
+
+                return pageNumbers;
+              })()
+            }
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === ordersPage?.totalPages - 1}

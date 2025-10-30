@@ -25,8 +25,8 @@ const formatDate = (dateString: string) => {
 const OrderCard: React.FC<OrderCardProps> = ({ order, variantIdToImageUrlMap, handlePay, handleCancelOrder, cancelMutation }) => {
   return (
     <div key={order.id} className="bg-white rounded-xl shadow-lg overflow-hidden transition-shadow hover:shadow-xl">
-      <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-        <div>
+      <div className="p-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+        <div className="mb-2 sm:mb-0">
           <h2 className="font-bold text-lg text-gray-800">Order #{order.id}</h2>
           <p className="text-sm text-gray-500">
             {formatDate(order.orderDate)}
@@ -47,7 +47,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, variantIdToImageUrlMap, ha
 
       <OrderSummary order={order} />
 
-      <div className="p-4 bg-gray-50 flex justify-end space-x-2">
+      <div className="p-4 bg-gray-50 flex flex-col sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0 space-y-2">
         {order.status === 'PENDING' && (
           <button
             onClick={() => handlePay(order)}

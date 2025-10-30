@@ -15,11 +15,10 @@ export default function PaymentResultPage() {
   const { clearCart } = useCart();
 
   useEffect(() => {
-    const verifyAndPollPaymentStatus = async () => {
+    const verifyPayment = async () => {
       setIsLoading(true);
       const params = new URLSearchParams(location.search);
-      // vnp_TxnRef is the source of truth for our order ID
-      const orderId = params.get('vnp_TxnRef'); 
+      const orderId = params.get('vnp_TxnRef');
 
       if (!orderId) {
         setError('Không tìm thấy mã đơn hàng trong kết quả trả về.');
@@ -27,28 +26,27 @@ export default function PaymentResultPage() {
         setIsLoading(false);
         return;
       }
-      
-      // Always verify with our backend regardless of vnp_ResponseCode
+
       try {
         const result = await getPaymentStatus(orderId.toString());
         if (result.success && result.status === 'PAID') {
           setPaymentStatus('success');
-          clearCart(); // <-- Xóa giỏ hàng ở đây
+          clearCart();
         } else {
           setPaymentStatus('failed');
           setError(result.message || 'Thanh toán không được xác nhận từ hệ thống. Vui lòng liên hệ hỗ trợ.');
         }
       } catch (err) {
         console.error('Error verifying payment status from backend:', err);
-        setPaymentStatus('failed'); // Use 'failed' for consistency in UI
+        setPaymentStatus('failed');
         setError('Đã xảy ra lỗi khi xác minh thanh toán');
       } finally {
         setIsLoading(false);
       }
     };
 
-    verifyAndPollPaymentStatus();
-  }, [location.search, navigate, clearCart]); // Thêm clearCart vào dependency array
+    verifyPayment();
+  }, [location.search]);
 
   const handleBackToHome = () => {
     navigate('/');

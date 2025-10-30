@@ -1,15 +1,17 @@
+import { formatVND } from '../utils/currency';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { markOrderAsDelivered, getAllOrders, updateOrderStatus } from '../services/orderService';
 import type { Order } from '../types/order';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { connect, disconnect } from '../services/socketService';
 import { Clock, User, Hash, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
-import { formatVND } from '../utils/currency';
 
 const KANBAN_COLUMNS: { title: string; statuses: Order['status'][]; icon: React.ReactNode }[] = [
   { title: 'New Orders', statuses: ['PAID'], icon: <Package className="text-blue-500" /> },
   { title: 'In Preparation', statuses: ['PREPARING'], icon: <Clock className="text-indigo-500" /> },
+  { title: 'Finished Preparing', statuses: ['FINISHED_PREPARING'], icon: <CheckCircle className="text-yellow-500" /> },
   { title: 'Out for Delivery', statuses: ['DELIVERING'], icon: <Truck className="text-purple-500" /> },
+  { title: 'Completed', statuses: ['DELIVERED'], icon: <CheckCircle className="text-green-500" /> },
   { title: 'Cancelled', statuses: ['CANCELLED'], icon: <XCircle className="text-red-500" /> },
 ];
 
@@ -18,6 +20,7 @@ const getStatusInfo = (status: Order['status']) => {
     PENDING: { color: 'yellow', icon: <Clock size={14} /> },
     PAID: { color: 'blue', icon: <Package size={14} /> },
     PREPARING: { color: 'indigo', icon: <Clock size={14} /> },
+    FINISHED_PREPARING: { color: 'indigo', icon: <CheckCircle size={14} /> },
     DELIVERING: { color: 'purple', icon: <Truck size={14} /> },
     DELIVERED: { color: 'green', icon: <CheckCircle size={14} /> },
     CANCELLED: { color: 'red', icon: <XCircle size={14} /> },
@@ -70,13 +73,13 @@ const OrderCard = ({ order, onUpdateStatus, devMode }: { order: Order, onUpdateS
             <button onClick={() => onUpdateStatus(order.id, 'PREPARING')} className="w-full py-2.5 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Start Preparing</button>
           )}
           {order.status === 'PREPARING' && (
-            <button onClick={() => onUpdateStatus(order.id, 'DELIVERING')} className="w-full py-2.5 text-sm bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Start Delivery</button>
+            <button onClick={() => onUpdateStatus(order.id, 'FINISHED_PREPARING')} className="w-full py-2.5 text-sm bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Finish Preparing</button>
           )}
-          {order.status === 'DELIVERING' && (
-            <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full py-2.5 text-sm bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Mark Delivered</button>
+          {order.status === 'FINISHED_PREPARING' && (
+            <button onClick={() => onUpdateStatus(order.id, 'DELIVERING')} className="w-full py-2.5 text-sm bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Start Delivery</button>
           )}
-          {devMode && (
-              <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full mt-2 py-2.5 text-sm bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Mark Delivered (Dev)</button>
+          {devMode && order.status === 'DELIVERING' && (
+            <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full py-2.5 text-sm bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Mark Delivered</button>
           )}
         </div>
       )}
@@ -184,7 +187,7 @@ const StaffDashboard = () => {
             <p>{notification}</p>
           </div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-6">
           {KANBAN_COLUMNS.map(col => {
             const columnOrders = col.statuses.flatMap(status => ordersByStatus[status] || []);
             return (

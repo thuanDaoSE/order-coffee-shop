@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo } from 'react';
 import { getProfile, logout as logoutUser } from '../services/authService'; // Giả sử bạn có các hàm này
 import type { User } from '../types/user';
 
@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await getProfile();
@@ -41,18 +41,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [fetchUser]);
 
-  const login = (loggedInUser: User) => {
+  const login = useCallback((loggedInUser: User) => {
     setUser(loggedInUser);
     setIsLoading(false);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await logoutUser(); // Gọi API logout để backend xóa cookie
     } catch (error) {
@@ -60,10 +60,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setUser(null);
     clearCart();
-  };
+  }, [clearCart]);
+
+  const value = useMemo(() => ({ user, login, logout, isLoading, fetchUser }), [user, login, logout, isLoading, fetchUser]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, fetchUser }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

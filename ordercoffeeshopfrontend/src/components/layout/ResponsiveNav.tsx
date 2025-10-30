@@ -44,9 +44,9 @@ const NavLink = ({ to, children, className = '' }: { to: string, children: React
 };
 
 const ResponsiveNav = () => {
-  const { getItemCount } = useCart();
-  const cartCount = getItemCount();
-  console.log('Cart count:', cartCount, typeof cartCount);
+  const { cart } = useCart();
+  const cartCount = cart.itemCount;
+
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);

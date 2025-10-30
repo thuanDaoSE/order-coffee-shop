@@ -52,6 +52,11 @@ public class AuthController {
         loginResponse.setToken(null);
         loginResponse.setRefreshToken(null);
 
+         // Add security headers
+        response.setHeader("X-Content-Type-Options", "nosniff");
+        response.setHeader("X-Frame-Options", "DENY");
+        response.setHeader("X-XSS-Protection", "1; mode=block");
+
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
 
@@ -80,6 +85,10 @@ public class AuthController {
         loginResponse.setToken(null);
         loginResponse.setRefreshToken(null);
 
+        // Add security headers
+        response.setHeader("X-Content-Type-Options", "nosniff");
+        response.setHeader("X-Frame-Options", "DENY");
+        response.setHeader("X-XSS-Protection", "1; mode=block");
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
 

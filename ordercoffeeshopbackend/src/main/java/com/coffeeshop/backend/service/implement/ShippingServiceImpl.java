@@ -1,5 +1,6 @@
 package com.coffeeshop.backend.service.implement;
 
+import com.coffeeshop.backend.dto.ShippingInfoDTO;
 import com.coffeeshop.backend.service.ShippingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class ShippingServiceImpl implements ShippingService {
 //...
 
     @Override
-    public BigDecimal calculateShippingFee(double latitude, double longitude) {
+    public ShippingInfoDTO calculateShippingFee(double latitude, double longitude) {
         double distance = calculateDistance(shopLatitude, shopLongitude, latitude, longitude);
         double fee;
         if (distance <= 1) {
@@ -35,7 +36,7 @@ public class ShippingServiceImpl implements ShippingService {
         } else {
             fee = firstKmRate + (distance - 1) * ratePerKm;
         }
-        return BigDecimal.valueOf(Math.floor(fee / 100) * 100);
+        return new ShippingInfoDTO(BigDecimal.valueOf(Math.floor(fee / 100) * 100), distance);
     }
 
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {

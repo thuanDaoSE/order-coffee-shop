@@ -7,6 +7,9 @@ export default {
   darkMode: 'media',
   theme: {
     extend: {
+      maxWidth: {
+        '8xl': '90rem',
+      },
       colors: {
         primary: {
           50: '#fffbeb',

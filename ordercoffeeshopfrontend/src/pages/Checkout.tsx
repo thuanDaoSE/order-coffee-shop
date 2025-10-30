@@ -7,6 +7,7 @@ import { addressService } from '../services/addressService';
 import api from '../services/api';
 import { cartApi } from '../services/mockApi';
 import { CheckoutAddressForm } from '../components/CheckoutAddressForm';
+import toast from 'react-hot-toast';
 
 const Checkout = () => {
   const { cart, updateCartItem, clearCart } = useCart();
@@ -17,8 +18,8 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState<string>('VNPAYEWALLET');
   const [selectedAddressId, setSelectedAddressId] = useState<string | number | null>(null);
   const [shippingCost, setShippingCost] = useState(0);
+  const [distance, setDistance] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
   
   const calculateSubtotal = () => {
@@ -32,6 +33,7 @@ const Checkout = () => {
           const address = await addressService.getAddressById(selectedAddressId);
           const fee = await calculateShippingFee(address.latitude, address.longitude);
           setShippingCost(fee.shippingFee);
+          setDistance(fee.distance);
         } catch (error) {
           console.error('Failed to calculate shipping fee:', error);
         }
@@ -54,7 +56,6 @@ const Checkout = () => {
   }
   
   const handleApplyCoupon = async () => {
-    setError('');
     try {
       if (!couponCode) {
         throw new Error('Please enter a coupon code');
@@ -65,17 +66,14 @@ const Checkout = () => {
       
       setAppliedCoupon(discount);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid coupon code');
+      toast.error(err instanceof Error ? err.message : 'Invalid coupon code');
       setAppliedCoupon(null);
     }
   };
 
   const handleCheckout = async () => {
     setIsLoading(true);
-    setError('');
-    console.log('Checkout process started...');
     try {
-      console.log('Sending order creation request...');
       // Validate delivery method and address
       if (deliveryMethod === 'delivery' && !selectedAddressId) {
         throw new Error('Please select a delivery address');
@@ -87,8 +85,6 @@ const Checkout = () => {
         deliveryMethod,
         selectedAddressId || null
       );
-      console.log("Response from createOrder:", JSON.stringify(response, null, 2));
-      console.log('Order creation successful, response:', response);
       
       navigate('/payment', { 
         state: { 
@@ -98,15 +94,12 @@ const Checkout = () => {
           paymentMethod: paymentMethod
         } 
       });
-      console.log('Navigation call finished.');
 
     } catch (err: any) {
       // Check for axios error with response data
       const errorMessage = err.response?.data?.message || err.response?.data || (err instanceof Error ? err.message : 'Failed to create order. Please try again.');
-      console.error('An error occurred during checkout:', errorMessage);
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
-      console.log('Checkout process finished.');
       setIsLoading(false);
     }
   };
@@ -206,7 +199,6 @@ const Checkout = () => {
                     Apply
                   </button>
                 </div>
-                {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
                 {appliedCoupon && (
                   <p className="text-green-600 text-sm mt-1">
                     ✓ {appliedCoupon.percentage}% discount applied!
@@ -240,10 +232,18 @@ const Checkout = () => {
                   <span>VAT (8%)</span>
                   <span>{new Intl.NumberFormat('vi-VN').format(vat)}₫</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Shipping</span>
-                  <span>{shippingCost === 0 ? 'Miễn phí' : `${new Intl.NumberFormat('vi-VN').format(shippingCost)}₫`}</span>
-                </div>
+                {deliveryMethod === 'delivery' && (
+                  <>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Shipping</span>
+                      <span>{shippingCost === 0 ? 'Miễn phí' : `${new Intl.NumberFormat('vi-VN').format(shippingCost)}₫`}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Distance</span>
+                      <span>{distance.toFixed(2)} km</span>
+                    </div>
+                  </>
+                )}
                 <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-800">
                   <span>Total</span>
                   <span className="text-amber-600">{new Intl.NumberFormat('vi-VN').format(total)}₫</span>

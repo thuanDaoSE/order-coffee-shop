@@ -21,26 +21,25 @@ import { locationService } from '../services/locationService';
 import debounce from 'lodash/debounce';
 
 interface AddressFormProps {
-  address?: Address;
-  onSubmit: (address: Address) => void;
+  initialData?: Partial<Address>;
+  onSubmit: (address: Omit<Address, 'id'>) => void;
   onCancel: () => void;
 }
 
 export const AddressForm: React.FC<AddressFormProps> = ({
-  address,
+  initialData,
   onSubmit,
   onCancel
 }) => {
   const [formData, setFormData] = useState({
-    addressText: address?.addressText || '',
-    label: address?.label || '',
-    latitude: address?.latitude || 0,
-    longitude: address?.longitude || 0,
-    isDefault: address?.isDefault || false,
-    notes: address?.notes || ''
+    addressText: initialData?.addressText || '',
+    label: initialData?.label || '',
+    latitude: initialData?.latitude || 0,
+    longitude: initialData?.longitude || 0,
+    isDefault: initialData?.isDefault || false,
+    notes: initialData?.notes || ''
   });
   const [suggestions, setSuggestions] = useState<VietmapAddress[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +51,6 @@ export const AddressForm: React.FC<AddressFormProps> = ({
         return;
       }
 
-      setIsLoading(true);
       try {
         console.log('Frontend - Sending autocomplete request with query:', query);
         const results = await locationService.autocomplete(query);
@@ -62,8 +60,6 @@ export const AddressForm: React.FC<AddressFormProps> = ({
       } catch (error) {
         console.error('Error fetching address suggestions:', error);
         setSuggestions([]);
-      } finally {
-        setIsLoading(false);
       }
     }, 500), // Changed from 300ms to 500ms
     []
@@ -109,7 +105,6 @@ export const AddressForm: React.FC<AddressFormProps> = ({
 
   const handleSelectSuggestion = async (suggestion: VietmapAddress) => {
     try {
-      setIsLoading(true);
       // Get detailed location information including coordinates
       const details = await locationService.getPlaceDetails(suggestion.ref_id);
       
@@ -127,7 +122,6 @@ export const AddressForm: React.FC<AddressFormProps> = ({
         addressText: suggestion.display || suggestion.address || '',
       }));
     } finally {
-      setIsLoading(false);
       setShowSuggestions(false);
     }
   };
@@ -161,25 +155,12 @@ export const AddressForm: React.FC<AddressFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
     }
-
-    try {
-      setIsLoading(true);
-      const response = address?.id
-        ? await addressService.updateAddress(address.id, formData)
-        : await addressService.createAddress(formData);
-      onSubmit(response);
-    } catch (error: any) {
-      console.error('Error saving address:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to save address';
-      setErrors({ submit: errorMessage });
-    } finally {
-      setIsLoading(false);
-    }
+    onSubmit(formData);
   };
 
   return (
@@ -202,7 +183,7 @@ export const AddressForm: React.FC<AddressFormProps> = ({
             error={!!errors.addressText}
             helperText={errors.addressText}
             InputProps={{
-              endAdornment: isLoading ? <CircularProgress size={20} /> : null,
+              endAdornment: null,
             }}
           />
           {showSuggestions && suggestions.length > 0 && (
@@ -311,23 +292,14 @@ export const AddressForm: React.FC<AddressFormProps> = ({
             variant="contained" 
             color="primary"
             size="large"
-            disabled={isLoading}
           >
-            {isLoading ? (
-              <>
-                <CircularProgress size={20} sx={{ mr: 1 }} />
-                {address ? 'Updating...' : 'Saving...'}
-              </>
-            ) : (
-              <>{address ? 'Update' : 'Save'} Address</>
-            )}
+            {initialData ? 'Update' : 'Save'} Address
           </Button>
           <Button 
             type="button" 
             variant="outlined" 
             onClick={onCancel}
             size="large"
-            disabled={isLoading}
           >
             Cancel
           </Button>

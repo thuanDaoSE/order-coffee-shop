@@ -114,7 +114,8 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal shippingFee = BigDecimal.ZERO;
         if ("delivery".equalsIgnoreCase(request.getDeliveryMethod())) {
             Address address = addressRepository.findById(request.getAddressId()).orElseThrow(() -> new ResourceNotFoundException("Address not found"));
-            shippingFee = shippingService.calculateShippingFee(address.getLatitude(), address.getLongitude());
+            com.coffeeshop.backend.dto.ShippingInfoDTO shippingInfo = shippingService.calculateShippingFee(address.getLatitude(), address.getLongitude());
+            shippingFee = shippingInfo.getShippingFee();
         }
 
         BigDecimal totalPrice = subtotalAfterDiscount.add(vat).add(shippingFee);

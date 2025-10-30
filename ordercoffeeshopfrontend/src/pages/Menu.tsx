@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Product, ProductVariant } from '../types/product';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 import CoffeeCard from '../components/CoffeeCard';
 import ResponsiveGrid from '../components/ui/ResponsiveGrid';
 import { getProducts, getProductsByCategory } from '../services/productService';
 
 
 const Menu = () => {
+  const { user } = useAuth();
   const { addToCart: addToCartContext } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -60,6 +63,11 @@ const Menu = () => {
   }, [searchTerm, activeCategory, currentPage]);
 
   const handleAddToCart = (product: Product, variant: ProductVariant) => {
+    if (!user) {
+      toast.error('Please log in to add items to your cart.');
+      navigate('/login');
+      return;
+    }
     addToCartContext({
       productVariantId: variant.id.toString(),
       productId: product.id.toString(),
@@ -69,6 +77,7 @@ const Menu = () => {
       imageUrl: product.imageUrl,
       toppings: []
     });
+    toast.success(`${product.name} has been added to your cart.`);
 
   };
 

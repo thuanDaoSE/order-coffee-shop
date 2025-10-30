@@ -25,10 +25,11 @@ export const CheckoutAddressForm: React.FC<CheckoutAddressFormProps> = ({
   onAddressSelect,
   onDeliveryMethodChange
 }) => {
-  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  const [formMode, setFormMode] = useState<'list' | 'edit' | 'new'>('list');
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   
   const { register, watch, setValue } = useForm<CheckoutAddressFormData>({
     resolver: zodResolver(checkoutAddressSchema),
@@ -78,16 +79,36 @@ export const CheckoutAddressForm: React.FC<CheckoutAddressFormProps> = ({
     }
   }, [selectedAddressId, onAddressSelect, addresses]);
 
-  const handleAddressSubmit = async (address: Omit<Address, 'id'>) => {
+  const handleAddressSubmit = async (addressData: Omit<Address, 'id'>) => {
+    setIsLoading(true);
     try {
-      await addressService.createAddress(address);
+      if (editingAddress) {
+        await addressService.updateAddress(editingAddress.id, addressData);
+      } else {
+        await addressService.createAddress(addressData);
+      }
+      setFormMode('list');
       const updatedAddresses = await addressService.getUserAddresses();
       setAddresses(updatedAddresses);
-      const newAddress = updatedAddresses[updatedAddresses.length - 1];
-      setValue('addressId', String(newAddress.id));
-      setShowNewAddressForm(false);
     } catch (error) {
-      console.error('Failed to add address:', error);
+      console.error('Failed to save address:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAddress = async (addressId: string | number) => {
+    if (window.confirm('Are you sure you want to delete this address?')) {
+      setIsLoading(true);
+      try {
+        await addressService.deleteAddress(addressId);
+        const updatedAddresses = await addressService.getUserAddresses();
+        setAddresses(updatedAddresses);
+      } catch (error) {
+        console.error('Failed to delete address:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -156,7 +177,7 @@ export const CheckoutAddressForm: React.FC<CheckoutAddressFormProps> = ({
               
               {isLoading ? (
                 <CircularProgress />
-              ) : addresses.length > 0 && !showNewAddressForm ? (
+              ) : formMode === 'list' ? (
                 <Box>
                   <RadioGroup
                     {...register('addressId')}
@@ -168,11 +189,15 @@ export const CheckoutAddressForm: React.FC<CheckoutAddressFormProps> = ({
                         value={address.id}
                         control={<Radio />}
                         label={
-                          <Box>
-                            <Typography variant="subtitle2">{address.label}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {address.addressText}
-                            </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                            <Box sx={{ flexGrow: 1 }}>
+                              <Typography variant="subtitle2">{address.label}</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {address.addressText}
+                              </Typography>
+                            </Box>
+                            <Button size="small" onClick={() => { setEditingAddress(address); setFormMode('edit'); }}>Edit</Button>
+                            <Button size="small" color="error" onClick={() => handleDeleteAddress(address.id)}>Delete</Button>
                           </Box>
                         }
                       />
@@ -182,19 +207,18 @@ export const CheckoutAddressForm: React.FC<CheckoutAddressFormProps> = ({
                   <Button
                     variant="outlined"
                     color="primary"
-                    onClick={() => setShowNewAddressForm(true)}
+                    onClick={() => setFormMode('new')}
                     sx={{ mt: 2, textTransform: 'none' }}
                   >
                     Thêm địa chỉ mới
                   </Button>
                 </Box>
               ) : (
-                <Box>
-                  <AddressForm
-                    onSubmit={handleAddressSubmit}
-                    onCancel={() => addresses.length > 0 && setShowNewAddressForm(false)}
-                  />
-                </Box>
+                <AddressForm
+                  onSubmit={handleAddressSubmit}
+                  onCancel={() => setFormMode('list')}
+                  initialData={formMode === 'edit' ? editingAddress : undefined}
+                />
               )}
             </Box>
           )}

@@ -37,14 +37,14 @@ public class AuthController {
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(jwtExpiration / 1000); // Thời gian sống của JWT
-        // cookie.setAttribute("SameSite", "None"); // Thay đổi từ Lax sang None để cho phép gửi cross-site
+        cookie.setAttribute("SameSite", "None"); // Thay đổi từ Lax sang None để cho phép gửi cross-site
 
         Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(604800); // 7 days
-        // refreshTokenCookie.setAttribute("SameSite", "None");
+        refreshTokenCookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
         response.addCookie(refreshTokenCookie);
@@ -70,14 +70,14 @@ public class AuthController {
         cookie.setSecure(true);   // BẮT BUỘC là true trong môi trường production
         cookie.setPath("/");
         cookie.setMaxAge(jwtExpiration / 1000);
-        // cookie.setAttribute("SameSite", "None");
+        cookie.setAttribute("SameSite", "None");
 
         Cookie newRefreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
         newRefreshTokenCookie.setHttpOnly(true); // Nên luôn là true để ngăn chặn XSS
         newRefreshTokenCookie.setSecure(true);   // BẮT BUỘC là true trong môi trường production
         newRefreshTokenCookie.setPath("/");
         newRefreshTokenCookie.setMaxAge(604800); // 7 days
-        // newRefreshTokenCookie.setAttribute("SameSite", "None");
+        newRefreshTokenCookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
         response.addCookie(newRefreshTokenCookie);
@@ -105,7 +105,7 @@ public class AuthController {
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(0); // Immediately expire the cookie
-        // cookie.setAttribute("SameSite", "None");
+        cookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
         response.setHeader("Clear-Site-Data", "\"cache\", \"cookies\"");

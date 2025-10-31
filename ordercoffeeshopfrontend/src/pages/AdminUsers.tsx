@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { userService, User, Page } from '../services/userService';
+import type { Page } from '../types/common';
+import type { User } from '../types/user';
+import { userService} from '../services/userService';
 import RoleChangeModal from '../components/RoleChangeModal';
 import { useAuth } from '../contexts/AuthContext';
 import useMediaQuery from '../hooks/useMediaQuery';

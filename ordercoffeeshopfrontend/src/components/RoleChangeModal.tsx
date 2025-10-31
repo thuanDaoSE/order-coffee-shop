@@ -1,4 +1,4 @@
-import { User } from '../services/userService';
+import type { User } from '../types/user';
 
 interface RoleChangeModalProps {
   user: User | null;

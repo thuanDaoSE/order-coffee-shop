@@ -13,7 +13,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async (email: string, password: string) => {
     setError('');
     setIsLoading(true);
 
@@ -28,7 +28,7 @@ const Login = () => {
     }
   };
 
-  const handleFastLogin = (email, password) => {
+  const handleFastLogin = (email: string, password: string) => {
     setEmail(email);
     setPassword(password);
     handleLogin(email, password);

@@ -1,6 +1,6 @@
 import type { User } from './user';
 
-export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PREPARING' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
+export type OrderStatus = 'PENDING' | 'PAID' | 'PREPARING' | 'FINISHED_PREPARING' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED';
 
 export interface OrderItem {
   id: number;

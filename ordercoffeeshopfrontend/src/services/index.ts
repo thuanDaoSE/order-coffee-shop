@@ -5,7 +5,7 @@ export * from './productService';
 export { addressService } from './addressService';
 export { register, login, logout } from './authService';
 export { createCategory } from './categoryService';
-export { createOrder, getOrders, getAllOrders, updateOrderStatus, markOrderAsDelivered, cancelOrder } from './orderService';
+export { createOrder, getOrders, getAllOrders, updateOrderStatus, cancelOrder } from './orderService';
 // Export everything from userService EXCEPT 'Page' because it's already exported from productService
 export { userService, getProfile, updateProfile } from './userService';
 export { validateVoucher } from './voucherService';

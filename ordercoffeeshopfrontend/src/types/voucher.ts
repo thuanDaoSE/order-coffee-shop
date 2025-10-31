@@ -1,5 +1,5 @@
 export interface VoucherValidationResponse {
   code: string;
-  discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
-  discountValue: number;
+  discountAmount: number;
+  discountPercentage: number;
 }

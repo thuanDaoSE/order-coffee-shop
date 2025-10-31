@@ -1,22 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Product, ProductVariant } from '../types/product';
+import type { Category } from '../types/category';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import CoffeeCard from '../components/CoffeeCard';
 import ResponsiveGrid from '../components/ui/ResponsiveGrid';
-import { getProducts, getProductsByCategory } from '../services/productService';
+import { getProducts, getProductsByCategory, getAllCategories } from '../services/productService';
 
 
 const Menu = () => {
   const { user } = useAuth();
-  const { addToCart: addToCartContext } = useCart();
+  const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
@@ -35,23 +37,7 @@ const Menu = () => {
           serviceProducts = await getProductsByCategory(activeCategory, searchTerm);
           setTotalPages(1); // Reset to 1 for non-paginated categories
         }
-        const mappedProducts: Product[] = serviceProducts.map(prod => ({
-          id: prod.id,
-          name: prod.name,
-          description: prod.description || '',
-          price: 0, // Will be handled by variants
-          imageUrl: prod.imageUrl || '/images/placeholder.jpg',
-          category: {
-            id: prod.category?.id || 1, // Default category ID
-            name: prod.category?.name || 'Coffee' // Default category name
-          },
-          variants: prod.variants?.map(v => ({
-            id: v.id,
-            size: v.size || 'M',
-            price: v.price || 0
-          })) || []
-        }));
-        setProducts(mappedProducts);
+        setProducts(serviceProducts);
       } catch (error) {
         console.error("Failed to fetch products:", error);
       } finally {
@@ -62,13 +48,25 @@ const Menu = () => {
     fetchProducts();
   }, [searchTerm, activeCategory, currentPage]);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const fetchedCategories = await getAllCategories();
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   const handleAddToCart = (product: Product, variant: ProductVariant) => {
     if (!user) {
       toast.error('Please log in to add items to your cart.');
       navigate('/login');
       return;
     }
-    addToCartContext({
+    addToCart({
       productVariantId: variant.id.toString(),
       productId: product.id.toString(),
       name: product.name,
@@ -85,11 +83,6 @@ const Menu = () => {
     setCurrentPage(page);
   };
 
-  // Get unique categories from products
-  const categories = ['all', 'best-selling', ...new Set(products.flatMap(p => p.category?.name || []))];
-  const filteredProducts = activeCategory === 'all' 
-    ? products 
-    : products.filter(p => p.category?.name === activeCategory);
 
   const renderSkeletons = () => {
     return Array(6).fill(0).map((_, i) => (
@@ -122,17 +115,28 @@ const Menu = () => {
 
         {/* Category Filter */}
         <div className="flex flex-wrap gap-2">
+          <button
+            key="all"
+            onClick={() => setActiveCategory('all')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              activeCategory === 'all'
+                ? 'bg-amber-700 text-white'
+                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+            }`}
+          >
+            All
+          </button>
           {categories.map(category => (
             <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
+              key={category.id}
+              onClick={() => setActiveCategory(category.name)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeCategory === category
+                activeCategory === category.name
                   ? 'bg-amber-700 text-white'
                   : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
               }`}
             >
-              {category.charAt(0).toUpperCase() + category.slice(1)}
+              {category.name.charAt(0).toUpperCase() + category.name.slice(1)}
             </button>
           ))}
         </div>
@@ -145,7 +149,7 @@ const Menu = () => {
         </ResponsiveGrid>
       ) : (
         <ResponsiveGrid>
-          {filteredProducts.map(product => (
+          {products.map(product => (
             <CoffeeCard
               key={product.id}
               product={product}

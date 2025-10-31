@@ -1,5 +1,6 @@
 import api from './api';
 import type { Product, ProductRequest } from '../types/product';
+import type { Category } from '../types/category';
 import type { Page } from '../types/common';
 
 export const getProducts = async (search?: string, page = 0, size = 10): Promise<Page<Product>> => {
@@ -14,6 +15,11 @@ export const getAllProductsList = async (): Promise<Product[]> => {
 
 export const getProductsByCategory = async (category: string, search?: string): Promise<Product[]> => {
   const response = await api.get(`/v1/products/category/${category}`, { params: { search } });
+  return response.data;
+};
+
+export const getAllCategories = async (): Promise<Category[]> => {
+  const response = await api.get('/v1/categories/all');
   return response.data;
 };
 

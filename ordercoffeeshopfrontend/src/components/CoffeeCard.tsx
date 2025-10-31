@@ -1,34 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Plus, Minus } from 'lucide-react';
-import type { Product } from '../types/product';
-import type { ProductVariant as ServiceProductVariant } from '../services/productService';
-
-type ProductVariant = {
-  id: number;
-  size: string;
-  price: number;
-};
-
-
+import type { Product, ProductVariant } from '../types/product';
 
 interface CoffeeCardProps {
   product: Product;
-  onAddToCart: (product: Product, variant: ProductVariant, quantity: number) => void;
+  onAddToCart: (product: Product, variant: ProductVariant) => void;
 }
 
 const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
-  const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (product.variants && product.variants.length > 0) {
-      const variant = product.variants[0] as unknown as ServiceProductVariant;
-      setSelectedVariant({
-        id: variant.id,
-        size: variant.size || 'M',
-        price: variant.price || 0
-      });
+      setSelectedVariant(product.variants[0]);
     } else {
       setSelectedVariant(null);
     }
@@ -36,8 +20,7 @@ const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
 
   const handleAddToCart = () => {
     if (selectedVariant) {
-      onAddToCart(product, selectedVariant, quantity);
-      setQuantity(1);
+      onAddToCart(product, selectedVariant);
     }
   };
 
@@ -73,7 +56,7 @@ const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
                       ? 'bg-amber-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
-                  onClick={() => setSelectedVariant(variant as unknown as ProductVariant)}
+                  onClick={() => setSelectedVariant(variant)}
                 >
                   {variant.size}
                 </button>
@@ -82,22 +65,6 @@ const CoffeeCard = ({ product, onAddToCart }: CoffeeCardProps) => {
           ) : (
             <div className="text-sm text-gray-500">No sizes available</div>
           )}
-          
-          <div className="flex items-center space-x-2">
-            <button 
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="p-1 rounded-full bg-gray-200 hover:bg-gray-300"
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-            <span className="w-6 text-center">{quantity}</span>
-            <button 
-              onClick={() => setQuantity(quantity + 1)}
-              className="p-1 rounded-full bg-gray-200 hover:bg-gray-300"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
         </div>
         
         <button

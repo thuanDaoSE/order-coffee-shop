@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import { createOrder } from '../services/orderService';
-import { calculateShippingFee } from '../services/shippingService';
-import { addressService } from '../services/addressService';
-import api from '../services/api';
-import { cartApi } from '../services/mockApi';
+import type { VoucherValidationResponse } from '../types/voucher';
+import { createOrder, calculateShippingFee, addressService, validateVoucher } from '../services';
 import { CheckoutAddressForm } from '../components/CheckoutAddressForm';
 import toast from 'react-hot-toast';
 
@@ -13,7 +10,7 @@ const Checkout = () => {
   const { cart, updateCartItem, clearCart } = useCart();
   const { items: cartItems } = cart;
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; percentage: number } | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<VoucherValidationResponse | null>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
   const [paymentMethod, setPaymentMethod] = useState<string>('VNPAYEWALLET');
   const [selectedAddressId, setSelectedAddressId] = useState<string | number | null>(null);
@@ -45,26 +42,19 @@ const Checkout = () => {
   }, [selectedAddressId, deliveryMethod]);
 
   const subtotal = calculateSubtotal();
-  const discount = appliedCoupon?.discount || 0;
+  const discount = appliedCoupon?.discountAmount || 0;
   const vat = (subtotal - discount) * 0.08; // Assuming 8% VAT
   const total = subtotal - discount + vat + shippingCost;
-
-  interface DiscountResponse {
-    code: string;
-    discount: number;
-    percentage: number;
-  }
   
   const handleApplyCoupon = async () => {
     try {
       if (!couponCode) {
         throw new Error('Please enter a coupon code');
       }
-      
       const upperCaseCode = couponCode.toUpperCase();
-      const discount = await cartApi.applyCoupon(upperCaseCode, subtotal);
-      
-      setAppliedCoupon(discount);
+      const response = await validateVoucher(upperCaseCode);
+      setAppliedCoupon(response);
+      toast.success(`✓ ${response.discountPercentage}% discount applied!`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Invalid coupon code');
       setAppliedCoupon(null);
@@ -89,7 +79,7 @@ const Checkout = () => {
       navigate('/payment', { 
         state: { 
           orderId: response.id, 
-          totalAmount: response.totalPrice, 
+          totalAmount: response.totalAmount, 
           orderInfo: `Payment for order #${response.id}`,
           paymentMethod: paymentMethod
         } 
@@ -201,7 +191,7 @@ const Checkout = () => {
                 </div>
                 {appliedCoupon && (
                   <p className="text-green-600 text-sm mt-1">
-                    ✓ {appliedCoupon.percentage}% discount applied!
+                    ✓ {appliedCoupon.discountPercentage}% discount applied!
                   </p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">Try: SAVE10, SAVE20, WELCOME</p>

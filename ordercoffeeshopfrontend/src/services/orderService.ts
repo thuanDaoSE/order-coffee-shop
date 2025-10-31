@@ -61,17 +61,6 @@ export const updateOrderStatus = async (orderId: number, status: string): Promis
   }
 };
 
-export const markOrderAsDelivered = async (orderId: number): Promise<Order> => {
-  try {
-    const response = await api.put(`/v1/dev/orders/${orderId}/mark-delivered`);
-    console.log("mark order as delivered response: ",response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error marking order as delivered:', error);
-    throw error;
-  }
-};
-
 export const cancelOrder = async (orderId: number): Promise<Order> => {
   try {
     const response = await api.put(`/v1/orders/${orderId}/cancel`);

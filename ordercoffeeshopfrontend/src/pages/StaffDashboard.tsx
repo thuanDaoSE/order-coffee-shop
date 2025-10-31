@@ -1,9 +1,9 @@
 import { formatVND } from '../utils/currency';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { markOrderAsDelivered, getAllOrders, updateOrderStatus } from '../services/orderService';
+import { getAllOrders, updateOrderStatus } from '../services';
 import type { Order } from '../types/order';
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { connect, disconnect } from '../services/socketService';
+import { connect, disconnect } from '../services';
 import { Clock, User, Hash, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
 
 const KANBAN_COLUMNS: { title: string; statuses: Order['status'][]; icon: React.ReactNode }[] = [
@@ -18,9 +18,9 @@ const KANBAN_COLUMNS: { title: string; statuses: Order['status'][]; icon: React.
 const getStatusInfo = (status: Order['status']) => {
   const statusMap: Record<Order['status'], { color: string; icon: React.ReactNode }> = {
     PENDING: { color: 'yellow', icon: <Clock size={14} /> },
-    PAID: { color: 'blue', icon: <Package size={14} /> },
+    PAID: { color: 'blue', icon: <Package size={14} /> }, // This is the correct starting status for a new paid order
     PREPARING: { color: 'indigo', icon: <Clock size={14} /> },
-    FINISHED_PREPARING: { color: 'indigo', icon: <CheckCircle size={14} /> },
+    FINISHED_PREPARING: { color: 'yellow', icon: <CheckCircle size={14} /> },
     DELIVERING: { color: 'purple', icon: <Truck size={14} /> },
     DELIVERED: { color: 'green', icon: <CheckCircle size={14} /> },
     CANCELLED: { color: 'red', icon: <XCircle size={14} /> },
@@ -48,15 +48,15 @@ const OrderCard = ({ order, onUpdateStatus, devMode }: { order: Order, onUpdateS
         </div>
         <div className={`flex items-center text-sm text-gray-500 ${isCancelled ? 'line-through' : ''}`}>
           <Clock size={14} className="mr-2" />
-          <span>{new Date(order.orderDate).toLocaleString()}</span>
+          <span>{new Date(order.createdAt).toLocaleString()}</span>
         </div>
       </div>
       <div className="border-t border-gray-200 pt-3">
         <ul className="text-sm text-gray-700 space-y-2">
-          {order.orderDetails.map((item, index) => (
+          {order.items.map((item, index) => (
             <li key={index} className={`flex justify-between items-center ${isCancelled ? 'line-through' : ''}`}>
-              <span className="font-medium">{item.quantity}x {item.productName} ({item.size})</span>
-              <span className="text-gray-600 font-semibold">{formatVND(item.unitPrice * item.quantity)}</span>
+              <span className="font-medium">{item.quantity}x {item.productName}</span>
+              <span className="text-gray-600 font-semibold">{formatVND(item.price * item.quantity)}</span>
             </li>
           ))}
         </ul>
@@ -64,7 +64,7 @@ const OrderCard = ({ order, onUpdateStatus, devMode }: { order: Order, onUpdateS
       <div className="border-t border-gray-200 pt-3 mt-3">
         <div className={`flex justify-between items-center font-bold text-lg text-gray-800 ${isCancelled ? 'line-through' : ''}`}>
           <span>Total</span>
-          <span>{formatVND(order.totalPrice)}</span>
+          <span>{formatVND(order.totalAmount)}</span>
         </div>
       </div>
       {!isCancelled && (
@@ -74,9 +74,6 @@ const OrderCard = ({ order, onUpdateStatus, devMode }: { order: Order, onUpdateS
           )}
           {order.status === 'PREPARING' && (
             <button onClick={() => onUpdateStatus(order.id, 'FINISHED_PREPARING')} className="w-full py-2.5 text-sm bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Finish Preparing</button>
-          )}
-          {order.status === 'FINISHED_PREPARING' && (
-            <button onClick={() => onUpdateStatus(order.id, 'DELIVERING')} className="w-full py-2.5 text-sm bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Start Delivery</button>
           )}
           {devMode && order.status === 'DELIVERING' && (
             <button onClick={() => onUpdateStatus(order.id, 'DELIVERED')} className="w-full py-2.5 text-sm bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Mark Delivered</button>
@@ -102,9 +99,6 @@ const StaffDashboard = () => {
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ orderId, status }: { orderId: number; status: string }) => {
-      if (devMode && status === 'DELIVERED') {
-        return markOrderAsDelivered(orderId);
-      }
       return updateOrderStatus(orderId, status);
     },
     onSuccess: () => {
@@ -138,11 +132,7 @@ const StaffDashboard = () => {
   }, [queryClient]);
 
   const handleUpdateStatus = (orderId: number, status: string) => {
-    if (devMode && status === 'DELIVERED') {
-      updateStatusMutation.mutate({ orderId, status: 'DELIVERED' });
-    } else {
-      updateStatusMutation.mutate({ orderId, status });
-    }
+    updateStatusMutation.mutate({ orderId, status });
   };
 
   const ordersByStatus = useMemo(() => {
@@ -198,7 +188,7 @@ const StaffDashboard = () => {
                     <span className="ml-auto bg-amber-200 text-amber-800 text-sm font-bold px-3 py-1 rounded-full">{columnOrders.length}</span>
                 </div>
                 <div className="p-2 overflow-y-auto" style={{maxHeight: 'calc(100vh - 18rem)'}}>
-                  {columnOrders.length > 0 ? columnOrders.sort((a, b) => - new Date(b.orderDate).getTime() + new Date(a.orderDate).getTime()).map(order => (
+                  {columnOrders.length > 0 ? columnOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(order => (
                       <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} devMode={devMode} />
                   )) : (
                     <div className="flex items-center justify-center h-48">

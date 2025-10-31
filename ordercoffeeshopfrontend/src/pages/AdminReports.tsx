@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSalesReport, SalesReport } from '../services/reportService';
+import { getSalesReport, type SalesReport } from '../services/reportService';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const AdminReports = () => {

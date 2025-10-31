@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo } from 'react';
-import { getProfile, logout as logoutUser } from '../services/authService'; // Giả sử bạn có các hàm này
+import { getProfile, logout as logoutUser } from '../services';
 import type { User } from '../types/user';
 
 interface AuthContextType {
@@ -22,9 +22,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchUser = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await getProfile();
-      if (response?.data) {
-        setUser(response.data);
+      const userProfile = await getProfile();
+      if (userProfile) {
+        setUser(userProfile);
       } else {
         setUser(null);
       }

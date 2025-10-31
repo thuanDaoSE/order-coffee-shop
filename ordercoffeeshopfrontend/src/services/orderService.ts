@@ -1,5 +1,7 @@
-import type { CartItem } from "../contexts/CartContext";
-import api from './authService';
+import type { CartItem } from '../types/cart';
+import api from './api';
+import type { Order } from '../types/order';
+import type { Page } from '../types/common';
 
 interface OrderItemPayload {
   productVariantId: string;
@@ -26,7 +28,7 @@ export const createOrder = async (cartItems: CartItem[], couponCode: string, del
     throw error;
   }
 };
-export const getOrders = async (page = 0, size = 10): Promise<any> => {
+export const getOrders = async (page = 0, size = 10): Promise<Page<Order>> => {
   try {
     const response = await api.get('/v1/orders', { params: { page, size } });
     console.log("get orders response: ",response.data);
@@ -37,7 +39,7 @@ export const getOrders = async (page = 0, size = 10): Promise<any> => {
   }
 };
 
-export const getAllOrders = async () => {
+export const getAllOrders = async (): Promise<Order[]> => {
   try {
     const response = await api.get('/v1/orders/all');
     console.log("get all orders response: ",response.data);
@@ -48,7 +50,7 @@ export const getAllOrders = async () => {
   }
 };
 
-export const updateOrderStatus = async (orderId: number, status: string) => {
+export const updateOrderStatus = async (orderId: number, status: string): Promise<Order> => {
   try {
     const response = await api.put(`/v1/orders/${orderId}/status`, { status });
     console.log("update order status response: ",response.data);
@@ -59,7 +61,7 @@ export const updateOrderStatus = async (orderId: number, status: string) => {
   }
 };
 
-export const markOrderAsDelivered = async (orderId: number) => {
+export const markOrderAsDelivered = async (orderId: number): Promise<Order> => {
   try {
     const response = await api.put(`/v1/dev/orders/${orderId}/mark-delivered`);
     console.log("mark order as delivered response: ",response.data);
@@ -70,7 +72,7 @@ export const markOrderAsDelivered = async (orderId: number) => {
   }
 };
 
-export const cancelOrder = async (orderId: number) => {
+export const cancelOrder = async (orderId: number): Promise<Order> => {
   try {
     const response = await api.put(`/v1/orders/${orderId}/cancel`);
     console.log("cancel order response: ",response.data);

@@ -1,25 +1,6 @@
 // src/contexts/CartContext.tsx
-import React, { createContext, useContext, useReducer, useEffect, type ReactNode, useCallback } from 'react';
-type Size = 'S' | 'M' | 'L';
-type Topping = { id: string; name: string; price: number };
-
-export interface CartItem {
-  id: string; // Unique ID for the cart item itself (e.g., timestamp)
-  productVariantId: string; // ID from the database
-  productId: string;
-  name: string;
-  price: number;
-  size: Size;
-  quantity: number;
-  toppings: Topping[];
-  imageUrl: string;
-}
-
-export interface CartState {
-  items: CartItem[];
-  total: number;
-  itemCount: number;
-}
+import React, { createContext, useContext, useReducer, useEffect, type ReactNode, useCallback, useMemo } from 'react';
+import type { CartItem, CartState, Size, Topping } from '../types/cart';
 
 type CartAction =
   | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'id' | 'quantity'> }
@@ -36,15 +17,34 @@ type CartAction =
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: CartState };
 
-const CartContext = createContext<{
+interface CartContextType {
   cart: CartState;
-  addToCart: (item: Omit<CartItem, 'cartItemId' | 'quantity'>) => void;
-  updateCartItem: (cartItemId: string, updates: { quantity?: number; size?: Size; toppings?: Topping[] }) => void;
-  removeFromCart: (cartItemId: string) => void;
+  addToCart: (item: Omit<CartItem, 'id' | 'quantity'>) => void;
+  updateCartItem: (id: string, updates: { quantity?: number; size?: Size; toppings?: Topping[] }) => void;
+  removeFromCart: (id: string) => void;
   clearCart: () => void;
-  getItemCount: () => number;
-  getTotalPrice: () => number;
-} | null>(null);
+}
+
+const CartContext = createContext<CartContextType | null>(null);
+
+// Helper function to recalculate totals, avoiding code duplication
+const calculateCartState = (items: CartItem[]): CartState => {
+  const calculateItemTotal = (item: CartItem) => {
+    const toppingsPrice = item.toppings.reduce((sum, topping) => sum + topping.price, 0);
+    return (item.price + toppingsPrice) * item.quantity;
+  };
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const total = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+  return { items, itemCount, total };
+};
+
+// Helper to robustly compare toppings arrays
+const areToppingsEqual = (a: Topping[], b: Topping[]): boolean => {
+  if (a.length !== b.length) return false;
+  const aIds = a.map(t => t.id).sort();
+  const bIds = b.map(t => t.id).sort();
+  return aIds.every((id, index) => id === bIds[index]);
+};
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
@@ -52,10 +52,11 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       return action.payload;
 
     case 'ADD_ITEM': {
+      // Find item with same product, size, and toppings
       const existingItemIndex = state.items.findIndex(
         item => item.productId === action.payload.productId && 
                item.size === action.payload.size &&
-               JSON.stringify(item.toppings) === JSON.stringify(action.payload.toppings)
+               areToppingsEqual(item.toppings, action.payload.toppings)
       );
 
       if (existingItemIndex >= 0) {
@@ -64,25 +65,15 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
           ...updatedItems[existingItemIndex],
           quantity: updatedItems[existingItemIndex].quantity + 1,
         };
-        return {
-          ...state,
-          items: updatedItems,
-          total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-          itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
-        };
+        return calculateCartState(updatedItems);
       }
 
       const newItem: CartItem = {
         ...action.payload,
-        id: Date.now().toString(),
+        id: `${action.payload.productId}-${action.payload.size}-${action.payload.toppings.map(t => t.id).join('-')}-${Date.now()}`, // More unique ID
         quantity: 1,
       };
-      const newItems = [...state.items, newItem];
-      return {
-        items: newItems,
-        total: newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        itemCount: newItems.reduce((sum, item) => sum + item.quantity, 0),
-      };
+      return calculateCartState([...state.items, newItem]);
     }
 
     case 'UPDATE_ITEM': {
@@ -98,20 +89,12 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
           : item
       ).filter(item => item.quantity > 0); // Remove if quantity becomes 0
 
-      return {
-        items: updatedItems,
-        total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
-      };
+      return calculateCartState(updatedItems);
     }
 
     case 'REMOVE_ITEM': {
       const filteredItems = state.items.filter(item => item.id !== action.payload.id);
-      return {
-        items: filteredItems,
-        total: filteredItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        itemCount: filteredItems.reduce((sum, item) => sum + item.quantity, 0),
-      };
+      return calculateCartState(filteredItems);
     }
 
     case 'CLEAR_CART':
@@ -144,7 +127,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = useCallback((item: Omit<CartItem, 'cartItemId' | 'quantity'>) => {
+  const addToCart = useCallback((item: Omit<CartItem, 'id' | 'quantity'>) => {
     dispatch({ type: 'ADD_ITEM', payload: item });
   }, []);
 
@@ -152,7 +135,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'UPDATE_ITEM', payload: { id, ...updates } });
   }, []);
 
-  const removeFromCart = useCallback((  id: string) => {
+  const removeFromCart = useCallback((id: string) => {
     dispatch({ type: 'REMOVE_ITEM', payload: { id } });
   }, []);
 
@@ -160,22 +143,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'CLEAR_CART' });
   }, []);
 
-  const getItemCount = useCallback(() => cart.itemCount, [cart.itemCount]);
-
-  const getTotalPrice = useCallback(() => cart.total, [cart.total]);
+  const contextValue = useMemo(() => ({
+    cart,
+    addToCart,
+    updateCartItem,
+    removeFromCart,
+    clearCart,
+  }), [cart, addToCart, updateCartItem, removeFromCart, clearCart]);
 
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        updateCartItem,
-        removeFromCart,
-        clearCart,
-        getItemCount,
-        getTotalPrice,
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

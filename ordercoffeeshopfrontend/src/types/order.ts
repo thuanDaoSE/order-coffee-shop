@@ -1,24 +1,24 @@
-export interface OrderItem {
-    productVariantId: number;
-    productName: string;
-    size: string;
-    quantity: number;
-    unitPrice: number;
-}
+import type { User } from './user';
 
-export interface UserSummary {
-    id: number;
-    fullname: string;
-    phone: string;
-    address: string;
+export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PREPARING' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
+
+export interface OrderItem {
+  id: number;
+  productName: string;
+  productVariantId: number;
+  quantity: number;
+  price: number;
+  imageUrl?: string;
 }
 
 export interface Order {
-    id: number;
-    orderDate: string;
-    status: 'PENDING' | 'PAID' | 'PREPARING' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED';
-    totalPrice: number;
-    orderDetails: OrderItem[];
-    deliveryMethod: 'DELIVERY' | 'IN_STORE';
-    user: UserSummary;
+  id: number;
+  user: User;
+  items: OrderItem[];
+  totalAmount: number;
+  status: OrderStatus;
+  deliveryMethod: 'DELIVERY' | 'PICKUP';
+  address?: string; // Or a more complex Address object
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
 }

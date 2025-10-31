@@ -1,16 +1,11 @@
 package com.coffeeshop.backend.utils;
 
 import com.coffeeshop.backend.config.VnpayConfig;
-import com.coffeeshop.backend.dto.payment.VnpayResponse;
 import com.coffeeshop.backend.dto.payment.PaymentInitiationRequest;
-import com.coffeeshop.backend.dto.payment.VnpayRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.ObjectInputFilter.Config;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;

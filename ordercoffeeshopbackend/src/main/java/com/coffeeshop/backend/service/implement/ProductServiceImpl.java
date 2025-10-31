@@ -10,7 +10,6 @@ import com.coffeeshop.backend.exception.ResourceNotFoundException;
 import com.coffeeshop.backend.mapper.ProductMapper;
 import com.coffeeshop.backend.repository.CategoryRepository;
 import com.coffeeshop.backend.repository.ProductRepository;
-import com.coffeeshop.backend.repository.ProductVariantRepository;
 import com.coffeeshop.backend.service.R2Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
-    private final ProductVariantRepository productVariantRepository;
     private final com.coffeeshop.backend.repository.OrderDetailRepository orderDetailRepository;
     private final R2Service r2Service;
 

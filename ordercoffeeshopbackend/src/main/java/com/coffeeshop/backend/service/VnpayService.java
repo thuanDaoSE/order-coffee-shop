@@ -1,7 +1,5 @@
 package com.coffeeshop.backend.service;
 
-import com.coffeeshop.backend.dto.payment.VnpayRequest;
-import com.coffeeshop.backend.dto.payment.VnpayResponse;
 import com.coffeeshop.backend.dto.payment.PaymentInitiationRequest;
 import com.coffeeshop.backend.entity.Order;
 import com.coffeeshop.backend.entity.Payment;
@@ -19,12 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.ResponseEntity;
 import com.coffeeshop.backend.exception.PaymentExceptionHanlder;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 

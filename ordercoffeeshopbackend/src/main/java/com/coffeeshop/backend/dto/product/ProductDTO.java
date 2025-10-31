@@ -1,6 +1,5 @@
 package com.coffeeshop.backend.dto.product;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import lombok.Data;

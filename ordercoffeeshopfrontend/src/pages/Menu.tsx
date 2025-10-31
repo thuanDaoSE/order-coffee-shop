@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { Product, ProductVariant } from '../types/product';
 import type { Category } from '../types/category';
 import { useCart } from '../contexts/CartContext';

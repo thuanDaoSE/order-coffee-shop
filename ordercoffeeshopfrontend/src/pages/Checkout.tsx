@@ -7,7 +7,7 @@ import { CheckoutAddressForm } from '../components/CheckoutAddressForm';
 import toast from 'react-hot-toast';
 
 const Checkout = () => {
-  const { cart, updateCartItem, clearCart } = useCart();
+  const { cart, updateCartItem } = useCart();
   const { items: cartItems } = cart;
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<VoucherValidationResponse | null>(null);

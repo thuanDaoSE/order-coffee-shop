@@ -25,7 +25,6 @@ import com.coffeeshop.backend.exception.EmailAlreadyExistsException;
 import com.coffeeshop.backend.dto.auth.UserProfileResponse;
 import com.coffeeshop.backend.exception.ResourceNotFoundException;
 
-import jakarta.security.auth.message.AuthException;
 import lombok.RequiredArgsConstructor;
 
 @Service

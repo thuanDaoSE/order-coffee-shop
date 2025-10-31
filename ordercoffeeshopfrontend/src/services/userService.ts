@@ -1,4 +1,6 @@
 import api  from './api';
+import type { Page } from '../types/common';
+import type { Product } from '../types/product';
 
 export interface User {
   id: number;
@@ -6,14 +8,6 @@ export interface User {
   fullname: string;
   phone: string;
   role: 'CUSTOMER' | 'STAFF' | 'ADMIN';
-}
-
-export interface Page<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  number: number;
 }
 
 export const userService = {

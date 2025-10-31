@@ -1,18 +1,5 @@
 import api from './api'; // Use the configured axios instance
-
-
-export interface PaymentRequest {
-  amount: number;
-  orderInfo: string;
-  orderId: string;
-  bankCode?: string;
-}
-
-export interface VerifyPaymentResponse {
-  success: boolean;
-  message?: string;
-  orderId?: string;
-}
+import type { PaymentRequest, VerifyPaymentResponse } from '../types/payment';
 
 export const createPayment = async (paymentData: PaymentRequest) => {
   const response = await api.post(`/v1/payment/create-payment`, paymentData);

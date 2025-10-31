@@ -1,10 +1,4 @@
-export interface R2Config {
-  accountId: string;
-  accessKeyId: string;
-  secretAccessKey: string;
-  bucketName: string;
-  publicUrl: string;
-}
+import type { R2Config, SignedUrlOptions } from '../types/r2';
 
 // Load configuration from environment variables
 const r2Config: R2Config = {
@@ -14,11 +8,6 @@ const r2Config: R2Config = {
   bucketName: import.meta.env.VITE_R2_BUCKET_NAME,
   publicUrl: import.meta.env.VITE_R2_PUBLIC_URL
 };
-
-interface SignedUrlOptions {
-  expiresIn?: number; // Expiration time in seconds
-  contentType?: string;
-}
 
 export async function getSignedImageUrl(objectKey: string): Promise<string> {
   try {

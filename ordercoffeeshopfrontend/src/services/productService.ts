@@ -1,13 +1,6 @@
 import api from './api';
 import type { Product, ProductRequest } from '../types/product';
-
-export interface Page<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  number: number;
-}
+import type { Page } from '../types/common';
 
 export const getProducts = async (search?: string, page = 0, size = 10): Promise<Page<Product>> => {
   const response = await api.get('/v1/products', { params: { search, page, size } });

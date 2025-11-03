@@ -5,15 +5,15 @@ import { useNavigate } from 'react-router-dom';
 import { formatVND } from '../utils/currency';
 
 const CartPage = () => {
-  const { cart, updateCartItem, removeFromCart, getTotalPrice, getItemCount } = useCart();
+  const { cart, updateCartItem, removeFromCart } = useCart();
   const navigate = useNavigate();
 
   const handleCheckout = () => {
     navigate('/checkout');
   };
 
-  const total = getTotalPrice();
-  const itemCount = getItemCount();
+  const total = cart.total;
+  const itemCount = cart.itemCount;
 
   return (
     <div className="bg-amber-50 min-h-screen">

@@ -34,18 +34,19 @@ public class AuthController {
 
         Cookie cookie = new Cookie("jwt", loginResponse.getToken());
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        // cookie.setSecure(true);
         cookie.setPath("/");
+        cookie.setDomain("103.77.243.143");
         cookie.setMaxAge(jwtExpiration / 1000); // Thời gian sống của JWT
-        cookie.setAttribute("SameSite", "None"); // Thay đổi từ Lax sang None để cho phép gửi cross-site
+        cookie.setAttribute("SameSite", "Lax");
 
         Cookie refreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
+        // refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(604800); // 7 days
-        refreshTokenCookie.setAttribute("SameSite", "None");
-
+        refreshTokenCookie.setAttribute("SameSite", "Lax");
+        refreshTokenCookie.setDomain("103.77.243.143");
         response.addCookie(cookie);
         response.addCookie(refreshTokenCookie);
 
@@ -67,17 +68,19 @@ public class AuthController {
 
         Cookie cookie = new Cookie("jwt", loginResponse.getToken());
         cookie.setHttpOnly(true); // Nên luôn là true để ngăn chặn XSS
-        cookie.setSecure(true);   // BẮT BUỘC là true trong môi trường production
+        // cookie.setSecure(true);   // BẮT BUỘC là true trong môi trường production
         cookie.setPath("/");
+        cookie.setDomain("103.77.243.143");
         cookie.setMaxAge(jwtExpiration / 1000);
-        cookie.setAttribute("SameSite", "None");
+        cookie.setAttribute("SameSite", "Lax");
 
         Cookie newRefreshTokenCookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
         newRefreshTokenCookie.setHttpOnly(true); // Nên luôn là true để ngăn chặn XSS
-        newRefreshTokenCookie.setSecure(true);   // BẮT BUỘC là true trong môi trường production
+        // newRefreshTokenCookie.setSecure(true);   // BẮT BUỘC là true trong môi trường production
         newRefreshTokenCookie.setPath("/");
+        newRefreshTokenCookie.setDomain("103.77.243.143");
         newRefreshTokenCookie.setMaxAge(604800); // 7 days
-        newRefreshTokenCookie.setAttribute("SameSite", "None");
+        newRefreshTokenCookie.setAttribute("SameSite", "Lax");
 
         response.addCookie(cookie);
         response.addCookie(newRefreshTokenCookie);
@@ -102,13 +105,23 @@ public class AuthController {
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("jwt", "");
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        // cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(0); // Immediately expire the cookie
-        cookie.setAttribute("SameSite", "None");
+        cookie.setAttribute("SameSite", "Lax");
+        cookie.setDomain("103.77.243.143");
 
         response.addCookie(cookie);
-        response.setHeader("Clear-Site-Data", "\"cache\", \"cookies\"");
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", "");
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);
+        refreshTokenCookie.setAttribute("SameSite", "Lax");
+        refreshTokenCookie.setDomain("103.77.243.143");
+        response.addCookie(refreshTokenCookie);
+
+        // response.setHeader("Clear-Site-Data", "\"cache\", \"cookies\"");
 
         return ResponseEntity.ok().build();
     }

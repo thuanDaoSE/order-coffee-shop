@@ -49,13 +49,15 @@ public class SecurityConfig {
                                 // Cho phép truy cập từ các domain khác nhau nếu cần thiết (ví dụ: frontend chạy
                                 // trên domain khác backend).
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                // .cors(cors -> cors.disable())
 
                                 // 3. Định nghĩa các quy tắc ủy quyền (Authorization)
                                 // ...
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/api/r2/**",
                                                                 "/api/v1/payment/create-payment",
-                                                                "/api/v1/payment/callback", "/api/v1/location/**")
+                                                                "/api/v1/payment/callback", "/api/v1/location/**",
+                                                                "/api/v1/categories/**")
                                                 .permitAll()
                                                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register")
                                                 .permitAll()

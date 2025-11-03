@@ -15,8 +15,6 @@ import { Toaster } from 'react-hot-toast';
 
 const Layout = ({ children }: LayoutProps) => {
   const { user } = useAuth();
-  const { getItemCount } = useCart();
-  const cartCount = getItemCount();
   const location = useLocation();
   const isHomePage = location.pathname === PATHS.HOME;
 

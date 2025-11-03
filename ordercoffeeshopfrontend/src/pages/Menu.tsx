@@ -50,8 +50,10 @@ const Menu = () => {
 
   useEffect(() => {
     const fetchCategories = async () => {
+      console.log('Fetching categories...');
       try {
         const fetchedCategories = await getAllCategories();
+        console.log('Fetched categories:', fetchedCategories);
         setCategories(fetchedCategories);
       } catch (error) {
         console.error("Failed to fetch categories:", error);

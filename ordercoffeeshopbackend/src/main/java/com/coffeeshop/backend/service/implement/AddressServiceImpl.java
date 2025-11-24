@@ -43,9 +43,9 @@ public class AddressServiceImpl implements AddressService {
         address.setUser(user);
 
         if (address.isDefault()) {
-            addressRepository.findByUserId(user.getId()).forEach(addr -> addr.setDefault(false));
+            // Thay thế vòng lặp forEach bằng 1 query duy nhất
+            addressRepository.resetDefaultAddressForUser(user.getId());
         }
-        
         Address savedAddress = addressRepository.save(address);
         return addressMapper.toDTO(savedAddress);
     }

@@ -13,6 +13,7 @@ import com.coffeeshop.backend.repository.ProductRepository;
 import com.coffeeshop.backend.service.R2Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class ProductServiceImpl implements ProductService {
     private final R2Service r2Service;
 
     @Override
+    @Cacheable("products")
     public Page<ProductDTO> getAllProducts(String search, Pageable pageable) {
         Page<Product> products;
         if (search != null && !search.isEmpty()) {

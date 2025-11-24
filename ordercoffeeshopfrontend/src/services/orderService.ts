@@ -4,22 +4,24 @@ import type { Order } from '../types/order';
 import type { Page } from '../types/common';
 
 interface OrderItemPayload {
-  productVariantId: string;
+  productVariantId: number;
   quantity: number;
+  price: number;
 }
 
 export const createOrder = async (cartItems: CartItem[], couponCode: string, deliveryMethod: string, addressId: string | number | null) => {
   try {
     const items: OrderItemPayload[] = cartItems.map(item => ({
-      productVariantId: item.productVariantId, // Use the correct productVariantId from the cart item
+      productVariantId: parseInt(item.productVariantId, 10), // Use the correct productVariantId from the cart item
       quantity: item.quantity,
+      price: item.price,
     }));
 
     const response = await api.post('/v1/orders', {
       items,
       couponCode,
       deliveryMethod,
-      addressId,
+      addressId: addressId ? parseInt(String(addressId), 10) : null,
     });
     console.log("create order response: ",response.data);
     return response.data;

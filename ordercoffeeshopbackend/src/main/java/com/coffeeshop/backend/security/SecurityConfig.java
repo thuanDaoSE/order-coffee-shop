@@ -133,7 +133,11 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
                 // In production, replace "*" with specific origins
-                configuration.setAllowedOriginPatterns(Arrays.asList(frontendURL_dev, frontendURL_production));
+                configuration.setAllowedOriginPatterns(Arrays.asList(
+                                frontendURL_dev, 
+                                frontendURL_production,
+                                "https://7e1cea511162.ngrok-free.app" 
+                        ));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(Arrays.asList(
                                 "Authorization",

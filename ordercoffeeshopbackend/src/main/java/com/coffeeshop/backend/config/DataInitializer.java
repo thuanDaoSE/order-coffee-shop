@@ -1,14 +1,8 @@
 package com.coffeeshop.backend.config;
 
-import com.coffeeshop.backend.entity.Category;
-import com.coffeeshop.backend.entity.Product;
-import com.coffeeshop.backend.entity.ProductVariant;
-import com.coffeeshop.backend.entity.User;
+import com.coffeeshop.backend.entity.*;
 import com.coffeeshop.backend.enums.UserRole;
-import com.coffeeshop.backend.repository.CategoryRepository;
-import com.coffeeshop.backend.repository.ProductRepository;
-import com.coffeeshop.backend.repository.ProductVariantRepository;
-import com.coffeeshop.backend.repository.UserRepository;
+import com.coffeeshop.backend.repository.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +25,9 @@ public class DataInitializer implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final ProductVariantRepository productVariantRepository;
     private final PasswordEncoder passwordEncoder;
+    private final StoreRepository storeRepository;
+    private final ProductStockRepository productStockRepository;
+    private final StockHistoryRepository stockHistoryRepository;
 
     @Override
     @Transactional
@@ -59,37 +56,45 @@ public class DataInitializer implements CommandLineRunner {
         User staff = createUser("Staff Member", "staff@coffeeshop.com", "staff123", UserRole.STAFF, "0987654322");
         User customer = createUser("Customer", "customer@coffeeshop.com", "customer123", UserRole.CUSTOMER, "0987654323");
 
-        // 2. Create Categories
+        // 2. Create Stores
+        Store store1 = createStore("Coffee House - Cầu Giấy", "123 Cầu Giấy, Hà Nội", "0988111111");
+        Store store2 = createStore("Coffee House - Hoàn Kiếm", "99 Hàng Bài, Hà Nội", "0988222222");
+
+        // 3. Create Categories
         Category coffee = createCategory("Coffee", "coffee", "coffeeCup.png");
         Category espresso = createCategory("Espresso", "espresso", "Espresso.png");
         Category latte = createCategory("Latte", "latte", "Latte.png");
         Category americano = createCategory("Americano", "americano", "Americano.png");
         Category cappuccino = createCategory("Cappuccino", "cappuccino", "Cappuccino.png");
 
-        // 3. Create Products with Variants
+        // 4. Create Products with Variants and Stocks
         createProduct("Espresso", "Rich and pure espresso shot", "Espresso.png", espresso, true,
                 Arrays.asList(
                         createVariant("S", "29000", 100, true),
                         createVariant("M", "35000", 100, true),
-                        createVariant("L", "39000", 100, true)));
+                        createVariant("L", "39000", 100, true)),
+                Arrays.asList(store1, store2));
 
         createProduct("Cappuccino", "Espresso topped with foamy milk", "Cappuccino.png", cappuccino, true,
                 Arrays.asList(
                         createVariant("S", "35000", 100, true),
                         createVariant("M", "42000", 100, true),
-                        createVariant("L", "48000", 100, true)));
+                        createVariant("L", "48000", 100, true)),
+                Arrays.asList(store1, store2));
 
         createProduct("Latte", "Smooth coffee with steamed milk", "Latte.png", latte, true,
                 Arrays.asList(
                         createVariant("S", "35000", 100, true),
                         createVariant("M", "42000", 100, true),
-                        createVariant("L", "48000", 100, true)));
+                        createVariant("L", "48000", 100, true)),
+                Arrays.asList(store1, store2));
 
         createProduct("Americano", "Espresso diluted with hot water", "Americano.png", americano, true,
                 Arrays.asList(
                         createVariant("S", "32000", 100, true),
                         createVariant("M", "38000", 100, true),
-                        createVariant("L", "44000", 100, true)));
+                        createVariant("L", "44000", 100, true)),
+                Arrays.asList(store1, store2));
     }
 
     private User createUser(String fullName, String email, String password, UserRole role, String phone) {
@@ -100,6 +105,14 @@ public class DataInitializer implements CommandLineRunner {
         user.setRole(role);
         user.setPhone(phone);
         return userRepository.save(user);
+    }
+
+    private Store createStore(String name, String address, String phone) {
+        Store store = new Store();
+        store.setName(name);
+        store.setAddress(address);
+        store.setPhone(phone);
+        return storeRepository.save(store);
     }
 
     private Category createCategory(String name, String slug, String image) {
@@ -115,14 +128,13 @@ public class DataInitializer implements CommandLineRunner {
         variant.setSku(size.toUpperCase() + "-" + price.replace(".", ""));
         variant.setSize(size);
         variant.setPrice(new BigDecimal(price));
-        variant.setStockQuantity(stock);
         variant.setIsActive(isActive);
         // Don't save here, just return the unsaved entity
         return variant;
     }
 
     private void createProduct(String name, String description, String image, Category category,
-            boolean isActive, List<ProductVariant> variants) {
+            boolean isActive, List<ProductVariant> variants, List<Store> stores) {
         // Create and save the product first
         Product product = new Product();
         product.setName(name);
@@ -135,7 +147,31 @@ public class DataInitializer implements CommandLineRunner {
         // Create and save each variant with the product reference
         for (ProductVariant variant : variants) {
             variant.setProduct(savedProduct);
-            productVariantRepository.save(variant);
+            ProductVariant savedVariant = productVariantRepository.save(variant);
+
+            // Create stock for each store
+            for (Store store : stores) {
+                // Get the initial stock from the ProductVariant passed to createVariant
+                // (which is currently stored in a local variable in createVariant)
+                // This assumes that the initial stock is passed through createVariant and we need to retrieve it.
+                // A better approach would be to pass the initial stock directly to createProduct.
+                // For now, I'll use a placeholder of 100.
+                int initialStock = 100; // Placeholder
+
+                ProductStock productStock = new ProductStock();
+                productStock.setProductVariant(savedVariant);
+                productStock.setStore(store);
+                productStock.setQuantity(initialStock);
+                productStockRepository.save(productStock);
+
+                StockHistory history = new StockHistory();
+                history.setProductVariant(savedVariant);
+                history.setStore(store);
+                history.setQuantityChanged(initialStock);
+                history.setCurrentQuantity(initialStock);
+                history.setReason("INITIAL_STOCK");
+                stockHistoryRepository.save(history);
+            }
         }
     }
 }

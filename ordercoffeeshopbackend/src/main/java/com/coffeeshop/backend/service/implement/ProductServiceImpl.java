@@ -3,28 +3,24 @@ package com.coffeeshop.backend.service.implement;
 import com.coffeeshop.backend.dto.product.ProductDTO;
 import com.coffeeshop.backend.dto.product.ProductRequest;
 import com.coffeeshop.backend.dto.product.ProductVariantRequest;
-import com.coffeeshop.backend.entity.Category;
-import com.coffeeshop.backend.entity.Product;
-import com.coffeeshop.backend.entity.ProductVariant;
+import com.coffeeshop.backend.entity.*;
 import com.coffeeshop.backend.exception.ResourceNotFoundException;
 import com.coffeeshop.backend.mapper.ProductMapper;
-import com.coffeeshop.backend.repository.CategoryRepository;
-import com.coffeeshop.backend.repository.ProductRepository;
+import com.coffeeshop.backend.repository.*;
 import com.coffeeshop.backend.service.R2Service;
+import com.coffeeshop.backend.service.ProductService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import com.coffeeshop.backend.service.ProductService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -33,8 +29,11 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductStockRepository productStockRepository;
+    private final StockHistoryRepository stockHistoryRepository;
+    private final StoreRepository storeRepository;
     private final ProductMapper productMapper;
-    private final com.coffeeshop.backend.repository.OrderDetailRepository orderDetailRepository;
+    private final OrderDetailRepository orderDetailRepository;
     private final R2Service r2Service;
 
     @Override
@@ -105,18 +104,47 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
         product.setIsActive(productRequest.getIsActive());
 
+        // We need a default store to create the initial stock.
+        Store defaultStore = storeRepository.findById(1L)
+                .orElseThrow(() -> new ResourceNotFoundException("Default store not found. Please ensure store with ID 1 exists."));
+
         productRequest.getVariants().forEach(variantRequest -> {
             ProductVariant variant = new ProductVariant();
             variant.setSku(variantRequest.getSku());
             variant.setSize(variantRequest.getSize());
             variant.setPrice(variantRequest.getPrice());
-            variant.setStockQuantity(variantRequest.getStockQuantity());
             variant.setIsActive(variantRequest.getIsActive());
             variant.setProduct(product);
             product.getVariants().add(variant);
         });
 
         Product savedProduct = productRepository.save(product);
+
+        // After saving the product and variants, create the stock records
+        savedProduct.getVariants().forEach(variant -> {
+            Integer initialStock = productRequest.getVariants().stream()
+                .filter(vr -> vr.getSku().equals(variant.getSku()))
+                .map(ProductVariantRequest::getStockQuantity)
+                .findFirst()
+                .orElse(0);
+
+            ProductStock productStock = new ProductStock();
+            productStock.setProductVariant(variant);
+            productStock.setStore(defaultStore);
+            productStock.setQuantity(initialStock);
+            productStockRepository.save(productStock);
+
+            StockHistory history = new StockHistory();
+            history.setProductVariant(variant);
+            history.setStore(defaultStore);
+            history.setQuantityChanged(initialStock);
+            history.setCurrentQuantity(initialStock);
+            history.setReason("INITIAL_STOCK");
+            // history.setCreatedBy(adminUserId); // Optional: Need to get current admin user
+            stockHistoryRepository.save(history);
+        });
+
+
         return productMapper.toProductDTO(savedProduct);
     }
 
@@ -151,7 +179,6 @@ public class ProductServiceImpl implements ProductService {
                 // Update existing variant
                 existingVariant.setSize(variantRequest.getSize());
                 existingVariant.setPrice(variantRequest.getPrice());
-                existingVariant.setStockQuantity(variantRequest.getStockQuantity());
                 existingVariant.setIsActive(variantRequest.getIsActive());
                 updatedVariants.add(existingVariant);
                 existingVariantsMap.remove(variantRequest.getSku());
@@ -161,7 +188,6 @@ public class ProductServiceImpl implements ProductService {
                 newVariant.setSku(variantRequest.getSku());
                 newVariant.setSize(variantRequest.getSize());
                 newVariant.setPrice(variantRequest.getPrice());
-                newVariant.setStockQuantity(variantRequest.getStockQuantity());
                 newVariant.setIsActive(variantRequest.getIsActive());
                 newVariant.setProduct(existingProduct);
                 updatedVariants.add(newVariant);

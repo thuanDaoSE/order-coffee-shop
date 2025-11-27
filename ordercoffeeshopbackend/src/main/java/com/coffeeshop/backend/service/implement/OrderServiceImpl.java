@@ -10,10 +10,7 @@ import com.coffeeshop.backend.enums.PaymentMethod;
 import com.coffeeshop.backend.enums.PaymentStatus;
 import com.coffeeshop.backend.exception.ResourceNotFoundException;
 import com.coffeeshop.backend.mapper.OrderMapper;
-import com.coffeeshop.backend.repository.OrderRepository;
-import com.coffeeshop.backend.repository.ProductVariantRepository;
-import com.coffeeshop.backend.repository.UserRepository;
-import com.coffeeshop.backend.repository.VoucherRepository;
+import com.coffeeshop.backend.repository.*;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationRequest;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationResponse;
 import com.coffeeshop.backend.service.OrderService;
@@ -32,10 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.coffeeshop.backend.repository.AddressRepository;
 import com.coffeeshop.backend.service.ShippingService;
 
-//...
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -45,6 +40,9 @@ public class OrderServiceImpl implements OrderService {
     private final ProductVariantRepository productVariantRepository;
     private final VoucherRepository voucherRepository;
     private final AddressRepository addressRepository;
+    private final StoreRepository storeRepository;
+    private final ProductStockRepository productStockRepository;
+    private final StockHistoryRepository stockHistoryRepository;
     private final ShippingService shippingService;
     private final OrderMapper orderMapper;
     private final SimpMessagingTemplate simpMessagingTemplate;
@@ -56,9 +54,14 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
 
+        // 1.5. Find the store
+        Store store = storeRepository.findById(request.getStoreId())
+                .orElseThrow(() -> new ResourceNotFoundException("Store not found with id: " + request.getStoreId()));
+
         // 2. Create a new Order
         Order order = new Order();
         order.setUser(user);
+        order.setStore(store);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
         order.setOrderDetails(new ArrayList<>());
@@ -70,7 +73,10 @@ public class OrderServiceImpl implements OrderService {
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "ProductVariant not found with id: " + itemRequest.getProductVariantId()));
 
-            if (variant.getStockQuantity() < itemRequest.getQuantity()) {
+            ProductStock productStock = productStockRepository.findByProductVariantIdAndStoreId(variant.getId(), store.getId())
+                    .orElseThrow(() -> new RuntimeException("Product not available at this store"));
+
+            if (productStock.getQuantity() < itemRequest.getQuantity()) {
                 throw new RuntimeException(
                         "Not enough stock for product: " + variant.getProduct().getName() + " - " + variant.getSize());
             }
@@ -85,8 +91,19 @@ public class OrderServiceImpl implements OrderService {
 
             subtotal = subtotal.add(variant.getPrice().multiply(new BigDecimal(itemRequest.getQuantity())));
 
-            // Decrease stock
-            variant.setStockQuantity(variant.getStockQuantity() - itemRequest.getQuantity());
+            // Decrease stock and create history
+            int newQuantity = productStock.getQuantity() - itemRequest.getQuantity();
+            productStock.setQuantity(newQuantity);
+            productStockRepository.save(productStock);
+
+            StockHistory history = new StockHistory();
+            history.setProductVariant(variant);
+            history.setStore(store);
+            history.setQuantityChanged(-itemRequest.getQuantity());
+            history.setCurrentQuantity(newQuantity);
+            history.setReason("SALE");
+            history.setCreatedBy(user.getId());
+            stockHistoryRepository.save(history);
         }
 
         // 4. Handle voucher (if any)
@@ -142,8 +159,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public VoucherValidationResponse validateVoucher(VoucherValidationRequest request) {
-        Voucher voucher = voucherRepository.findByCode(request.getCode())
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid voucher code: " + request.getCode()));
+        Voucher voucher = voucherRepository.findByCode(request.getCouponCode())
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid voucher code: " + request.getCouponCode()));
 
         if (voucher.getEndDate().isBefore(java.time.LocalDate.now())) {
             throw new ResourceNotFoundException("This voucher has expired.");

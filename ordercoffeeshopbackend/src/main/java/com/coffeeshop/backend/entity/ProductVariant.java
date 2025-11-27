@@ -27,8 +27,7 @@ public class ProductVariant extends BaseEntity {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    @Column(name = "stock_quantity", nullable = false)
-    private Integer stockQuantity;
+
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;

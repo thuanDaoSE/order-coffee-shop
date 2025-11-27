@@ -159,8 +159,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public VoucherValidationResponse validateVoucher(VoucherValidationRequest request) {
-        Voucher voucher = voucherRepository.findByCode(request.getCouponCode())
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid voucher code: " + request.getCouponCode()));
+        Voucher voucher = voucherRepository.findByCode(request.getCode())
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid voucher code: " + request.getCode()));
 
         if (voucher.getEndDate().isBefore(java.time.LocalDate.now())) {
             throw new ResourceNotFoundException("This voucher has expired.");

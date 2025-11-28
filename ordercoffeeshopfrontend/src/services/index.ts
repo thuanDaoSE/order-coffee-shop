@@ -6,11 +6,12 @@ export { addressService } from './addressService';
 export { register, login, logout } from './authService';
 export { createCategory } from './categoryService';
 export { createOrder, getOrders, getAllOrders, updateOrderStatus, cancelOrder } from './orderService';
+export { getAllStores } from './storeService';
 // Export everything from userService EXCEPT 'Page' because it's already exported from productService
 export { userService, getProfile, updateProfile, updateUserStore } from './userService';
 export { validateVoucher } from './voucherService';
 export { locationService } from './locationService';
-export { calculateShippingFee } from './shippingService';
+export { calculateShippingFee, calculateShippingFeeForStore } from './shippingService';
 export { createPayment, getPaymentStatus, verifyPayment } from './paymentService';
 export { getSalesReport } from './reportService';
 export { connect, disconnect } from './socketService';

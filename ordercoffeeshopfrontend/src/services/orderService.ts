@@ -9,7 +9,7 @@ interface OrderItemPayload {
   price: number;
 }
 
-export const createOrder = async (cartItems: CartItem[], couponCode: string, deliveryMethod: string, addressId: string | number | null) => {
+export const createOrder = async (cartItems: CartItem[], couponCode: string, deliveryMethod: string, addressId: string | number | null, storeId?: number | null) => {
   try {
     const items: OrderItemPayload[] = cartItems.map(item => ({
       productVariantId: parseInt(item.productVariantId, 10), // Use the correct productVariantId from the cart item
@@ -22,6 +22,7 @@ export const createOrder = async (cartItems: CartItem[], couponCode: string, del
       couponCode,
       deliveryMethod,
       addressId: addressId ? parseInt(String(addressId), 10) : null,
+      storeId: storeId,
     });
     console.log("create order response: ",response.data);
     return response.data;

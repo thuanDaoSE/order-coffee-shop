@@ -1,14 +1,21 @@
 package com.coffeeshop.backend.service.implement;
 
 import com.coffeeshop.backend.dto.ShippingInfoDTO;
+import com.coffeeshop.backend.entity.Store;
+import com.coffeeshop.backend.exception.OutOfServiceAreaException;
+import com.coffeeshop.backend.exception.ResourceNotFoundException;
+import com.coffeeshop.backend.repository.StoreRepository;
 import com.coffeeshop.backend.service.ShippingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class ShippingServiceImpl implements ShippingService {
+
+    private final StoreRepository storeRepository;
 
     @Value("${shipping.rate-per-km}")
     private double ratePerKm;
@@ -16,27 +23,87 @@ public class ShippingServiceImpl implements ShippingService {
     @Value("${shipping.first-km-rate}")
     private double firstKmRate;
 
-    @Value("${shipping.shop.latitude}")
-    private double shopLatitude;
-
-    @Value("${shipping.shop.longitude}")
-    private double shopLongitude;
-
+    private static final double MAX_SERVICE_DISTANCE_KM = 20.0;
     private static final double EARTH_RADIUS = 6371; // In kilometers
 
-
-//...
+    public ShippingServiceImpl(StoreRepository storeRepository) {
+        this.storeRepository = storeRepository;
+    }
 
     @Override
     public ShippingInfoDTO calculateShippingFee(double latitude, double longitude) {
-        double distance = calculateDistance(shopLatitude, shopLongitude, latitude, longitude);
+        if (ratePerKm <= 0 || firstKmRate <= 0) {
+            throw new IllegalStateException("Shipping rates are not configured in application properties.");
+        }
+
+        List<Store> activeStores = storeRepository.findAllByIsActive(true);
+        if (activeStores.isEmpty()) {
+            throw new ResourceNotFoundException("No active stores available for shipping.");
+        }
+
+        Store nearestStore = null;
+        double minDistance = Double.MAX_VALUE;
+
+        for (Store store : activeStores) {
+            if (store.getLatitude() != null && store.getLongitude() != null) {
+                double distance = calculateDistance(store.getLatitude(), store.getLongitude(), latitude, longitude);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestStore = store;
+                }
+            }
+        }
+
+        if (nearestStore == null) {
+            throw new ResourceNotFoundException("Could not find a store with valid coordinates.");
+        }
+
+        if (minDistance > MAX_SERVICE_DISTANCE_KM) {
+            throw new OutOfServiceAreaException("Sorry, your location is outside our service area.");
+        }
+
+        double fee;
+        if (minDistance <= 1) {
+            fee = firstKmRate;
+        } else {
+            fee = firstKmRate + (minDistance - 1) * ratePerKm;
+        }
+        
+        // Round fee to nearest 100
+        BigDecimal finalFee = BigDecimal.valueOf(Math.round(fee / 100) * 100);
+
+        return new ShippingInfoDTO(finalFee, minDistance, nearestStore.getId(), nearestStore.getName());
+    }
+
+    @Override
+    public ShippingInfoDTO calculateShippingFeeForStore(Long storeId, double latitude, double longitude) {
+        if (ratePerKm <= 0 || firstKmRate <= 0) {
+            throw new IllegalStateException("Shipping rates are not configured in application properties.");
+        }
+
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Store not found with id: " + storeId));
+
+        if (!store.isActive() || store.getLatitude() == null || store.getLongitude() == null) {
+            throw new ResourceNotFoundException("Store is not available for shipping.");
+        }
+
+        double distance = calculateDistance(store.getLatitude(), store.getLongitude(), latitude, longitude);
+
+        if (distance > MAX_SERVICE_DISTANCE_KM) {
+            throw new OutOfServiceAreaException("The selected store is outside our service area for your location.");
+        }
+
         double fee;
         if (distance <= 1) {
             fee = firstKmRate;
         } else {
             fee = firstKmRate + (distance - 1) * ratePerKm;
         }
-        return new ShippingInfoDTO(BigDecimal.valueOf(Math.floor(fee / 100) * 100), distance);
+
+        BigDecimal finalFee = BigDecimal.valueOf(Math.round(fee / 100) * 100);
+
+        return new ShippingInfoDTO(finalFee, distance, store.getId(), store.getName());
     }
 
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -51,3 +118,4 @@ public class ShippingServiceImpl implements ShippingService {
         return EARTH_RADIUS * c;
     }
 }
+

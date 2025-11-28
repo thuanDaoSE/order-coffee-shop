@@ -55,6 +55,7 @@ public class SecurityConfig {
                                 // ...
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/api/r2/**",
+                                                                "/api/shipping/**",
                                                                 "/api/v1/payment/create-payment",
                                                                 "/api/v1/payment/callback", "/api/v1/location/**",
                                                                 "/api/v1/categories/**")

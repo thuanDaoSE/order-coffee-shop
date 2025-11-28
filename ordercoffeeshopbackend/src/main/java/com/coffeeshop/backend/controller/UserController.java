@@ -1,6 +1,8 @@
 package com.coffeeshop.backend.controller;
 
+import com.coffeeshop.backend.dto.StoreDTO;
 import com.coffeeshop.backend.dto.user.UserDTO;
+import com.coffeeshop.backend.entity.Store;
 import com.coffeeshop.backend.entity.User;
 import com.coffeeshop.backend.enums.UserRole;
 import com.coffeeshop.backend.service.UserService;
@@ -47,6 +49,13 @@ public class UserController {
         return ResponseEntity.ok(convertToDto(updatedUser));
     }
 
+    @PutMapping("/me/store")
+    public ResponseEntity<UserDTO> updateUserStore(java.security.Principal principal, @RequestBody Map<String, Long> body) {
+        Long storeId = body.get("storeId");
+        User updatedUser = userService.updateUserStore(principal.getName(), storeId);
+        return ResponseEntity.ok(convertToDto(updatedUser));
+    }
+
     private UserDTO convertToDto(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
@@ -54,6 +63,13 @@ public class UserController {
         userDTO.setFullname(user.getFullname());
         userDTO.setPhone(user.getPhone());
         userDTO.setRole(user.getRole());
+        if (user.getStore() != null) {
+            StoreDTO storeDTO = new StoreDTO();
+            storeDTO.setId(user.getStore().getId());
+            storeDTO.setName(user.getStore().getName());
+            storeDTO.setAddress(user.getStore().getAddress());
+            userDTO.setStore(storeDTO);
+        }
         return userDTO;
     }
 }

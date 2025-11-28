@@ -21,6 +21,11 @@ export const getProfile = async (): Promise<User> => {
   return response.data;
 };
 
+export const updateUserStore = async (storeId: number): Promise<User> => {
+  const response = await api.put('/v1/users/me/store', { storeId });
+  return response.data;
+};
+
 // Use Partial<User> to allow updating only some fields of the profile
 export const updateProfile = async (profile: Partial<User>): Promise<User> => {
   const response = await api.put('/v1/users/me', profile);

@@ -1,7 +1,9 @@
 package com.coffeeshop.backend.service.implement;
 
+import com.coffeeshop.backend.entity.Store;
 import com.coffeeshop.backend.enums.UserRole;
 import com.coffeeshop.backend.exception.ResourceNotFoundException;
+import com.coffeeshop.backend.repository.StoreRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final StoreRepository storeRepository;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -64,4 +67,13 @@ public class UserServiceImpl implements UserService {
         user.setPhone(userDTO.getPhone());
         return userRepository.save(user);
     }
+
+    @Override
+    public User updateUserStore(String email, Long storeId) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Store store = storeRepository.findById(storeId).orElseThrow(() -> new ResourceNotFoundException("Store not found"));
+        user.setStore(store);
+        return userRepository.save(user);
+    }
 }
+

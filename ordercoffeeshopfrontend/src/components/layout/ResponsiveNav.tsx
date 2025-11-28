@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { PATHS } from '../../constants';
 import { useClickOutside } from '../../hooks/useClickOutside';
+import StoreSelector from '../StoreSelector';
 
 const NavLink = ({ to, children, className = '' }: { to: string, children: React.ReactNode, className?: string }) => {
   const location = useLocation();
@@ -115,7 +116,7 @@ const ResponsiveNav = () => {
   };
 
   return (
-        <nav 
+        <nav
           className={`fixed w-full z-50 transition-all duration-300 ${
         scrolled ? 'bg-amber-900/95 shadow-lg' : 'bg-amber-900'
           }`}
@@ -140,8 +141,9 @@ const ResponsiveNav = () => {
                 </span>
               )}
             </Link>
-
+            
             <div className="flex items-center space-x-4 ml-4">
+            {user && <StoreSelector />}
               {user ? (
                 <div className="relative" ref={profileRef}>
                   <button

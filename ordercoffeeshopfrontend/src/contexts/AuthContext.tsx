@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo } from 'react';
-import { getProfile, logout as logoutUser } from '../services';
+import { getProfile, logout as logoutUser, updateUserStore } from '../services';
 import type { User } from '../types/user';
+import type { Store } from '../types/store';
 
 interface AuthContextType {
   user: User | null;
@@ -8,6 +9,7 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   fetchUser: () => void;
+  updateStore: (storeId: number) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async () => {
     try {
-      await logoutUser(); // Gọi API logout để backend xóa cookie
+      await logoutUser(); // Call API logout for backend to clear cookie
     } catch (error) {
       console.error("Failed to logout:", error);
     }
@@ -62,7 +64,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     clearCart();
   }, [clearCart]);
 
-  const value = useMemo(() => ({ user, login, logout, isLoading, fetchUser }), [user, login, logout, isLoading, fetchUser]);
+  const updateStore = useCallback(async (storeId: number) => {
+    if (!user) return;
+    try {
+      const updatedUser = await updateUserStore(storeId);
+      setUser(updatedUser);
+    } catch (error) {
+      console.error("Failed to update store:", error);
+      // Optionally handle the error in the UI
+    }
+  }, [user]);
+
+  const value = useMemo(() => ({ user, login, logout, isLoading, fetchUser, updateStore }), [user, login, logout, isLoading, fetchUser, updateStore]);
 
   return (
     <AuthContext.Provider value={value}>

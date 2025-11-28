@@ -24,4 +24,6 @@ public interface UserService {
 
     User updateProfile(String email, UserDTO userDTO);
 
+    User updateUserStore(String name, Long storeId);
+
 }

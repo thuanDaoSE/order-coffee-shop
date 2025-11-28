@@ -73,7 +73,7 @@ public class OrderServiceImpl implements OrderService {
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "ProductVariant not found with id: " + itemRequest.getProductVariantId()));
 
-            ProductStock productStock = productStockRepository.findByProductVariantIdAndStoreId(variant.getId(), store.getId())
+            ProductStock productStock = productStockRepository.findAndLockByProductVariantIdAndStoreId(variant.getId(), store.getId())
                     .orElseThrow(() -> new RuntimeException("Product not available at this store"));
 
             if (productStock.getQuantity() < itemRequest.getQuantity()) {

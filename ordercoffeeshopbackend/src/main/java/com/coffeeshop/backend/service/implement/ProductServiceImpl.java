@@ -63,25 +63,30 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDTO> getProductsByCategory(String categoryName, String search) {
-        List<Product> products;
+    public Page<ProductDTO> getProductsByCategory(String categoryName, String search, Pageable pageable) {
+        Page<Product> products;
         if ("best-selling".equalsIgnoreCase(categoryName)) {
-            // Custom logic for best-selling products
-            products = orderDetailRepository.findAll().stream()
+            // Note: Pagination for this custom logic might require more complex queries.
+            // For now, we return it as a single page.
+            List<Product> bestSellingProducts = orderDetailRepository.findAll().stream()
                 .collect(Collectors.groupingBy(od -> od.getProductVariant().getProduct(),
-                    Collectors.summingInt(od -> od.getQuantity())))
+                    Collectors.summingInt(OrderDetail::getQuantity)))
                 .entrySet().stream()
                 .sorted(Map.Entry.<Product, Integer>comparingByValue().reversed())
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-        } else if (search != null && !search.isEmpty()) {
-            products = productRepository.findByCategory_NameAndNameContainingIgnoreCaseAndIsActive(categoryName, search, true);
-        } else {
-            products = productRepository.findByCategory_Name(categoryName);
-        }
-        return products.stream()
+
+            List<ProductDTO> bestSellingProductDTOs = bestSellingProducts.stream()
                 .map(productMapper::toProductDTO)
                 .collect(Collectors.toList());
+            
+            return new org.springframework.data.domain.PageImpl<>(bestSellingProductDTOs, pageable, bestSellingProductDTOs.size());
+        } else if (search != null && !search.isEmpty()) {
+            products = productRepository.findByCategory_NameAndNameContainingIgnoreCaseAndIsActive(categoryName, search, true, pageable);
+        } else {
+            products = productRepository.findByCategory_NameAndIsActive(categoryName, true, pageable);
+        }
+        return products.map(productMapper::toProductDTO);
     }
 
     @Override

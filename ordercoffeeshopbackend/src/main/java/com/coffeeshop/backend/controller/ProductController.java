@@ -76,8 +76,12 @@ public class ProductController {
     }
 
     @GetMapping("/category/{categoryName}")
-    public ResponseEntity<List<ProductDTO>> getProductsByCategory(@PathVariable String categoryName, @RequestParam(required = false) String search) {
-        List<ProductDTO> products = productService.getProductsByCategory(categoryName, search);
+    public ResponseEntity<Page<ProductDTO>> getProductsByCategory(@PathVariable String categoryName, 
+                                                                  @RequestParam(required = false) String search,
+                                                                  @RequestParam(defaultValue = "0") int page,
+                                                                  @RequestParam(defaultValue = "12") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductDTO> products = productService.getProductsByCategory(categoryName, search, pageable);
         return ResponseEntity.ok(products);
     }
 

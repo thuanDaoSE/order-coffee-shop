@@ -23,8 +23,8 @@ export const getAllProductsList = async (): Promise<Product[]> => {
   return response.data;
 };
 
-export const getProductsByCategory = async (category: string, search?: string): Promise<Product[]> => {
-  const response = await api.get(`/v1/products/category/${category}`, { params: { search } });
+export const getProductsByCategory = async (category: string, search?: string, page = 0, size = 12): Promise<Page<Product>> => {
+  const response = await api.get(`/v1/products/category/${category}`, { params: { search, page, size } });
   return response.data;
 };
 

@@ -24,7 +24,7 @@ public class ReportServiceImpl implements ReportService {
     private final OrderDetailRepository orderDetailRepository;
 
     @Override
-    public SalesReportDTO getSalesReport(String period) {
+    public SalesReportDTO getSalesReport(String period, Long storeId) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startDate;
 
@@ -42,7 +42,12 @@ public class ReportServiceImpl implements ReportService {
                 throw new IllegalArgumentException("Invalid period: " + period);
         }
 
-        List<Order> orders = orderRepository.findAllByOrderDateBetween(startDate, now);
+        List<Order> orders;
+        if (storeId != null) {
+            orders = orderRepository.findAllByOrderDateBetweenAndStoreId(startDate, now, storeId);
+        } else {
+            orders = orderRepository.findAllByOrderDateBetween(startDate, now);
+        }
 
         BigDecimal totalRevenue = orders.stream()
                 .map(Order::getTotalPrice)
@@ -62,19 +67,25 @@ public class ReportServiceImpl implements ReportService {
                 })
                 .collect(Collectors.toList());
 
+        // Correctly get order details from the filtered orders
+        List<OrderDetail> filteredOrderDetails = orders.stream()
+                .flatMap(order -> order.getOrderDetails().stream())
+                .collect(Collectors.toList());
 
-        List<Map<String, Object>> topSellingProducts = orderDetailRepository.findAll().stream()
-                .collect(Collectors.groupingBy(od -> od.getProductVariant().getProduct().getName(),
+        List<Map<String, Object>> topSellingProducts = filteredOrderDetails.stream()
+                .collect(Collectors.groupingBy(od -> od.getProductVariant().getProduct().getName() + " (" + od.getProductVariant().getSize() + ")",
                         Collectors.summarizingInt(OrderDetail::getQuantity)))
                 .entrySet().stream()
                 .map(entry -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("name", entry.getKey());
                     map.put("quantity", entry.getValue().getSum());
-                    map.put("revenue", orderDetailRepository.findAll().stream()
-                            .filter(od -> od.getProductVariant().getProduct().getName().equals(entry.getKey()))
+                    // Calculate revenue for this specific product group from the filtered details
+                    BigDecimal revenue = filteredOrderDetails.stream()
+                            .filter(od -> (od.getProductVariant().getProduct().getName() + " (" + od.getProductVariant().getSize() + ")").equals(entry.getKey()))
                             .map(od -> od.getUnitPrice().multiply(new BigDecimal(od.getQuantity())))
-                            .reduce(BigDecimal.ZERO, BigDecimal::add));
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    map.put("revenue", revenue);
                     return map;
                 })
                 .sorted((a, b) -> Long.compare((long) b.get("quantity"), (long) a.get("quantity")))

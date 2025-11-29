@@ -19,8 +19,9 @@ public class ReportController {
 
     @GetMapping("/sales")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SalesReportDTO> getSalesReport(@RequestParam(defaultValue = "weekly") String period) {
-        SalesReportDTO report = reportService.getSalesReport(period);
+    public ResponseEntity<SalesReportDTO> getSalesReport(@RequestParam(defaultValue = "weekly") String period,
+                                                       @RequestParam(required = false) Long storeId) {
+        SalesReportDTO report = reportService.getSalesReport(period, storeId);
         return ResponseEntity.ok(report);
     }
 }

@@ -7,7 +7,11 @@ export interface SalesReport {
   topSellingProducts: any[];
 }
 
-export const getSalesReport = async (period: string): Promise<SalesReport> => {
-  const response = await api.get('/v1/reports/sales', { params: { period } });
+export const getSalesReport = async (period: string, storeId?: number | null): Promise<SalesReport> => {
+  const params: any = { period };
+  if (storeId) {
+    params.storeId = storeId;
+  }
+  const response = await api.get('/v1/reports/sales', { params });
   return response.data;
 };

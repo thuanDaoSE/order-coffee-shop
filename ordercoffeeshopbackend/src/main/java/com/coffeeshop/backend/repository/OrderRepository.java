@@ -17,4 +17,5 @@ import org.springframework.data.domain.Pageable;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findAllByUserId(Long userId, Pageable pageable);
     List<Order> findAllByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    List<Order> findAllByOrderDateBetweenAndStoreId(LocalDateTime startDate, LocalDateTime endDate, Long storeId);
 }

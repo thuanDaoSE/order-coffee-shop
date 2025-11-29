@@ -1,10 +1,16 @@
 // src/types/product.ts
 
+export interface ProductStock {
+  id: number;
+  storeName: string;
+  quantity: number;
+  productVariantId: number;
+}
+
 export interface ProductVariantRequest {
   sku: string;
   size: string;
   price: number;
-  stockQuantity: number;
   isActive: boolean;
 }
 
@@ -12,9 +18,9 @@ export interface ProductVariant {
   id: number;
   sku: string;
   price: number;
-  stockQuantity: number;
   size: string;
   isActive: boolean;
+  productName: string;
 }
 
 export interface Category {

@@ -1,7 +1,17 @@
 import api from './api';
-import type { Product, ProductRequest } from '../types/product';
+import type { Product, ProductRequest, ProductStock } from '../types/product';
 import type { Category } from '../types/category';
 import type { Page } from '../types/common';
+
+export const getProductStocks = async (productVariantId: number): Promise<ProductStock[]> => {
+  const response = await api.get(`/v1/products/${productVariantId}/stocks`);
+  return response.data;
+};
+
+export const updateProductStock = async (stockId: number, quantity: number): Promise<ProductStock> => {
+  const response = await api.put(`/v1/products/stocks/${stockId}`, { quantity });
+  return response.data;
+};
 
 export const getProducts = async (search?: string, page = 0, size = 10): Promise<Page<Product>> => {
   const response = await api.get('/v1/products', { params: { search, page, size } });

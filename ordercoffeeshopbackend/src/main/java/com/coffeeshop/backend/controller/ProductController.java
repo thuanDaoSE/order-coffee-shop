@@ -11,10 +11,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import com.coffeeshop.backend.dto.product.UpdateStockRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+
+import com.coffeeshop.backend.dto.product.ProductStockDTO;
+import com.coffeeshop.backend.service.ProductStockService;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -23,6 +27,21 @@ import java.util.Map;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductStockService productStockService;
+
+    @PutMapping("/stocks/{stockId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductStockDTO> updateStock(@PathVariable Long stockId, @RequestBody UpdateStockRequest request) {
+        ProductStockDTO updatedStock = productStockService.updateStock(stockId, request.getQuantity());
+        return ResponseEntity.ok(updatedStock);
+    }
+
+    @GetMapping("/{productVariantId}/stocks")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ProductStockDTO>> getProductStock(@PathVariable Long productVariantId) {
+        List<ProductStockDTO> stocks = productStockService.getStockByProductVariantId(productVariantId);
+        return ResponseEntity.ok(stocks);
+    }
 
     @GetMapping("/all")
     public ResponseEntity<List<ProductDTO>> getAllProductsList() {

@@ -1,0 +1,1 @@
+ALTER TABLE public.product_variants DROP COLUMN stock_quantity_legacy_do_not_use;

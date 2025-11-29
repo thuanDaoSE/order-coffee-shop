@@ -19,9 +19,5 @@ public class ProductVariantRequest {
     @PositiveOrZero(message = "Price must be a positive value or zero")
     private BigDecimal price;
 
-    @NotNull(message = "Stock quantity cannot be null")
-    @PositiveOrZero(message = "Stock quantity must be a positive value or zero")
-    private Integer stockQuantity;
-
     private Boolean isActive = true; // Default to active
 }

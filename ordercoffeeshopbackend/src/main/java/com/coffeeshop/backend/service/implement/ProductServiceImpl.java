@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Cacheable("products")
     public Page<ProductDTO> getAllProducts(String search, Pageable pageable) {
+        log.info("Fetching products from DB with search: {}, pageable: {}", search, pageable);
         Page<Product> products;
         if (search != null && !search.isEmpty()) {
             products = productRepository.findByNameContainingIgnoreCaseAndIsActive(search, true, pageable);
@@ -63,7 +65,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable("products")
     public Page<ProductDTO> getProductsByCategory(String categoryName, String search, Pageable pageable) {
+        log.info("Fetching products by category from DB: {}, search: {}, pageable: {}", categoryName, search, pageable);
         Page<Product> products;
         if ("best-selling".equalsIgnoreCase(categoryName)) {
             // Note: Pagination for this custom logic might require more complex queries.
@@ -98,6 +102,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductDTO createProduct(ProductRequest productRequest) {
         Category category = categoryRepository.findById(productRequest.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + productRequest.getCategoryId()));
@@ -127,11 +132,7 @@ public class ProductServiceImpl implements ProductService {
 
         // After saving the product and variants, create the stock records
         savedProduct.getVariants().forEach(variant -> {
-            Integer initialStock = productRequest.getVariants().stream()
-                .filter(vr -> vr.getSku().equals(variant.getSku()))
-                .map(ProductVariantRequest::getStockQuantity)
-                .findFirst()
-                .orElse(0);
+            Integer initialStock = 0; // Default to 0 as stockQuantity is removed from request
 
             ProductStock productStock = new ProductStock();
             productStock.setProductVariant(variant);
@@ -155,6 +156,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductDTO updateProduct(Long productId, ProductRequest productRequest) {
         log.info("Updating product with id: {}", productId);
         log.info("Request body: {}", productRequest);
@@ -211,6 +213,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void deleteProduct(Long productId) {
         Product existingProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
@@ -238,6 +241,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductDTO updateProductStatus(Long productId, Boolean isActive) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));

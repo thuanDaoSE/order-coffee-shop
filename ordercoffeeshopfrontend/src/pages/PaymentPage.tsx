@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Container, Typography, Box, Alert, CircularProgress } from '@mui/material';
 import PaymentIcon from '@mui/icons-material/Payment';
-import { createPayment } from '../services/paymentService';
+import { getPaymentStatus, mockPaymentSuccess } from '../services/paymentService';
 import { useCart } from '../contexts/CartContext';
 
 export default function PaymentPage() {
@@ -11,7 +11,7 @@ export default function PaymentPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { clearCart } = useCart();
-  const { orderId, totalAmount, orderInfo, paymentMethod } = location.state || {};
+  const { orderId, totalAmount } = location.state || {};
 
   useEffect(() => {
     if (!orderId || !totalAmount) {
@@ -20,25 +20,22 @@ export default function PaymentPage() {
   }, [orderId, totalAmount, navigate]);
 
   const handlePayment = async () => {
-    if (!orderId || !totalAmount) return;
+    if (!orderId) return;
     
     setIsLoading(true);
     setError('');
     
     try {
-      const paymentUrl: string = await createPayment({
-        amount: totalAmount, // Amount is already in VND
-        orderInfo: `Thanh toan don hang ${orderId}`,
-        orderId: orderId.toString(),
-        bankCode: paymentMethod,
-      });
+      // MOCK PAYMENT FLOW
+      await mockPaymentSuccess(orderId);
       
-      // Redirect to VNPAY payment URL
-      window.location.href = paymentUrl;
+      // Manually navigate to result page with success params
+      navigate(`/payment/result?vnp_ResponseCode=00&vnp_TxnRef=${orderId}`);
+      clearCart(); // Clear cart after successful mock payment initiation
       
     } catch (err) {
-      setError('Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại.');
-      console.error('Payment error:', err);
+      setError('Có lỗi xảy ra khi xử lý thanh toán giả lập. Vui lòng thử lại.');
+      console.error('Mock payment error:', err);
     } finally {
       setIsLoading(false);
     }

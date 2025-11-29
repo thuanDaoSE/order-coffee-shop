@@ -28,4 +28,6 @@ public interface OrderService {
     List<OrderResponse> getAllOrders();
 
     void cancelOrder(Long orderId, String username);
+
+    void processMockPayment(Long orderId);
 }

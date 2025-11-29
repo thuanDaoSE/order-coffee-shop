@@ -46,6 +46,29 @@ public class OrderServiceImpl implements OrderService {
     private final ShippingService shippingService;
     private final OrderMapper orderMapper;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final PaymentRepository paymentRepository;
+
+    @Override
+    @Transactional
+    public void processMockPayment(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        
+        order.setStatus(OrderStatus.PAID);
+        
+        Payment payment = order.getPayment();
+        if (payment == null) {
+            throw new ResourceNotFoundException("Payment not found for order id: " + orderId);
+        }
+        payment.setStatus(PaymentStatus.SUCCESS);
+        payment.setPaymentDate(LocalDateTime.now());
+        
+        paymentRepository.save(payment);
+        orderRepository.save(order);
+
+        // Notify clients via WebSocket
+        simpMessagingTemplate.convertAndSend("/topic/orders", orderMapper.toOrderDTO(order));
+    }
 
     @Override
     @Transactional

@@ -1,0 +1,90 @@
+app:
+  frontend-url-dev: &frontend_URL ""
+  frontend-url-production: &frontend_URL ""
+  default_role: "USER"
+  latitude: 
+  longitude: 
+
+logging:
+  level:
+    com.zaxxer.hikari: DEBUG
+
+spring:
+  application:
+    name: OrderCoffeeShopBackend
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      # ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  datasource:
+    url: jdbc:
+    username: 
+    password: 
+    
+    driver-class-name: org.postgresql.Driver
+    hikari:
+          # Đặt con số này bằng hoặc lớn hơn số user bạn test (ví dụ: 100)
+          # Cảnh báo: Đặt quá cao trong thực tế có thể làm sập CSDL
+      maximum-pool-size: 40 
+          # Có thể đặt thêm thời gian chờ connection (mặc định là 30s)
+          # connection-timeout: 30000
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  security:
+    jwt:
+      secret: 
+      expiration: 86400000 # 1 day
+      refresh-token-expiration: 604800000 # 7 days
+  flyway:
+# Kích hoạt Flyway (mặc định là true)
+    enabled: true
+# Đường dẫn đến các file migration (đây là mặc định)
+    locations:  classpath:db/migration
+# # Báo cho Flyway tạo một "mốc" (baseline) thay vì chạy migrate
+#     baseline-on-migrate: true
+# # Báo rằng mốc đó là phiên bản 3 (phiên bản của file CUỐI CÙNG bạn đã chạy)
+#     baseline-version: 3
+
+
+r2:
+  accountId: 
+  tokenaccount: 
+  # endpoint for S3
+  s3endpoint: 
+  accessKey: 
+  secretKey: 
+  bucketName: 
+  baseUrl: 
+
+vnpay:
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: ${app.frontend-url-production}/payment/vnpay/callback
+  tmn-code: 
+  hash-secret: 
+  url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+  version: 2.1.0
+  command: pay
+  order-type: other
+
+vietmap:
+  api-key: 
+  url-base: https://maps.vietmap.vn/api
+
+shipping:
+  rate-per-km: 5000 # 5000 VND per km
+  first-km-rate: 20000 # 20000 VND for the first km
+  shop:
+    latitude: 
+    longitude: 

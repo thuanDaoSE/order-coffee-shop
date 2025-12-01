@@ -18,9 +18,28 @@ The system allows users to automatically find the nearest store based on their l
 
 ---
 
+## 🌐 Live Demo & Deployment
+
+The live application is deployed on a VPS with the following configuration:
+
+-   **Specs:** 2 vCPU, 2GB RAM, 50GB SSD
+-   **URL:** [http://103.77.243.143/](http://103.77.243.143/)
+
+---
+
+## 🖼️ Application UI
+
+Here's a glimpse of the user interface:
+
+| Home Page | Menu Page |
+| :---: | :---: |
+| ![Home Page](docs/images/homePage.png) | ![Menu Page](docs/images/menuPage.png) |
+
+---
+
 ## 🏗️ System Architecture
 
-The system is deployed on a **Linux VPS (2 vCPU, 2GB RAM)** using a classic monolithic architecture optimized for performance.
+The system is deployed using a classic monolithic architecture optimized for performance.
 
 ![System Architecture](docs/images/mermaid.png)
 
@@ -59,22 +78,19 @@ The system is deployed on a **Linux VPS (2 vCPU, 2GB RAM)** using a classic mono
 
 I conducted rigorous Stress Tests using **Apache JMeter** to validate system stability on low-spec hardware (**2 vCPU, 2GB RAM**).
 
-### Scenario: 200 Concurrent Users (Read-Heavy)
+### Scenario: Full Order Process Load Test
 
-  - **Tool:** Apache JMeter.
-  - **Config:** 200 Threads, Ramp-up 10s.
-  - **Result:**
-      - **Throughput:** ~630 Requests/sec.
-      - **Error Rate:** 0.00%.
-      - **Avg Latency:** ~290ms (at peak load).
+This test simulates 200 concurrent users logging in, creating addresses, browsing products, and placing orders.
 
-> **Proof of Performance:**
+> **Proof of Performance (Full Order Process):**
 >
 > ![JMeter Load Test](docs/images/fullOderProcessLoadTest.png)
 
-### System Health during Load Test
+### System Health during Redis Cache Load Test
 
-> **Proof of Monitoring:**
+This test focuses on read-heavy requests to the product menu to measure the effectiveness of the Redis cache. The Grafana dashboard below shows stable CPU and memory usage during the test.
+
+> **Proof of Monitoring (Redis Cache Test):**
 >
 > ![Redis Load Test](docs/images/redisLoadTest.png)
 

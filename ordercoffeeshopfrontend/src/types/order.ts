@@ -7,7 +7,7 @@ export interface OrderItem {
   productName: string;
   productVariantId: number;
   quantity: number;
-  price: number;
+  unitPrice: number;
   imageUrl?: string;
 }
 

@@ -56,7 +56,7 @@ const OrderCard = ({ order, onUpdateStatus, devMode }: { order: Order, onUpdateS
           {order.items.map((item, index) => (
             <li key={index} className={`flex justify-between items-center ${isCancelled ? 'line-through' : ''}`}>
               <span className="font-medium">{item.quantity}x {item.productName}</span>
-              <span className="text-gray-600 font-semibold">{formatVND(item.price * item.quantity)}</span>
+              <span className="text-gray-600 font-semibold">{formatVND(item.unitPrice * item.quantity)}</span>
             </li>
           ))}
         </ul>
@@ -91,11 +91,12 @@ const StaffDashboard = () => {
   const newOrderAudioRef = useRef<HTMLAudioElement>(null);
   const cancelledOrderAudioRef = useRef<HTMLAudioElement>(null);
 
-  const { data: orders, isLoading } = useQuery<Order[], Error>({
+  const { data: ordersPage, isLoading } = useQuery<any, Error>({
     queryKey: ['allOrders'],
-    queryFn: getAllOrders,
+    queryFn: () => getAllOrders(0, 100),
     refetchOnWindowFocus: false,
   });
+  const orders: Order[] = useMemo(() => ordersPage?.content || [], [ordersPage]);
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ orderId, status }: { orderId: number; status: string }) => {
@@ -108,13 +109,7 @@ const StaffDashboard = () => {
 
   useEffect(() => {
     connect('/topic/orders', (newOrder: Order) => {
-      queryClient.setQueryData<Order[]>(['allOrders'], (oldData) => {
-        if (!oldData) return [newOrder];
-        if (oldData.some(order => order.id === newOrder.id)) {
-            return oldData.map(order => order.id === newOrder.id ? newOrder : order);
-        }
-        return [newOrder, ...oldData];
-      });
+      queryClient.invalidateQueries({ queryKey: ['allOrders'] });
 
       if (newOrder.status === 'PAID') {
         newOrderAudioRef.current?.play();

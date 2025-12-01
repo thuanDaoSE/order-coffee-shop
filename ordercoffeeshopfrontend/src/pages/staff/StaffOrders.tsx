@@ -22,10 +22,7 @@ const StaffOrders = () => {
   // Changed to getAllOrders
   const { data: ordersPage, isLoading, isError } = useQuery<any, Error>({
     queryKey: ['allOrders', currentPage],
-    queryFn: ({ queryKey }) => {
-      const [_key, pageNum] = queryKey; // queryKey is ['allOrders', currentPage]
-      return getAllOrders(pageNum as number, 5);
-    },
+    queryFn: () => getAllOrders(currentPage, 5),
   });
 
   const { data: products } = useQuery<Product[], Error>({

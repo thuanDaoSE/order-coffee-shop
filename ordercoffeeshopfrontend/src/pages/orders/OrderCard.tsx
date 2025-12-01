@@ -36,7 +36,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, variantIdToImageUrlMap, ha
       </div>
 
       <div className="divide-y divide-gray-200">
-        {order.orderDetails.map((item) => (
+        {order.items.map((item) => (
           <OrderItem 
             key={`${item.productVariantId}-${item.size}`}
             item={item} 

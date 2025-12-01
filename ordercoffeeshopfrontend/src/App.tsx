@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Checkout from './pages/Checkout';
 import { Home } from './pages/Home';
 import StaffDashboard from './pages/StaffDashboard';
+import StaffOrders from './pages/staff/StaffOrders';
 import PaymentResultPage from './pages/PaymentResultPage';
 import PaymentPage from './pages/PaymentPage';
 import CartPage from './pages/CartPage';
@@ -65,8 +66,8 @@ const AppRoutes = () => {
         element={<ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><MainLayout><StaffDashboard /></MainLayout></ProtectedRoute>}
       />
       <Route
-        path="/staff"
-        element={<ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><MainLayout><StaffDashboard /></MainLayout></ProtectedRoute>}
+        path="/staff/orders"
+        element={<ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}><MainLayout><StaffOrders /></MainLayout></ProtectedRoute>}
       />
       <Route
         path="/admin"

@@ -3,7 +3,7 @@ import { Stomp } from '@stomp/stompjs';
 
 // const SOCKET_URL = 'http://103.77.243.143/ws';
 // Dùng ws:// thay cho http://
-const SOCKET_URL = 'ws://103.77.243.143/ws';
+const SOCKET_URL = 'http://103.77.243.143/ws';
 
 let stompClient: any = null;
 

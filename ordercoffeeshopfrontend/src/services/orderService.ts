@@ -42,9 +42,9 @@ export const getOrders = async (page = 0, size = 10): Promise<Page<Order>> => {
   }
 };
 
-export const getAllOrders = async (): Promise<Order[]> => {
+export const getAllOrders = async (page = 0, size = 10): Promise<Page<Order>> => {
   try {
-    const response = await api.get('/v1/orders/all');
+    const response = await api.get('/v1/orders/all', { params: { page, size } });
     console.log("get all orders response: ",response.data);
     return response.data;
   } catch (error) {

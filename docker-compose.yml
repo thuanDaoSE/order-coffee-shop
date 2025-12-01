@@ -19,5 +19,14 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_test_data:
+  redis_data:

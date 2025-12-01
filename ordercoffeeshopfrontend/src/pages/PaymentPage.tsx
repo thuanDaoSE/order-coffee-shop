@@ -30,7 +30,7 @@ export default function PaymentPage() {
       await mockPaymentSuccess(orderId);
       
       // Manually navigate to result page with success params
-      navigate(`/payment/result?vnp_ResponseCode=00&vnp_TxnRef=${orderId}`);
+      navigate(`/payment/vnpay/callback?vnp_ResponseCode=00&vnp_TxnRef=${orderId}`);
       clearCart(); // Clear cart after successful mock payment initiation
       
     } catch (err) {

@@ -68,7 +68,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/coupons/**").permitAll() // Add this line for
                                                                                                    // coupon validation
                                                 .requestMatchers("/api/v1/reports/**").hasRole("ADMIN")
-                                                .requestMatchers("/api/v1/users/**").hasAnyRole("CUSTOMER", "ADMIN")
+                                                .requestMatchers("/api/v1/users/**").hasAnyRole("CUSTOMER", "ADMIN", "STAFF")
                                                 .requestMatchers("/api/v1/cart/**").hasRole("CUSTOMER")
                                                 .requestMatchers("/api/v1/orders/**")
                                                 .hasAnyRole("CUSTOMER", "ADMIN", "STAFF")

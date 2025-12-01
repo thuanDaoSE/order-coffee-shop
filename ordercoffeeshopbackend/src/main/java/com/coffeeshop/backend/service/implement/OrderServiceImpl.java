@@ -225,11 +225,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderResponse> getAllOrders() {
-        List<Order> orders = orderRepository.findAll();
-        return orders.stream()
-                .map(orderMapper::toOrderResponse)
-                .collect(Collectors.toList());
+    public Page<OrderResponse> getAllOrders(org.springframework.security.core.userdetails.UserDetails userDetails, Pageable pageable) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userDetails.getUsername()));
+
+        Page<Order> orders;
+        if (user.getRole() == com.coffeeshop.backend.enums.UserRole.ADMIN) {
+            orders = orderRepository.findAll(pageable);
+        } else if (user.getRole() == com.coffeeshop.backend.enums.UserRole.STAFF) {
+            if (user.getStore() == null) {
+                throw new AccessDeniedException("Staff user is not assigned to any store.");
+            }
+            orders = orderRepository.findByStoreId(user.getStore().getId(), pageable);
+        } else {
+             throw new AccessDeniedException("You do not have permission to view all orders.");
+        }
+
+        return orders.map(orderMapper::toOrderResponse);
     }
 
     @Override

@@ -26,9 +26,11 @@ import com.coffeeshop.backend.dto.auth.UserProfileResponse;
 import com.coffeeshop.backend.exception.ResourceNotFoundException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -39,13 +41,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public RegisterResponse registerNewUser(RegisterRequest registerRequest) {
+        log.info("Registering new user with email: {}", registerRequest.getEmail());
+        log.info("Password from request: {}", registerRequest.getPassword());
         Optional<User> userOptional = userRepository.findByEmail(registerRequest.getEmail());
         if (userOptional.isPresent()) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
 
         User user = authMapper.toUser(registerRequest);
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
+        log.info("Encoded password: {}", encodedPassword);
+        user.setPassword(encodedPassword);
         user.setRole(UserRole.CUSTOMER);
         userRepository.save(user);
         return authMapper.toRegisterResponse(user);
@@ -53,6 +59,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
+        log.info("Attempting login for email: {}", loginRequest.getEmail());
+        log.info("Password from request: {}", loginRequest.getPassword());
 
         // 1. UỶ THÁC (DELEGATE) VIỆC XÁC THỰC CHO SPRING SECURITY
         // Nếu username/password sai, phương thức này sẽ tự động ném ra Exception (ví

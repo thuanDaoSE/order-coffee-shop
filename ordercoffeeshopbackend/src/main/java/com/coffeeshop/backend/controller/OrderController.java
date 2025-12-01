@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationRequest;
 import com.coffeeshop.backend.dto.voucher.VoucherValidationResponse;
 import lombok.extern.slf4j.Slf4j;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
 
 import org.springframework.data.domain.Sort;
@@ -33,11 +34,17 @@ public class OrderController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('CUSTOMER')")
+    @RateLimiter(name = "defaultRateLimiter", fallbackMethod = "rateLimiterFallback")
     public ResponseEntity<OrderResponse> createOrder(@RequestBody CreateOrderRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         OrderResponse response = orderService.createOrder(request, userDetails.getUsername());
         log.info("Order created successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    public ResponseEntity<String> rateLimiterFallback(CreateOrderRequest request, UserDetails userDetails, Throwable t) {
+        log.warn("Rate limit exceeded for user {}: {}", userDetails.getUsername(), t.getMessage());
+        return new ResponseEntity<>("Too many requests - please try again later", HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @PostMapping("/validate-voucher")
@@ -58,8 +65,10 @@ public class OrderController {
 
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<List<OrderResponse>> getAllOrders() {
-        List<OrderResponse> orders = orderService.getAllOrders();
+    public ResponseEntity<Page<OrderResponse>> getAllOrders(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PageableDefault(sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<OrderResponse> orders = orderService.getAllOrders(userDetails, pageable);
         return ResponseEntity.ok(orders);
     }
 

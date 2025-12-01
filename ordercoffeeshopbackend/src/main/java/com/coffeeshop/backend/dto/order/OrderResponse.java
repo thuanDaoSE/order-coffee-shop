@@ -13,8 +13,8 @@ public class OrderResponse {
     private Long id;
     private LocalDateTime orderDate;
     private OrderStatus status;
-    private BigDecimal totalPrice;
-    private List<OrderItemResponse> orderDetails;
+    private BigDecimal totalAmount;
+    private List<OrderItemResponse> items;
     private String deliveryMethod;
     private UserSummary user;
 }

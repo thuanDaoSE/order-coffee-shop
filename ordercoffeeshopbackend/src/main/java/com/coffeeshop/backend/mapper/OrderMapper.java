@@ -16,6 +16,8 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
 
+    @Mapping(source = "orderDetails", target = "items")
+    @Mapping(source = "totalPrice", target = "totalAmount")
     OrderResponse toOrderResponse(Order order);
 
     @Mapping(source = "productVariant.id", target = "productVariantId")
@@ -29,5 +31,7 @@ public interface OrderMapper {
 
     VoucherValidationResponse toVoucherValidationResponse(Voucher voucher);
 
+    @Mapping(source = "orderDetails", target = "items")
+    @Mapping(source = "totalPrice", target = "totalAmount")
     OrderResponse toOrderDTO(Order order);
 }

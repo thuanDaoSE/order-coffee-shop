@@ -25,7 +25,7 @@ public interface OrderService {
 
     Page<OrderResponse> getOrdersByUserId(String username, Pageable pageable);
 
-    List<OrderResponse> getAllOrders();
+    Page<OrderResponse> getAllOrders(org.springframework.security.core.userdetails.UserDetails userDetails, Pageable pageable);
 
     void cancelOrder(Long orderId, String username);
 

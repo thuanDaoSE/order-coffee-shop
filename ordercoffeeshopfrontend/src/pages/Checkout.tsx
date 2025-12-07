@@ -150,11 +150,11 @@ const Checkout = () => {
 
       const orderResponse = await createOrder(cartItems, couponCode, deliveryMethod, selectedAddressId || null, shippingStoreInfo.id);
       
-      if (orderResponse && orderResponse.id && orderResponse.totalPrice) {
+      if (orderResponse && orderResponse.id && orderResponse.totalAmount) {
           navigate('/payment', {
             state: {
               orderId: orderResponse.id,
-              totalAmount: orderResponse.totalPrice,
+              totalAmount: orderResponse.totalAmount,
               orderInfo: `Payment for order #${orderResponse.id}`,
               paymentMethod: paymentMethod,
             },

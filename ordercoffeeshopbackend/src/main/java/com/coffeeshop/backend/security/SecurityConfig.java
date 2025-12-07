@@ -140,9 +140,11 @@ public class SecurityConfig {
                 CorsConfiguration configuration = new CorsConfiguration();
                 // In production, replace "*" with specific origins
                 configuration.setAllowedOriginPatterns(Arrays.asList(
-                                frontendURL_dev, 
+                                frontendURL_dev,
                                 frontendURL_production,
-                                "https://7e1cea511162.ngrok-free.app" 
+                                "http://localhost:5173",
+                                "http://103.77.243.143",
+                                "https://7e1cea511162.ngrok-free.app"
                         ));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(Arrays.asList(

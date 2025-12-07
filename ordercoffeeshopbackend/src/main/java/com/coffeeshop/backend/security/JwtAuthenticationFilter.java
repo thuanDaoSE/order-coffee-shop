@@ -1,5 +1,6 @@
 package com.coffeeshop.backend.security;
 
+import com.coffeeshop.backend.service.TokenBlacklistService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

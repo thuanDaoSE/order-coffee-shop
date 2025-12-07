@@ -1,6 +1,6 @@
 -- 1. Thêm cột tọa độ
-ALTER TABLE public.stores ADD COLUMN latitude double precision;
-ALTER TABLE public.stores ADD COLUMN longitude double precision;
+ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS latitude double precision;
+ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS longitude double precision;
 
 -- 2. Cập nhật dữ liệu thật (Ví dụ tọa độ ở Hà Nội)
 -- Cầu Giấy

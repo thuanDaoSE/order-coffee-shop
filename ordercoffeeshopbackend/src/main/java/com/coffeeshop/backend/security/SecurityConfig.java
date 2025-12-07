@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,8 +42,7 @@ public class SecurityConfig {
         public SecurityFilterChain securityFilterChain(HttpSecurity http)
                         throws Exception {
                 http
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+
                                 // CSRF (Cross-Site Request Forgery) là một loại tấn công mà kẻ tấn công có thể
                                 // lừa người dùng thực hiện các hành động không mong muốn trên ứng dụng web.
                                 .csrf(csrf -> csrf

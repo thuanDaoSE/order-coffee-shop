@@ -40,10 +40,14 @@ public class SecurityConfig {
         public SecurityFilterChain securityFilterChain(HttpSecurity http)
                         throws Exception {
                 http
-                                // 1. Vô hiệu hóa CSRF: Với JWT stateless, CSRF thường không cần thiết.
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
                                 // CSRF (Cross-Site Request Forgery) là một loại tấn công mà kẻ tấn công có thể
                                 // lừa người dùng thực hiện các hành động không mong muốn trên ứng dụng web.
-                                .csrf(csrf -> csrf.disable())
+                                .csrf(csrf -> csrf
+                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+
 
                                 // 2. Cấu hình CORS (Cross-Origin Resource Sharing)
                                 // Cho phép truy cập từ các domain khác nhau nếu cần thiết (ví dụ: frontend chạy

@@ -2,7 +2,6 @@ package com.coffeeshop.backend.controller;
 
 import com.coffeeshop.backend.dto.auth.*;
 import com.coffeeshop.backend.service.AuthService;
-import com.coffeeshop.backend.service.TokenBlacklistService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final TokenBlacklistService tokenBlacklistService;
 
     @Value("${spring.security.jwt.expiration}")
     private int jwtExpiration;
@@ -101,16 +98,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response,
-                                       @CookieValue(name = "jwt", required = false) String accessToken,
-                                       @CookieValue(name = "refreshToken", required = false) String refreshToken) {
-        if (StringUtils.hasText(accessToken)) {
-            tokenBlacklistService.blacklistToken(accessToken);
-        }
-        if (StringUtils.hasText(refreshToken)) {
-            tokenBlacklistService.blacklistToken(refreshToken);
-        }
-
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("jwt", "");
         cookie.setHttpOnly(true);
         // cookie.setSecure(true);

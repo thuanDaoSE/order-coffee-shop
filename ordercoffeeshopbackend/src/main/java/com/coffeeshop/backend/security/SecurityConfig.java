@@ -15,8 +15,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,22 +40,8 @@ public class SecurityConfig {
         public SecurityFilterChain securityFilterChain(HttpSecurity http)
                         throws Exception {
                 http
-
-                                // CSRF (Cross-Site Request Forgery) là một loại tấn công mà kẻ tấn công có thể
-                                // lừa người dùng thực hiện các hành động không mong muốn trên ứng dụng web.
-                                .csrf(csrf -> csrf
-                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
-
-
-                                // 2. Cấu hình CORS (Cross-Origin Resource Sharing)
-                                // Cho phép truy cập từ các domain khác nhau nếu cần thiết (ví dụ: frontend chạy
-                                // trên domain khác backend).
+                                .csrf(csrf -> csrf.disable())
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                                // .cors(cors -> cors.disable())
-
-                                // 3. Định nghĩa các quy tắc ủy quyền (Authorization)
-                                // ...
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/api/r2/**",
                                                                 "/api/shipping/**",
@@ -65,7 +49,7 @@ public class SecurityConfig {
                                                                 "/api/v1/payment/callback", "/api/v1/location/**",
                                                                 "/api/v1/categories/**")
                                                 .permitAll()
-                                                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register")
+                                                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/logout")
                                                 .permitAll()
                                                 .requestMatchers("/api/v1/payment/status/**", "/api/v1/addresses/**")
                                                 .authenticated()
@@ -78,24 +62,11 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/orders/**")
                                                 .hasAnyRole("CUSTOMER", "ADMIN", "STAFF")
                                                 .anyRequest().authenticated())
-
-                                // 4. Cấu hình quản lý session
-                                // Với JWT, chúng ta muốn ứng dụng stateless, tức là không lưu trữ session trên
-                                // server.
-                                // SessionCreationPolicy.STATELESS đảm bảo mỗi request là độc lập.
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-                                // 5. Thêm bộ lọc JWT tùy chỉnh vào trước bộ lọc xác thực mặc định.
-                                // Bộ lọc JWT này sẽ kiểm tra token JWT trong mỗi request đến.
-                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Quan
-                                                                                                                       // trọng:
-                                                                                                                       // Chèn
-                                                                                                                       // JwtAuthenticationFilter
-                                                                                                                       // trước
-                                                                                                                       // UsernamePasswordAuthenticationFilter
-
-                return http.build(); // Xây dựng và trả về SecurityFilterChain
+                return http.build();
         }
 
         // =========================================================================

@@ -1,13 +1,5 @@
 import axios from 'axios';
 
-// 1. Hàm lấy Cookie (Giữ nguyên)
-function getCookie(name: string) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
-}
-
-// 2. Tạo instance (Giữ nguyên)
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
@@ -16,14 +8,6 @@ const api = axios.create({
   }
 });
 
-// 3. Request Interceptor: Tự động gắn CSRF Token vào mọi request (Giữ nguyên)
-api.interceptors.request.use(config => {
-  const csrfToken = getCookie('XSRF-TOKEN');
-  if (csrfToken) {
-    config.headers['X-XSRF-TOKEN'] = csrfToken;
-  }
-  return config;
-}, error => Promise.reject(error));
 
 // 4. Response Interceptor: Xử lý Refresh Token (Đã sửa lỗi 1 & 3)
 api.interceptors.response.use(

@@ -1,8 +1,22 @@
 import axios from 'axios';
 
+function getCookie(name: string) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift();
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ,
   withCredentials: true, // This is crucial for sending cookies
+});
+
+api.interceptors.request.use(config => {
+  const csrfToken = getCookie('XSRF-TOKEN');
+  if (csrfToken) {
+    config.headers['X-XSRF-TOKEN'] = csrfToken;
+  }
+  return config;
 });
 
 api.interceptors.response.use(
